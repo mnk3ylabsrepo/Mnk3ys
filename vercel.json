@@ -2,6 +2,7 @@
   "version": 2,
   "rewrites": [
     { "source": "/favicon.ico", "destination": "/api/favicon" },
+    { "source": "/favicon.svg", "destination": "/api/favicon.svg" },
     { "source": "/pairs", "destination": "/api/pairs" },
     { "source": "/pairs/", "destination": "/api/pairs" }
   ],

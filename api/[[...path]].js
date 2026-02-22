@@ -68,6 +68,15 @@ module.exports = (req, res) => {
   u = (u || '/').trim().replace(/\/+/g, '/').replace(/\/$/, '') || '/';
 
   if (u === '/favicon.ico') return res.status(204).end();
+  if (u === '/favicon.svg') {
+    try {
+      const body = fs.readFileSync(path.join(ROOT, 'favicon.svg'), 'utf8');
+      res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+      return res.status(200).send(body);
+    } catch (e) {
+      return res.status(404).end();
+    }
+  }
 
   if (u === '/pairs' || u === '/pairs/') {
     const pairsPath = path.join(ROOT, 'pairs.html');
