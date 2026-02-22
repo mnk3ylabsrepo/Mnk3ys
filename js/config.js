@@ -6,6 +6,11 @@
 window.MNK3YS_CONFIG = {
   // ——— Brand ———
   projectName: 'MNK3YLABS',
+  // ——— Embed (Open Graph / Twitter Cards) ———
+  siteUrl: 'https://mnk3ys.vercel.app',
+  siteTitle: 'MNK3YLABS - NFT & Token',
+  siteDescription: 'Make NFTs Ape Again. NFT collections & project token built on Solana.',
+  ogImageUrl: 'assets/logo.png',
   tagline: 'STRONGER TOGETHER',
   logoUrl: 'assets/logo.png',
 
