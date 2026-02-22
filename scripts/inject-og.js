@@ -6,10 +6,8 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.join(__dirname, '..');
-const siteUrl =
-  process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : (process.env.BASE_URL || 'https://mnk3ys.vercel.app').replace(/\/$/, '');
+// Prefer explicit SITE_URL (set in Vercel env) so embed image URL is always the production domain
+const siteUrl = (process.env.SITE_URL || process.env.BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) || 'https://mnk3ys.vercel.app').replace(/\/$/, '');
 
 ['index.html', 'pairs.html'].forEach((file) => {
   const filePath = path.join(root, file);
