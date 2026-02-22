@@ -180,9 +180,7 @@
     }
 
     function setPrizes() {
-      if (prizesCountEl) {
-        prizesCountEl.textContent = state.prizes.length ? 'Prizes (' + state.prizes.length + ')' : 'Prizes';
-      }
+      if (prizesCountEl) prizesCountEl.textContent = 'Prizes';
     }
 
     function setMessage(msg) {
