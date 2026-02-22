@@ -407,6 +407,14 @@
     function done(data) {
       setVerifyLoading(false);
       showHoldings(data || {});
+      if (isDiscordConnected()) {
+        fetch(window.location.origin + '/api/wallets/link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ wallet: wallet }),
+        }).catch(function () {});
+      }
       if (typeof onSuccess === 'function') onSuccess();
     }
     function fail(err) {
@@ -905,8 +913,8 @@
           return;
         }
         var rows = data.holders.map(function (h, i) {
-          var walletShort = h.wallet.length > 12 ? h.wallet.slice(0, 4) + '…' + h.wallet.slice(-4) : h.wallet;
-          var walletLink = 'https://solscan.io/account/' + encodeURIComponent(h.wallet);
+          var displayName = h.displayName || (h.wallet && h.wallet.length > 12 ? h.wallet.slice(0, 4) + '…' + h.wallet.slice(-4) : (h.wallet || '—'));
+          var walletLink = h.wallet ? 'https://solscan.io/account/' + encodeURIComponent(h.wallet) : null;
           var tokenBal = h.tokenBalance != null ? Number(h.tokenBalance) : null;
           var mnk3ysCount = Number(h.mnk3ysCount) || 0;
           var zmb3ysCount = Number(h.zmb3ysCount) || 0;
@@ -927,9 +935,12 @@
           else if (sort === 'zmb3ys') valueUsd = nftValueZmb3ys;
           else if (sort === 'nfts') valueUsd = nftValueUsd;
           var valueCell = valueUsd != null ? formatUsd(valueUsd) : '—';
+          var nameCell = walletLink
+            ? '<a href="' + escapeHtml(walletLink) + '" target="_blank" rel="noopener" class="holders-wallet">' + escapeHtml(displayName) + '</a>'
+            : '<span class="holders-wallet">' + escapeHtml(displayName) + '</span>';
           return '<tr>' +
             '<td>' + (i + 1) + '</td>' +
-            '<td><a href="' + escapeHtml(walletLink) + '" target="_blank" rel="noopener" class="holders-wallet">' + escapeHtml(walletShort) + '</a></td>' +
+            '<td>' + nameCell + '</td>' +
             '<td data-col="token">' + escapeHtml(h.tokenBalanceFormatted || '0') + '</td>' +
             '<td data-col="mnk3ys">' + (h.mnk3ysCount || 0) + '</td>' +
             '<td data-col="zmb3ys">' + (h.zmb3ysCount || 0) + '</td>' +

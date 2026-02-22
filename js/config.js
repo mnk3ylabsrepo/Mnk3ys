@@ -93,6 +93,14 @@ window.MNK3YS_CONFIG = {
   ],
   xSpacesTagline: 'Special guests,<br>crypto chat<br>and banging tunes!!!',
 
+  // ——— Pairs game (standalone page at /pairs) ———
+  pairs: {
+    turnsPerBuy: 5,
+    costBlunana: 100000,
+    gridCols: 6,
+    gridRows: 4,
+  },
+
   // ——— Team ———
   team: [
     { xProfileUrl: 'https://x.com/deano_sol', discordId: '890995564949434468', description: 'Founder & artist' },

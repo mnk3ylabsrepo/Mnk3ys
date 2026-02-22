@@ -107,7 +107,7 @@ body {
   background:
     url("../assets/hero-bg.png") center / cover no-repeat,
     radial-gradient(ellipse 80% 60% at 50% 100%, rgba(34, 85, 51, 0.2) 0%, transparent 50%),
-    linear-gradient(180deg, rgba(13, 14, 18, 0.6) 0%, rgba(13, 14, 18, 0.85) 100%);
+    linear-gradient(180deg, rgba(13, 14, 18, 0.72) 0%, rgba(13, 14, 18, 0.92) 100%);
   z-index: 0;
 }
 .hero-home__bg::after {
@@ -952,6 +952,19 @@ body {
 .btn--outline:hover:not(:disabled) {
   background: var(--accent-dim);
   border-color: var(--accent);
+}
+
+/* Pairs page: Connect wallet button — filled, white text */
+.pairs-page .pairs-header__right .btn--outline {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.pairs-page .pairs-header__right .btn--outline:hover:not(:disabled) {
+  background: var(--accent-hover);
+  color: #fff;
+  border-color: var(--accent-hover);
 }
 
 .holdings {

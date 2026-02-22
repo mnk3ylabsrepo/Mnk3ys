@@ -8,6 +8,7 @@
 require('dotenv').config();
 const path = require('path');
 const express = require('express');
+const db = require('./db');
 const cookieSession = require('cookie-session');
 const cookieParser = require('cookie-parser');
 const axios = require('axios');
@@ -64,6 +65,11 @@ app.use(express.static(path.join(__dirname)));
 // Avoid 404 for favicon (browsers request it automatically)
 app.get('/favicon.ico', function (req, res) {
   res.status(204).end();
+});
+
+// Pairs game: standalone page
+app.get('/pairs', function (req, res) {
+  res.sendFile(path.join(__dirname, 'pairs.html'));
 });
 
 // ——— Discord OAuth: start ———
@@ -136,6 +142,11 @@ app.get('/api/discord/callback', async function (req, res) {
       avatar: user.avatar,
       global_name: user.global_name || user.username,
     };
+    if (db.upsertUser) {
+      db.upsertUser(user.id, user.global_name || user.username, user.avatar).catch((e) =>
+        console.warn('DB upsert user:', e.message)
+      );
+    }
     res.setHeader('Cache-Control', 'no-store');
     return res.redirect(302, '/?discord=connected');
   } catch (err) {
@@ -162,6 +173,76 @@ app.post('/api/discord/logout', function (req, res) {
 app.get('/api/discord/logout', function (req, res) {
   delete req.session.discord;
   res.redirect('/');
+});
+
+// ——— Wallets: link / list ———
+app.post('/api/wallets/link', express.json(), async function (req, res) {
+  if (!req.session?.discord) return res.status(401).json({ error: 'Not logged in' });
+  const { wallet } = req.body;
+  if (!wallet || typeof wallet !== 'string') return res.status(400).json({ error: 'wallet required' });
+  const addr = wallet.trim();
+  if (addr.length < 32 || addr.length > 64) return res.status(400).json({ error: 'Invalid wallet address' });
+  if (!db.linkWallet) return res.status(503).json({ error: 'Database not configured' });
+  try {
+    await db.linkWallet(req.session.discord.id, req.session.discord.global_name || req.session.discord.username, addr);
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+  res.json({ ok: true });
+});
+
+app.get('/api/wallets', async function (req, res) {
+  if (!req.session?.discord) return res.status(401).json({ error: 'Not logged in' });
+  if (!db.getWalletsByDiscord) return res.json({ wallets: [] });
+  const wallets = await db.getWalletsByDiscord(req.session.discord.id);
+  res.json({ wallets });
+});
+
+// ——— Pairs: state / buy / play ———
+app.get('/api/pairs/state', async function (req, res) {
+  if (!req.session?.discord) return res.status(401).json({ error: 'Not logged in' });
+  if (!db.getPairsState) return res.json({ state: null });
+  const state = await db.getPairsState(req.session.discord.id);
+  res.json({ state });
+});
+
+app.post('/api/pairs/buy', express.json(), async function (req, res) {
+  if (!req.session?.discord) return res.status(401).json({ error: 'Not logged in' });
+  const { turns } = req.body || {};
+  const n = parseInt(turns, 10);
+  if (isNaN(n) || n < 1 || n > 100) return res.status(400).json({ error: 'turns must be 1–100' });
+  if (!db.getPairsState || !db.savePairsState) return res.status(503).json({ error: 'Database not configured' });
+  try {
+    let state = await db.getPairsState(req.session.discord.id);
+    if (!state) state = { turnsRemaining: 0, deck: [], flipped: [], matched: {}, prizesWon: [] };
+    state.turnsRemaining = (state.turnsRemaining || 0) + n;
+    await db.savePairsState(req.session.discord.id, state);
+    res.json({ ok: true, turnsRemaining: state.turnsRemaining });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/pairs/play', express.json(), async function (req, res) {
+  if (!req.session?.discord) return res.status(401).json({ error: 'Not logged in' });
+  const { deck, flipped, matched, turnsRemaining, prizesWon } = req.body || {};
+  if (!db.savePairsState) return res.status(503).json({ error: 'Database not configured' });
+  if (!Array.isArray(deck) || !Array.isArray(flipped) || typeof matched !== 'object') {
+    return res.status(400).json({ error: 'deck, flipped, matched required' });
+  }
+  try {
+    const state = {
+      deck,
+      flipped: Array.isArray(flipped) ? flipped : [],
+      matched: matched || {},
+      turnsRemaining: parseInt(turnsRemaining, 10) || 0,
+      prizesWon: Array.isArray(prizesWon) ? prizesWon : [],
+    };
+    await db.savePairsState(req.session.discord.id, state);
+    res.json({ ok: true });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
 });
 
 // ——— Discord user by ID (for team section; requires bot token) ———
@@ -684,6 +765,54 @@ app.get('/api/holders', async function (req, res) {
       totalScore: (h.tokenBalance || 0) / 1e6 + totalNfts * 10,
     };
   });
+
+  // Aggregate by Discord when DB is available
+  if (db.getAllWalletToDiscord && db.getDiscordUsernames) {
+    const walletToDiscord = await db.getAllWalletToDiscord();
+    const discordIds = [...new Set(walletToDiscord.values())];
+    const discordNames = await db.getDiscordUsernames(discordIds);
+    const byDiscord = new Map(); // discordId -> merged holder
+    for (const h of list) {
+      const dId = walletToDiscord.get(h.wallet.toLowerCase());
+      const key = dId || h.wallet;
+      const existing = byDiscord.get(key);
+      if (existing) {
+        existing.tokenBalance += h.tokenBalance;
+        existing.tokenBalanceFormatted = formatTokenAmount(existing.tokenBalance);
+        existing.mnk3ysCount += h.mnk3ysCount || 0;
+        existing.zmb3ysCount += h.zmb3ysCount || 0;
+        existing.totalNfts = existing.mnk3ysCount + existing.zmb3ysCount;
+        existing.totalScore = existing.tokenBalance / 1e6 + existing.totalNfts * 10;
+      } else {
+        const totalNfts = (h.mnk3ysCount || 0) + (h.zmb3ysCount || 0);
+        byDiscord.set(key, {
+          displayName: dId ? (discordNames.get(dId) || 'Discord user') : h.wallet.slice(0, 4) + '…' + h.wallet.slice(-4),
+          wallet: dId ? null : h.wallet,
+          discordId: dId || null,
+          tokenBalance: h.tokenBalance,
+          tokenBalanceFormatted: h.tokenBalanceFormatted,
+          mnk3ysCount: h.mnk3ysCount || 0,
+          zmb3ysCount: h.zmb3ysCount || 0,
+          totalNfts,
+          totalScore: (h.tokenBalance || 0) / 1e6 + totalNfts * 10,
+        });
+      }
+    }
+    list = Array.from(byDiscord.values()).map(function (o) {
+      const { displayName, wallet, discordId, ...rest } = o;
+      return { displayName, wallet, discordId, ...rest };
+    });
+  } else {
+    list = list.map(function (h) {
+      const totalNfts = (h.mnk3ysCount || 0) + (h.zmb3ysCount || 0);
+      return {
+        displayName: h.wallet.slice(0, 4) + '…' + h.wallet.slice(-4),
+        wallet: h.wallet,
+        discordId: null,
+        ...h,
+      };
+    });
+  }
 
   if (validSort === 'token') list.sort((a, b) => b.tokenBalance - a.tokenBalance);
   else if (validSort === 'mnk3ys') list.sort((a, b) => b.mnk3ysCount - a.mnk3ysCount);
