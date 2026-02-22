@@ -413,24 +413,29 @@
     var addr = walletAddress != null ? String(walletAddress).trim() : '';
     if (!addr || !isDiscordConnected()) return Promise.resolve();
     if (linkedWalletThisSession === addr) return Promise.resolve();
-    var url = window.location.origin + '/api/wallets/link';
-    var attempt = function (delay) {
-      return new Promise(function (resolve) { setTimeout(resolve, delay || 0); }).then(function () {
-        return fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ wallet: addr }),
-        });
-      }).then(function (r) {
-        if (r.ok) {
-          linkedWalletThisSession = addr;
+    var base = window.location.origin + '/api/wallets/link';
+    function doPost() {
+      return fetch(base, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ wallet: addr }),
+      });
+    }
+    function doGet() {
+      return fetch(base + '?wallet=' + encodeURIComponent(addr), { method: 'GET', credentials: 'include' });
+    }
+    function attempt(delay) {
+      return new Promise(function (r) { setTimeout(r, delay || 0); })
+        .then(doPost)
+        .then(function (r) {
+          if (r.ok) { linkedWalletThisSession = addr; return r; }
+          if (r.status === 404) return doGet().then(function (g) { if (g.ok) linkedWalletThisSession = addr; return g; });
+          if (r.status === 401 && delay !== 1200) return attempt(delay === 0 ? 400 : 1200);
           return r;
-        }
-        if (r.status === 401 && delay !== 1200) return attempt(delay === 0 ? 400 : 1200);
-        return r;
-      }).catch(function () {});
-    };
+        })
+        .catch(function () {});
+    }
     return attempt(0);
   }
 
