@@ -176,6 +176,10 @@ app.get('/api/discord/logout', function (req, res) {
 });
 
 // ——— Wallets: link / list ———
+app.get('/api/wallets/link', function (req, res) {
+  res.setHeader('Allow', 'POST');
+  res.status(405).json({ error: 'Method Not Allowed. Use POST to link a wallet.' });
+});
 app.post('/api/wallets/link', express.json(), async function (req, res) {
   if (!req.session?.discord) return res.status(401).json({ error: 'Not logged in' });
   const { wallet } = req.body;

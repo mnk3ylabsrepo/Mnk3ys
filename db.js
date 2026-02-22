@@ -8,8 +8,12 @@ let pool = null;
 
 function getPool() {
   if (!pool) {
-    const url = process.env.DATABASE_URL;
+    let url = process.env.DATABASE_URL;
     if (!url) return null;
+    // Avoid pg SSL warning: prefer verify-full (or leave as-is if already set)
+    if (url.includes('sslmode=require') || url.includes('sslmode=prefer') || url.includes('sslmode=verify-ca')) {
+      url = url.replace(/sslmode=(require|prefer|verify-ca)/i, 'sslmode=verify-full');
+    }
     pool = new Pool({ connectionString: url, ssl: { rejectUnauthorized: true } });
   }
   return pool;
