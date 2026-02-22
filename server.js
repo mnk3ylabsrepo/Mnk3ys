@@ -176,15 +176,12 @@ app.get('/api/discord/logout', function (req, res) {
 });
 
 // ——— Wallets: link / list ———
-app.get('/api/wallets/link', function (req, res) {
-  res.setHeader('Allow', 'POST');
-  res.status(405).json({ error: 'Method Not Allowed. Use POST to link a wallet.' });
-});
-app.post('/api/wallets/link', express.json(), async function (req, res) {
+async function handleWalletsLink(req, res) {
   if (!req.session?.discord) return res.status(401).json({ error: 'Not logged in' });
-  const { wallet } = req.body;
-  if (!wallet || typeof wallet !== 'string') return res.status(400).json({ error: 'wallet required' });
-  const addr = wallet.trim();
+  let wallet = req.method === 'GET' ? (req.query && req.query.wallet) : (req.body && req.body.wallet);
+  if (wallet && typeof wallet !== 'string') wallet = null;
+  if (!wallet || !wallet.trim()) return res.status(400).json({ error: 'wallet required' });
+  const addr = String(wallet).trim();
   if (addr.length < 32 || addr.length > 64) return res.status(400).json({ error: 'Invalid wallet address' });
   if (!db.linkWallet) return res.status(503).json({ error: 'Database not configured' });
   try {
@@ -193,7 +190,9 @@ app.post('/api/wallets/link', express.json(), async function (req, res) {
     return res.status(500).json({ error: e.message });
   }
   res.json({ ok: true });
-});
+}
+app.get('/api/wallets/link', handleWalletsLink);
+app.post('/api/wallets/link', express.json(), handleWalletsLink);
 
 app.get('/api/wallets', async function (req, res) {
   if (!req.session?.discord) return res.status(401).json({ error: 'Not logged in' });

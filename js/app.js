@@ -410,18 +410,28 @@
 
   var linkedWalletThisSession = null;
   function linkWalletToDiscord(walletAddress) {
-    if (!walletAddress || !isDiscordConnected()) return Promise.resolve();
-    if (linkedWalletThisSession === walletAddress) return Promise.resolve();
+    var addr = walletAddress != null ? String(walletAddress).trim() : '';
+    if (!addr || !isDiscordConnected()) return Promise.resolve();
+    if (linkedWalletThisSession === addr) return Promise.resolve();
     var url = window.location.origin + '/api/wallets/link';
-    return fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ wallet: walletAddress }),
-    }).then(function (r) {
-      if (r.ok) linkedWalletThisSession = walletAddress;
-      return r;
-    }).catch(function () {});
+    var attempt = function (delay) {
+      return new Promise(function (resolve) { setTimeout(resolve, delay || 0); }).then(function () {
+        return fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ wallet: addr }),
+        });
+      }).then(function (r) {
+        if (r.ok) {
+          linkedWalletThisSession = addr;
+          return r;
+        }
+        if (r.status === 401 && delay !== 1200) return attempt(delay === 0 ? 400 : 1200);
+        return r;
+      }).catch(function () {});
+    };
+    return attempt(0);
   }
 
   function doVerify(onSuccess) {
@@ -622,7 +632,7 @@
     syncVerifyModalState();
     if (connected && typeof getWalletPublicKey === 'function') {
       var w = getWalletPublicKey();
-      if (w && typeof linkWalletToDiscord === 'function') setTimeout(function () { linkWalletToDiscord(w); }, 100);
+      if (w && typeof linkWalletToDiscord === 'function') setTimeout(function () { linkWalletToDiscord(w); }, 400);
     }
   }
 
