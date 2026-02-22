@@ -254,6 +254,10 @@
       .then(function () {
         setWalletConnected(true);
         hideHoldings();
+        if (typeof linkWalletToDiscord === 'function') {
+          var w = getWalletPublicKey();
+          if (w) linkWalletToDiscord(w);
+        }
       })
       .catch(function (err) {
         if (err.code !== 4001) console.warn('Wallet connect error', err);
@@ -318,8 +322,12 @@
     getDetectedWallets().forEach(function (w) {
       if (w.provider && typeof w.provider.on === 'function') {
         w.provider.on('accountChanged', function (pk) {
-          if (pk) setWalletConnected(true);
-          else setWalletConnected(false);
+          if (pk) {
+            setWalletConnected(true);
+            if (typeof linkWalletToDiscord === 'function') linkWalletToDiscord(getWalletPublicKey());
+          } else {
+            setWalletConnected(false);
+          }
           hideHoldings();
         });
       }
@@ -400,6 +408,22 @@
     return document.body.classList.contains('discord-connected');
   }
 
+  var linkedWalletThisSession = null;
+  function linkWalletToDiscord(walletAddress) {
+    if (!walletAddress || !isDiscordConnected()) return Promise.resolve();
+    if (linkedWalletThisSession === walletAddress) return Promise.resolve();
+    var url = window.location.origin + '/api/wallets/link';
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ wallet: walletAddress }),
+    }).then(function (r) {
+      if (r.ok) linkedWalletThisSession = walletAddress;
+      return r;
+    }).catch(function () {});
+  }
+
   function doVerify(onSuccess) {
     var wallet = getWalletPublicKey();
     if (!wallet) return;
@@ -407,14 +431,7 @@
     function done(data) {
       setVerifyLoading(false);
       showHoldings(data || {});
-      if (isDiscordConnected()) {
-        fetch(window.location.origin + '/api/wallets/link', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ wallet: wallet }),
-        }).catch(function () {});
-      }
+      linkWalletToDiscord(wallet);
       if (typeof onSuccess === 'function') onSuccess();
     }
     function fail(err) {
@@ -603,6 +620,10 @@
       }
     }
     syncVerifyModalState();
+    if (connected && typeof getWalletPublicKey === 'function') {
+      var w = getWalletPublicKey();
+      if (w && typeof linkWalletToDiscord === 'function') setTimeout(function () { linkWalletToDiscord(w); }, 100);
+    }
   }
 
   function fetchDiscordMe() {
