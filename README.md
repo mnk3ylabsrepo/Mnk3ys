@@ -9,7 +9,7 @@ npm install
 cp .env.example .env
 ```
 
-Edit **`.env`**: set `BASE_URL`, `SESSION_SECRET`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`. Optionally add `DISCORD_BOT_TOKEN` (for Team section avatars), `HELIUS_API_KEY`, `BLUNANA_TOKEN_MINT`, collection mints, `BIRDEYE_API_KEY` (for token chart).
+Edit **`.env`**: set `BASE_URL`, `SESSION_SECRET`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`. Optionally add `DISCORD_BOT_TOKEN` (for Team section avatars), `HELIUS_API_KEY`, `BLUNANA_TOKEN_MINT`, collection mints, `BIRDEYE_API_KEY` (for token chart). For **Discord logins saved to DB** and **holders table showing Discord names** (with multiple wallets per user merged into one row), set `DATABASE_URL` and run the migration once (see **Database** below).
 
 ```bash
 npm start
@@ -24,11 +24,22 @@ Open `http://localhost:3000`.
 3. Copy **Application ID** → `DISCORD_CLIENT_ID`, and **Client Secret** → `DISCORD_CLIENT_SECRET` in `.env`.
 4. For **Team** section avatars: same app → **Bot** → create/reset token → `DISCORD_BOT_TOKEN` in `.env`.
 
+## Database (Neon PostgreSQL)
+
+Used for: saving Discord logins, linking wallets to Discord (via Verify), Pairs game state, and the **holders table** (Discord names for linked holders, multiple wallets per Discord user merged into one row).
+
+1. Create a database at [Neon](https://neon.tech) (or any PostgreSQL).
+2. In **`.env`** set `DATABASE_URL=postgresql://user:pass@host/db?sslmode=require`.
+3. Run the migration once: `npm run db:migrate` (creates `users`, `wallets`, `pairs_state`, `pairs_buys`).
+4. In production (e.g. Vercel), add the same `DATABASE_URL` to environment variables. Run `npm run db:migrate` locally against that URL once, or use Neon’s SQL editor to run the schema from `scripts/db-migrate.js`.
+
+After this, Discord logins are stored in `users`, and when a user **Verify**s (Discord + wallet), the wallet is linked in `wallets`. The holders table then shows Discord names for linked holders and aggregates all wallets with the same Discord ID into one entry.
+
 ## Deploy to Vercel
 
 1. Push this repo to GitHub and import it in [Vercel](https://vercel.com) as a new project.
 2. **Framework**: Other. **Root Directory**: (leave default).
-3. **Environment Variables**: add the same as `.env` (`BASE_URL` = your Vercel URL, `SESSION_SECRET`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, and optionally `HELIUS_API_KEY`, `BLUNANA_TOKEN_MINT`, `DISCORD_BOT_TOKEN`, `BIRDEYE_API_KEY`, collection mints).
+3. **Environment Variables**: add the same as `.env` (`BASE_URL` = your Vercel URL, `SESSION_SECRET`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, and optionally `HELIUS_API_KEY`, `BLUNANA_TOKEN_MINT`, `DISCORD_BOT_TOKEN`, `BIRDEYE_API_KEY`, collection mints, `DATABASE_URL` for Discord/holders and Pairs).
 4. In Discord, add redirect: `https://<your-vercel-domain>/api/discord/callback`.
 5. Deploy.
 

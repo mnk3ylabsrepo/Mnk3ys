@@ -913,7 +913,8 @@
           return;
         }
         var rows = data.holders.map(function (h, i) {
-          var displayName = h.displayName || (h.wallet && h.wallet.length > 12 ? h.wallet.slice(0, 4) + '…' + h.wallet.slice(-4) : (h.wallet || '—'));
+          var baseName = h.displayName || (h.wallet && h.wallet.length > 12 ? h.wallet.slice(0, 4) + '…' + h.wallet.slice(-4) : (h.wallet || '—'));
+          var displayName = baseName + (h.walletCount > 1 ? ' (' + h.walletCount + ' wallets)' : '');
           var walletLink = h.wallet ? 'https://solscan.io/account/' + encodeURIComponent(h.wallet) : null;
           var tokenBal = h.tokenBalance != null ? Number(h.tokenBalance) : null;
           var mnk3ysCount = Number(h.mnk3ysCount) || 0;

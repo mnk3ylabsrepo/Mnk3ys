@@ -766,12 +766,12 @@ app.get('/api/holders', async function (req, res) {
     };
   });
 
-  // Aggregate by Discord when DB is available
+  // Aggregate by Discord when DB is available: one row per Discord user, show Discord name
   if (db.getAllWalletToDiscord && db.getDiscordUsernames) {
     const walletToDiscord = await db.getAllWalletToDiscord();
     const discordIds = [...new Set(walletToDiscord.values())];
     const discordNames = await db.getDiscordUsernames(discordIds);
-    const byDiscord = new Map(); // discordId -> merged holder
+    const byDiscord = new Map(); // key (discordId or wallet) -> merged holder
     for (const h of list) {
       const dId = walletToDiscord.get(h.wallet.toLowerCase());
       const key = dId || h.wallet;
@@ -783,12 +783,14 @@ app.get('/api/holders', async function (req, res) {
         existing.zmb3ysCount += h.zmb3ysCount || 0;
         existing.totalNfts = existing.mnk3ysCount + existing.zmb3ysCount;
         existing.totalScore = existing.tokenBalance / 1e6 + existing.totalNfts * 10;
+        existing.walletCount = (existing.walletCount || 1) + 1;
       } else {
         const totalNfts = (h.mnk3ysCount || 0) + (h.zmb3ysCount || 0);
         byDiscord.set(key, {
           displayName: dId ? (discordNames.get(dId) || 'Discord user') : h.wallet.slice(0, 4) + '…' + h.wallet.slice(-4),
           wallet: dId ? null : h.wallet,
           discordId: dId || null,
+          walletCount: 1,
           tokenBalance: h.tokenBalance,
           tokenBalanceFormatted: h.tokenBalanceFormatted,
           mnk3ysCount: h.mnk3ysCount || 0,
@@ -799,8 +801,8 @@ app.get('/api/holders', async function (req, res) {
       }
     }
     list = Array.from(byDiscord.values()).map(function (o) {
-      const { displayName, wallet, discordId, ...rest } = o;
-      return { displayName, wallet, discordId, ...rest };
+      const { displayName, wallet, discordId, walletCount, ...rest } = o;
+      return { displayName, wallet, discordId, walletCount: walletCount || 1, ...rest };
     });
   } else {
     list = list.map(function (h) {
@@ -809,6 +811,7 @@ app.get('/api/holders', async function (req, res) {
         displayName: h.wallet.slice(0, 4) + '…' + h.wallet.slice(-4),
         wallet: h.wallet,
         discordId: null,
+        walletCount: 1,
         ...h,
       };
     });
