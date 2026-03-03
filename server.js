@@ -577,23 +577,28 @@ app.get('/api/collections', async function (req, res) {
       console.warn('ME stats failed for', col.slug, e.message);
     }
 
-    // Magic Eden: collection metadata (name, description, image) if available
+    // Magic Eden: collection metadata (name, description, image, supply) if available
     try {
       const metaRes = await axios.get(`${ME_BASE}/collections/${col.slug}`, {
         timeout: 10000,
         validateStatus: () => true,
       });
       if (metaRes.status === 200 && metaRes.data) {
-        const m = metaRes.data;
-        if (m.name) out.name = m.name;
-        if (m.description) out.description = m.description;
-        const meImage = m.image || m.imageURI || m.image_url || m.collectionImage || m.banner_image || m.banner || m.logo || m.thumbnail || (m.images && (m.images[0] || m.images.banner || m.images.logo));
-        if (meImage) {
-          const imgStr = typeof meImage === 'string' ? meImage : (meImage?.url || meImage?.href || null);
-          out.image = imgStr && typeof imgStr === 'string' ? imgStr.trim() : null;
+        const raw = metaRes.data;
+        const m = Array.isArray(raw) ? raw[0] : (raw?.data ?? raw);
+        if (m && typeof m === 'object') {
+          if (m.name) out.name = m.name;
+          if (m.description) out.description = m.description;
+          const meImage = m.image || m.imageURI || m.image_url || m.collectionImage || m.banner_image || m.banner || m.logo || m.thumbnail || m.icon
+            || (m.images && (m.images[0] || m.images.banner || m.images.logo || (Array.isArray(m.images) ? m.images[0] : null)));
+          if (meImage) {
+            const imgStr = typeof meImage === 'string' ? meImage : (meImage?.url || meImage?.href || meImage?.link || null);
+            if (imgStr && typeof imgStr === 'string') out.image = imgStr.trim();
+          }
+          if (m.animation_url || m.animationUrl) out.animationUrl = m.animation_url || m.animationUrl;
+          if (m.totalSupply != null) out.supply = m.totalSupply;
+          if (m.supply != null && out.supply == null) out.supply = m.supply;
         }
-        if (m.animation_url || m.animationUrl) out.animationUrl = m.animation_url || m.animationUrl;
-        if (m.totalSupply != null) out.supply = m.totalSupply;
       }
     } catch (e) {
       // ignore
@@ -632,12 +637,12 @@ app.get('/api/collections', async function (req, res) {
           const items = data?.items || [];
           totalItems += items.length;
           if (page === 1 && items.length > 0 && !out.image) {
-            const meta = items[0]?.grouping?.find((g) => g.group_key === 'collection')?.collection_metadata;
+            const first = items[0];
+            const meta = first?.grouping?.find((g) => g.group_key === 'collection')?.collection_metadata;
             if (meta?.image) out.image = meta.image;
             if (!out.image) {
-              const first = items[0];
               const imgUri = first?.content?.files?.[0]?.uri || first?.content?.files?.[0]?.cdn_uri
-                || first?.content?.metadata?.image;
+                || first?.content?.links?.image || first?.content?.metadata?.image;
               if (imgUri) out.image = imgUri;
             }
           }
@@ -646,6 +651,13 @@ app.get('/api/collections', async function (req, res) {
           if (page > 50) break;
         }
         if (totalItems > 0) out.supply = totalItems;
+        // Blunanas: if still no supply, get from ME holder_stats (totalSupply)
+        if (col.slug === 'blunanas' && out.supply == null) {
+          try {
+            const meHolderRes = await axios.get(`${ME_BASE}/collections/blunanas/holder_stats`, { timeout: 8000, validateStatus: () => true });
+            if (meHolderRes.status === 200 && meHolderRes.data?.totalSupply != null) out.supply = meHolderRes.data.totalSupply;
+          } catch (e2) { /* ignore */ }
+        }
         // Blunanas cNFTs: if collection group returned 0, try groupKey 'tree' with same mint (tree id)
         if (col.slug === 'blunanas' && totalItems === 0 && col.collectionMint) {
           try {
@@ -852,6 +864,34 @@ app.get('/api/holders', async function (req, res) {
           }
         }
       }
+    }
+  }
+
+  // Blunanas: if Helius returned 0 holders, use Magic Eden holder_stats (topHolders: { owner, tokens })
+  const blunanasKey = 'blunanasCount';
+  const anyBlunanasFromHelius = Array.from(holderMap.values()).some((h) => (h[blunanasKey] || 0) > 0);
+  if (!anyBlunanasFromHelius) {
+    try {
+      const meHolderRes = await axios.get(`${ME_BASE}/collections/blunanas/holder_stats`, {
+        timeout: 12000,
+        validateStatus: () => true,
+      });
+      if (meHolderRes.status === 200 && meHolderRes.data) {
+        const data = meHolderRes.data?.data ?? meHolderRes.data;
+        const holdersList = data?.topHolders ?? data?.holders ?? (Array.isArray(data) ? data : null);
+        if (holdersList && Array.isArray(holdersList)) {
+          for (const row of holdersList) {
+            const owner = row.owner ?? row.wallet ?? row.address ?? row.holder;
+            const count = typeof row.tokens === 'number' ? row.tokens : (typeof row.count === 'number' ? row.count : (typeof row.balance === 'number' ? row.balance : 1));
+            if (owner) {
+              const h = getOrCreate(owner);
+              h[blunanasKey] = (h[blunanasKey] || 0) + count;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('ME holder_stats failed for blunanas', e.message);
     }
   }
 

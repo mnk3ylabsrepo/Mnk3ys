@@ -22,6 +22,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/styles.css?v=3" />
+  <link rel="preload" href="/assets/logo.png" as="image" />
+  <link rel="preload" href="/assets/hero-bg.png" as="image" />
 </head>
 <body>
   <!-- Sticky social: white Discord + X icons on transparent -->
@@ -37,12 +39,12 @@
   <!-- Desktop/Tablet: side dashboard -->
   <aside class="dashboard dashboard--side" id="dashboard-side" aria-label="Dashboard">
     <div class="dashboard__brand">
-      <span class="dashboard__logo-wrap" aria-hidden="true"><img src="assets/logo.png" alt="" class="dashboard__logo-img" width="36" height="36" /></span>
+      <span class="dashboard__logo-wrap" aria-hidden="true"><img src="/assets/logo.png" alt="" class="dashboard__logo-img" width="36" height="36" /></span>
       <span class="dashboard__title"></span>
     </div>
     <nav class="dashboard__nav" aria-label="Main">
       <a href="#home" class="dashboard__link dashboard__link--active" data-section="home"><span class="dashboard__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Home</a>
-      <a href="#collections" class="dashboard__link" data-section="collections"><span class="dashboard__icon dashboard__icon--logo" aria-hidden="true"><img src="assets/logo.png" alt="" class="dashboard__icon-img" width="20" height="20"></span>Collections</a>
+      <a href="#collections" class="dashboard__link" data-section="collections"><span class="dashboard__icon dashboard__icon--logo" aria-hidden="true"><img src="/assets/logo.png" alt="" class="dashboard__icon-img" width="20" height="20"></span>Collections</a>
       <a href="#blunana" class="dashboard__link" data-section="blunana"><img src="" alt="" class="dashboard__thumb" width="24" height="24"><span data-config="token-label">Token</span></a>
       <a href="#holders" class="dashboard__link" data-section="holders"><span class="dashboard__icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="currentColor"><path d="M28 27.7H4v-28a4 4 0 0 0-4 4v24a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4Z"/><path d="M8 24V12h4v12H8zm8 0V8h4v16h-4zm8 0V4h4v20h-4z"/></svg></span>Holders</a>
       <a href="#utilities" class="dashboard__link" data-section="utilities"><span class="dashboard__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5,20.5h0a2,2,0,0,1-2.83,0l-5.21-5.21A6.59,6.59,0,0,1,8,15.84a6.5,6.5,0,0,1-5-5.76,6.42,6.42,0,0,1,.65-3.47L8,11l2.5-.5L11,8,6.61,3.68A6.42,6.42,0,0,1,10.08,3a6.5,6.5,0,0,1,5.76,5,6.59,6.59,0,0,1-.55,4.42l5.21,5.21A2,2,0,0,1,20.5,20.5Z"/></svg></span>Utilities</a>
@@ -102,7 +104,7 @@
       <span class="dashboard-bottom__label">Home</span>
     </a>
     <a href="#collections" class="dashboard-bottom__item" data-section="collections" aria-label="Collections">
-      <span class="dashboard-bottom__icon dashboard-bottom__icon--logo"><img src="assets/logo.png" alt="" class="dashboard-bottom__icon-img" width="22" height="22"></span>
+      <span class="dashboard-bottom__icon dashboard-bottom__icon--logo"><img src="/assets/logo.png" alt="" class="dashboard-bottom__icon-img" width="22" height="22"></span>
       <span class="dashboard-bottom__label">Collections</span>
     </a>
     <a href="#blunana" class="dashboard-bottom__item" data-section="blunana" aria-label="Token">
@@ -284,9 +286,9 @@
           </div>
           <p class="card__text" id="tokenomics-summary-text">Project token. Verify holdings in the dashboard.</p>
           <div class="tokenomics__actions">
-            <a href="#" class="btn btn--outline tokenomics__btn" id="tokenomics-dextools-link" target="_blank" rel="noopener"><img src="assets/dextools-logo.svg" alt="" class="tokenomics__btn-icon"> DEXTools →</a>
-            <a href="#" class="btn btn--outline tokenomics__btn" id="tokenomics-birdeye-link" target="_blank" rel="noopener"><img src="assets/birdeye-logo.png" alt="" class="tokenomics__btn-icon"> Birdeye →</a>
-            <a href="#" class="btn btn--outline tokenomics__btn" id="tokenomics-solscan-link" target="_blank" rel="noopener"><img src="assets/solscan-logo.svg" alt="" class="tokenomics__btn-icon"> Solscan →</a>
+            <a href="#" class="btn btn--outline tokenomics__btn" id="tokenomics-dextools-link" target="_blank" rel="noopener"><img src="/assets/dextools-logo.svg" alt="" class="tokenomics__btn-icon"> DEXTools →</a>
+            <a href="#" class="btn btn--outline tokenomics__btn" id="tokenomics-birdeye-link" target="_blank" rel="noopener"><img src="/assets/birdeye-logo.png" alt="" class="tokenomics__btn-icon"> Birdeye →</a>
+            <a href="#" class="btn btn--outline tokenomics__btn" id="tokenomics-solscan-link" target="_blank" rel="noopener"><img src="/assets/solscan-logo.svg" alt="" class="tokenomics__btn-icon"> Solscan →</a>
           </div>
         </div>
       </div>
@@ -387,7 +389,7 @@
           <h2 class="section__title">X spaces</h2>
           <p class="x-spaces__lead" id="x-spaces-lead">Tune in to our weekly X space...</p>
         </div>
-        <img src="assets/jungle-juice-banner.png" alt="" class="x-spaces__card-img" loading="lazy" aria-hidden="true" />
+        <img src="/assets/jungle-juice-banner.png" alt="" class="x-spaces__card-img" loading="lazy" aria-hidden="true" />
         <div class="x-spaces__bottom">
           <p class="x-spaces__tagline" id="x-spaces-tagline">"Special guests, crypto chat and banging tunes!!!"</p>
           <p class="x-spaces__time" id="x-spaces-time">Tuesdays @ 2pm est</p>
@@ -417,7 +419,7 @@
     <footer class="footer">
       <div class="container">
         <p class="footer__copy">
-          <img src="assets/logo.png" alt="" class="footer__logo" width="24" height="24" aria-hidden="true" />
+          <img src="/assets/logo.png" alt="" class="footer__logo" width="24" height="24" aria-hidden="true" />
           <span id="footer-copy-text">Project name</span>
         </p>
         <nav class="footer__links" aria-label="Social">
