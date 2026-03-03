@@ -531,6 +531,39 @@ app.get('/api/verify', async function (req, res) {
 
 // ——— Collections (Magic Eden stats + optional Helius DAS) ———
 app.get('/api/collections', async function (req, res) {
+  // Pre-fetch Blunanas from ME so we don't hit rate limit after mnk3ys/zmb3ys (same as other collections: ME then Helius)
+  const blunanasCol = COLLECTIONS.find((c) => c.slug === 'blunanas');
+  let blunanasMeMeta = null;
+  let blunanasMeHolderStats = null;
+  let blunanasHeliusFirstPage = null;
+  if (blunanasCol) {
+    const [metaRes, holderRes, heliusRes] = await Promise.all([
+      axios.get(`${ME_BASE}/collections/blunanas`, { timeout: 10000, validateStatus: () => true }),
+      axios.get(`${ME_BASE}/collections/blunanas/holder_stats`, { timeout: 8000, validateStatus: () => true }),
+      HELIUS_API_KEY && blunanasCol.collectionMint
+        ? axios.post(
+            `${HELIUS_RPC}/?api-key=${HELIUS_API_KEY}`,
+            {
+              jsonrpc: '2.0',
+              id: '1',
+              method: 'getAssetsByGroup',
+              params: {
+                groupKey: 'collection',
+                groupValue: blunanasCol.collectionMint,
+                page: 1,
+                limit: 1000,
+                options: { showUnverifiedCollections: true, showCollectionMetadata: true },
+              },
+            },
+            { timeout: 15000, validateStatus: () => true }
+          )
+        : Promise.resolve(null),
+    ]);
+    if (metaRes?.status === 200 && metaRes.data) blunanasMeMeta = metaRes.data;
+    if (holderRes?.status === 200 && holderRes.data) blunanasMeHolderStats = holderRes.data;
+    if (heliusRes?.data?.result) blunanasHeliusFirstPage = heliusRes.data.result;
+  }
+
   const results = [];
   for (const col of COLLECTIONS) {
     const out = {
@@ -549,6 +582,38 @@ app.get('/api/collections', async function (req, res) {
       avgPrice24hrSol: null,
       marketplaceUrl: `https://magiceden.io/marketplace/${col.slug}`,
     };
+
+    // Blunanas: apply pre-fetched ME metadata and holder_stats (same source as other collections)
+    if (col.slug === 'blunanas' && (blunanasMeMeta || blunanasMeHolderStats || blunanasHeliusFirstPage)) {
+      const m = blunanasMeMeta;
+      if (m) {
+        const raw = m;
+        const meta = Array.isArray(raw) ? raw[0] : (raw?.data ?? raw);
+        if (meta && typeof meta === 'object') {
+          if (meta.name) out.name = meta.name;
+          if (meta.description) out.description = meta.description;
+          const meImage = meta.image || meta.imageURI || meta.image_url || meta.collectionImage || meta.banner_image || meta.banner || meta.logo || meta.thumbnail || meta.icon
+            || (meta.images && (meta.images[0] || meta.images?.banner || meta.images?.logo || (Array.isArray(meta.images) ? meta.images[0] : null)));
+          if (meImage) {
+            const imgStr = typeof meImage === 'string' ? meImage : (meImage?.url || meImage?.href || meImage?.link || null);
+            if (imgStr && typeof imgStr === 'string') out.image = imgStr.trim();
+          }
+          if (meta.animation_url || meta.animationUrl) out.animationUrl = meta.animation_url || meta.animationUrl;
+          if (meta.totalSupply != null) out.supply = meta.totalSupply;
+          if (meta.supply != null && out.supply == null) out.supply = meta.supply;
+        }
+      }
+      if (blunanasMeHolderStats && out.supply == null && blunanasMeHolderStats.totalSupply != null) out.supply = blunanasMeHolderStats.totalSupply;
+      const items = blunanasHeliusFirstPage?.items || [];
+      if (items.length > 0) {
+        if (!out.image) {
+          const first = items[0];
+          const imgUri = first?.content?.files?.[0]?.uri || first?.content?.files?.[0]?.cdn_uri
+            || first?.content?.links?.image || first?.content?.metadata?.image;
+          if (imgUri) out.image = imgUri;
+        }
+      }
+    }
 
     try {
       const statsRes = await axios.get(`${ME_BASE}/collections/${col.slug}/stats`, {
@@ -577,31 +642,33 @@ app.get('/api/collections', async function (req, res) {
       console.warn('ME stats failed for', col.slug, e.message);
     }
 
-    // Magic Eden: collection metadata (name, description, image, supply) if available
-    try {
-      const metaRes = await axios.get(`${ME_BASE}/collections/${col.slug}`, {
-        timeout: 10000,
-        validateStatus: () => true,
-      });
-      if (metaRes.status === 200 && metaRes.data) {
-        const raw = metaRes.data;
-        const m = Array.isArray(raw) ? raw[0] : (raw?.data ?? raw);
-        if (m && typeof m === 'object') {
-          if (m.name) out.name = m.name;
-          if (m.description) out.description = m.description;
-          const meImage = m.image || m.imageURI || m.image_url || m.collectionImage || m.banner_image || m.banner || m.logo || m.thumbnail || m.icon
-            || (m.images && (m.images[0] || m.images.banner || m.images.logo || (Array.isArray(m.images) ? m.images[0] : null)));
-          if (meImage) {
-            const imgStr = typeof meImage === 'string' ? meImage : (meImage?.url || meImage?.href || meImage?.link || null);
-            if (imgStr && typeof imgStr === 'string') out.image = imgStr.trim();
+    // Magic Eden: collection metadata (name, description, image, supply) — same as other collections. Blunanas already applied from pre-fetch.
+    if (col.slug !== 'blunanas') {
+      try {
+        const metaRes = await axios.get(`${ME_BASE}/collections/${col.slug}`, {
+          timeout: 10000,
+          validateStatus: () => true,
+        });
+        if (metaRes.status === 200 && metaRes.data) {
+          const raw = metaRes.data;
+          const m = Array.isArray(raw) ? raw[0] : (raw?.data ?? raw);
+          if (m && typeof m === 'object') {
+            if (m.name) out.name = m.name;
+            if (m.description) out.description = m.description;
+            const meImage = m.image || m.imageURI || m.image_url || m.collectionImage || m.banner_image || m.banner || m.logo || m.thumbnail || m.icon
+              || (m.images && (m.images[0] || m.images.banner || m.images.logo || (Array.isArray(m.images) ? m.images[0] : null)));
+            if (meImage) {
+              const imgStr = typeof meImage === 'string' ? meImage : (meImage?.url || meImage?.href || meImage?.link || null);
+              if (imgStr && typeof imgStr === 'string') out.image = imgStr.trim();
+            }
+            if (m.animation_url || m.animationUrl) out.animationUrl = m.animation_url || m.animationUrl;
+            if (m.totalSupply != null) out.supply = m.totalSupply;
+            if (m.supply != null && out.supply == null) out.supply = m.supply;
           }
-          if (m.animation_url || m.animationUrl) out.animationUrl = m.animation_url || m.animationUrl;
-          if (m.totalSupply != null) out.supply = m.totalSupply;
-          if (m.supply != null && out.supply == null) out.supply = m.supply;
         }
+      } catch (e) {
+        // ignore
       }
-    } catch (e) {
-      // ignore
     }
 
     // Helius DAS: supply by pagination; image from first item when ME didn't provide one. Always showUnverifiedCollections so cNFTs (Blunanas) are included.
