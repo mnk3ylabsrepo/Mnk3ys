@@ -36,6 +36,7 @@ const ME_BASE = 'https://api-mainnet.magiceden.dev/v2';
 const COLLECTIONS = [
   { slug: 'mnk3ys', name: 'MNK3YS', collectionMint: process.env.MNK3YS_COLLECTION_MINT || '' },
   { slug: 'zmb3ys', name: 'ZMB3YS', collectionMint: process.env.ZMB3YS_COLLECTION_MINT || '' },
+  { slug: 'blunanas', name: 'Blunanas', collectionMint: process.env.BLUNANANAS_COLLECTION_MINT || '' },
 ];
 
 const LAMPORTS_PER_SOL = 1e9;
@@ -452,6 +453,7 @@ app.get('/api/verify', async function (req, res) {
     blunanaFormatted: '0',
     mnk3ysCount: 0,
     zmb3ysCount: 0,
+    blunanasCount: 0,
     totalNfts: 0,
   };
 
@@ -486,7 +488,8 @@ app.get('/api/verify', async function (req, res) {
     // 2) NFT counts per collection — getAssetsByOwner, filter by grouping.collection
     const mnk3ysMint = COLLECTIONS.find((c) => c.slug === 'mnk3ys')?.collectionMint;
     const zmb3ysMint = COLLECTIONS.find((c) => c.slug === 'zmb3ys')?.collectionMint;
-    if (mnk3ysMint || zmb3ysMint) {
+    const blunanasMint = COLLECTIONS.find((c) => c.slug === 'blunanas')?.collectionMint;
+    if (mnk3ysMint || zmb3ysMint || blunanasMint) {
       let page = 1;
       let hasMore = true;
       while (hasMore) {
@@ -511,12 +514,13 @@ app.get('/api/verify', async function (req, res) {
           const colVal = group?.group_value;
           if (colVal === mnk3ysMint) out.mnk3ysCount++;
           if (colVal === zmb3ysMint) out.zmb3ysCount++;
+          if (colVal === blunanasMint) out.blunanasCount++;
         }
         hasMore = items.length === 1000;
         page++;
         if (page > 20) break;
       }
-      out.totalNfts = out.mnk3ysCount + out.zmb3ysCount;
+      out.totalNfts = out.mnk3ysCount + out.zmb3ysCount + out.blunanasCount;
     }
   } catch (e) {
     console.warn('Verify failed', e.message);
@@ -656,9 +660,9 @@ function decodeTokenAccountOwnerAndAmount(dataBase64) {
 
 app.get('/api/holders', async function (req, res) {
   const sortBy = (req.query.sort || 'total').toLowerCase();
-  const validSort = ['total', 'token', 'mnk3ys', 'zmb3ys', 'nfts'].includes(sortBy) ? sortBy : 'total';
+  const validSort = ['total', 'token', 'mnk3ys', 'zmb3ys', 'blunanas', 'nfts'].includes(sortBy) ? sortBy : 'total';
 
-  const holderMap = new Map(); // wallet -> { tokenBalance, tokenBalanceFormatted, mnk3ysCount, zmb3ysCount }
+  const holderMap = new Map(); // wallet -> { tokenBalance, tokenBalanceFormatted, mnk3ysCount, zmb3ysCount, blunanasCount }
 
   function getOrCreate(wallet) {
     if (!holderMap.has(wallet)) {
@@ -668,6 +672,7 @@ app.get('/api/holders', async function (req, res) {
         tokenBalanceFormatted: '0',
         mnk3ysCount: 0,
         zmb3ysCount: 0,
+        blunanasCount: 0,
       });
     }
     return holderMap.get(wallet);
@@ -716,7 +721,7 @@ app.get('/api/holders', async function (req, res) {
     // 2) NFT owner counts per collection (getAssetsByGroup paginate, aggregate by owner)
     for (let c = 0; c < COLLECTIONS.length; c++) {
       const col = COLLECTIONS[c];
-      const key = col.slug === 'mnk3ys' ? 'mnk3ysCount' : col.slug === 'zmb3ys' ? 'zmb3ysCount' : null;
+      const key = col.slug === 'mnk3ys' ? 'mnk3ysCount' : col.slug === 'zmb3ys' ? 'zmb3ysCount' : col.slug === 'blunanas' ? 'blunanasCount' : null;
       if (!key || !col.collectionMint) continue;
       let page = 1;
       let hasMore = true;
@@ -757,13 +762,14 @@ app.get('/api/holders', async function (req, res) {
   }
 
   let list = Array.from(holderMap.values()).map(function (h) {
-    const totalNfts = (h.mnk3ysCount || 0) + (h.zmb3ysCount || 0);
+    const totalNfts = (h.mnk3ysCount || 0) + (h.zmb3ysCount || 0) + (h.blunanasCount || 0);
     return {
       wallet: h.wallet,
       tokenBalance: h.tokenBalance,
       tokenBalanceFormatted: h.tokenBalanceFormatted,
       mnk3ysCount: h.mnk3ysCount || 0,
       zmb3ysCount: h.zmb3ysCount || 0,
+      blunanasCount: h.blunanasCount || 0,
       totalNfts,
       totalScore: (h.tokenBalance || 0) / 1e6 + totalNfts * 10,
     };
@@ -784,11 +790,12 @@ app.get('/api/holders', async function (req, res) {
         existing.tokenBalanceFormatted = formatTokenAmount(existing.tokenBalance);
         existing.mnk3ysCount += h.mnk3ysCount || 0;
         existing.zmb3ysCount += h.zmb3ysCount || 0;
-        existing.totalNfts = existing.mnk3ysCount + existing.zmb3ysCount;
+        existing.blunanasCount += h.blunanasCount || 0;
+        existing.totalNfts = existing.mnk3ysCount + existing.zmb3ysCount + existing.blunanasCount;
         existing.totalScore = existing.tokenBalance / 1e6 + existing.totalNfts * 10;
         existing.walletCount = (existing.walletCount || 1) + 1;
       } else {
-        const totalNfts = (h.mnk3ysCount || 0) + (h.zmb3ysCount || 0);
+        const totalNfts = (h.mnk3ysCount || 0) + (h.zmb3ysCount || 0) + (h.blunanasCount || 0);
         byDiscord.set(key, {
           displayName: dId ? (discordNames.get(dId) || 'Discord user') : h.wallet.slice(0, 4) + '…' + h.wallet.slice(-4),
           wallet: dId ? null : h.wallet,
@@ -798,6 +805,7 @@ app.get('/api/holders', async function (req, res) {
           tokenBalanceFormatted: h.tokenBalanceFormatted,
           mnk3ysCount: h.mnk3ysCount || 0,
           zmb3ysCount: h.zmb3ysCount || 0,
+          blunanasCount: h.blunanasCount || 0,
           totalNfts,
           totalScore: (h.tokenBalance || 0) / 1e6 + totalNfts * 10,
         });
@@ -809,7 +817,7 @@ app.get('/api/holders', async function (req, res) {
     });
   } else {
     list = list.map(function (h) {
-      const totalNfts = (h.mnk3ysCount || 0) + (h.zmb3ysCount || 0);
+      const totalNfts = (h.mnk3ysCount || 0) + (h.zmb3ysCount || 0) + (h.blunanasCount || 0);
       return {
         displayName: h.wallet.slice(0, 4) + '…' + h.wallet.slice(-4),
         wallet: h.wallet,
@@ -823,6 +831,7 @@ app.get('/api/holders', async function (req, res) {
   if (validSort === 'token') list.sort((a, b) => b.tokenBalance - a.tokenBalance);
   else if (validSort === 'mnk3ys') list.sort((a, b) => b.mnk3ysCount - a.mnk3ysCount);
   else if (validSort === 'zmb3ys') list.sort((a, b) => b.zmb3ysCount - a.zmb3ysCount);
+  else if (validSort === 'blunanas') list.sort((a, b) => b.blunanasCount - a.blunanasCount);
   else if (validSort === 'nfts') list.sort((a, b) => b.totalNfts - a.totalNfts);
   else list.sort((a, b) => b.totalScore - a.totalScore);
 

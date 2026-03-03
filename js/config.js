@@ -62,6 +62,7 @@ window.MNK3YS_CONFIG = {
     token: 'Blunana',
     mnk3ys: 'MNK3YS',
     zmb3ys: 'ZMB3YS',
+    blunanas: 'Blunanas',
     totalNfts: 'Total NFTs',
   },
   holdersLead: 'Top holders by Blunana token and NFT collections.',
@@ -69,6 +70,7 @@ window.MNK3YS_CONFIG = {
     token: 'Blunana token',
     mnk3ys: 'MNK3YS NFTs',
     zmb3ys: 'ZMB3YS NFTs',
+    blunanas: 'Blunanas NFTs',
   },
 
   // ——— Holder portal & API ———
@@ -81,6 +83,7 @@ window.MNK3YS_CONFIG = {
   collections: {
     mnk3ys: 'https://magiceden.io/marketplace/mnk3ys',
     zmb3ys: 'https://magiceden.io/marketplace/zmb3ys',
+    blunanas: 'https://magiceden.io/marketplace/blunanas',
   },
 
   // ——— X spaces ———

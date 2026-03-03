@@ -115,7 +115,7 @@
 
     // Holders labels (sidebar + mobile panel key labels)
     var labels = c.holdingsLabels || {};
-    ['token', 'mnk3ys', 'zmb3ys', 'totalNfts'].forEach(function (key) {
+    ['token', 'mnk3ys', 'zmb3ys', 'blunanas', 'totalNfts'].forEach(function (key) {
       if (!labels[key]) return;
       document.querySelectorAll('[data-holdings-key="' + key + '"]').forEach(function (el) {
         el.textContent = labels[key];
@@ -130,12 +130,16 @@
     if (sortMnk3ys && sortOpts.mnk3ys) sortMnk3ys.textContent = sortOpts.mnk3ys;
     var sortZmb3ys = document.querySelector('#holders-sort option[value="zmb3ys"]');
     if (sortZmb3ys && sortOpts.zmb3ys) sortZmb3ys.textContent = sortOpts.zmb3ys;
+    var sortBlunanas = document.querySelector('#holders-sort option[value="blunanas"]');
+    if (sortBlunanas && sortOpts.blunanas) sortBlunanas.textContent = sortOpts.blunanas;
     var thToken = document.querySelector('.holders-table th[data-col="token"]');
     if (thToken && labels.token) thToken.textContent = labels.token;
     var thMnk3ys = document.querySelector('.holders-table th[data-col="mnk3ys"]');
     if (thMnk3ys && labels.mnk3ys) thMnk3ys.textContent = labels.mnk3ys;
     var thZmb3ys = document.querySelector('.holders-table th[data-col="zmb3ys"]');
     if (thZmb3ys && labels.zmb3ys) thZmb3ys.textContent = labels.zmb3ys;
+    var thBlunanas = document.querySelector('.holders-table th[data-col="blunanas"]');
+    if (thBlunanas && labels.blunanas) thBlunanas.textContent = labels.blunanas;
   }
   applyProjectConfig();
 
@@ -347,14 +351,16 @@
     var blunana = data && data.blunanaFormatted != null ? data.blunanaFormatted : (data && data.blunana != null ? String(data.blunana) : '—');
     var mnk3ys = data && data.mnk3ysCount != null ? String(data.mnk3ysCount) : '—';
     var zmb3ys = data && data.zmb3ysCount != null ? String(data.zmb3ysCount) : '—';
+    var blunanas = data && data.blunanasCount != null ? String(data.blunanasCount) : '—';
     var totalNfts = data && data.totalNfts != null ? String(data.totalNfts) : '—';
     [
       [document.getElementById('holdings-blunana'), document.getElementById('holdings-blunana-mobile')],
       [document.getElementById('holdings-mnk3ys'), document.getElementById('holdings-mnk3ys-mobile')],
       [document.getElementById('holdings-zmb3ys'), document.getElementById('holdings-zmb3ys-mobile')],
+      [document.getElementById('holdings-blunanas'), document.getElementById('holdings-blunanas-mobile')],
       [document.getElementById('holdings-total-nfts'), document.getElementById('holdings-total-nfts-mobile')],
     ].forEach(function (pair, i) {
-      var val = [blunana, mnk3ys, zmb3ys, totalNfts][i];
+      var val = [blunana, mnk3ys, zmb3ys, blunanas, totalNfts][i];
       if (pair[0]) pair[0].textContent = val;
       if (pair[1]) pair[1].textContent = val;
     });
@@ -396,6 +402,7 @@
                 blunanaFormatted: d.token != null ? String(d.token) : '0',
                 mnk3ysCount: 0,
                 zmb3ysCount: 0,
+                blunanasCount: 0,
                 totalNfts: d.nfts != null ? d.nfts : 0,
               };
             });
@@ -936,16 +943,18 @@
         var solUsd = prices.solUsd;
         var floorMnk3ysSol = null;
         var floorZmb3ysSol = null;
+        var floorBlunanasSol = null;
         if (collectionsData && collectionsData.collections && Array.isArray(collectionsData.collections)) {
           collectionsData.collections.forEach(function (c) {
             if (c.symbol === 'mnk3ys' && c.floorPriceSol != null) floorMnk3ysSol = parseFloat(String(c.floorPriceSol), 10);
             if (c.symbol === 'zmb3ys' && c.floorPriceSol != null) floorZmb3ysSol = parseFloat(String(c.floorPriceSol), 10);
+            if (c.symbol === 'blunanas' && c.floorPriceSol != null) floorBlunanasSol = parseFloat(String(c.floorPriceSol), 10);
           });
         }
         var solUsdNum = solUsd != null ? Number(solUsd) : null;
         var blunanaUsdNum = blunanaUsd != null ? Number(blunanaUsd) : null;
         if (!data || !data.holders) {
-          holdersTbody.innerHTML = '<tr><td colspan="7" class="holders-empty">No data</td></tr>';
+          holdersTbody.innerHTML = '<tr><td colspan="8" class="holders-empty">No data</td></tr>';
           return;
         }
         var rows = data.holders.map(function (h, i) {
@@ -955,12 +964,14 @@
           var tokenBal = h.tokenBalance != null ? Number(h.tokenBalance) : null;
           var mnk3ysCount = Number(h.mnk3ysCount) || 0;
           var zmb3ysCount = Number(h.zmb3ysCount) || 0;
+          var blunanasCount = Number(h.blunanasCount) || 0;
           var tokenValueUsd = (blunanaUsdNum != null && !isNaN(blunanaUsdNum) && tokenBal != null && !isNaN(tokenBal)) ? tokenBal * blunanaUsdNum : null;
           var nftValueMnk3ys = (solUsdNum != null && !isNaN(solUsdNum) && floorMnk3ysSol != null && !isNaN(floorMnk3ysSol)) ? mnk3ysCount * floorMnk3ysSol * solUsdNum : null;
           var nftValueZmb3ys = (solUsdNum != null && !isNaN(solUsdNum) && floorZmb3ysSol != null && !isNaN(floorZmb3ysSol)) ? zmb3ysCount * floorZmb3ysSol * solUsdNum : null;
+          var nftValueBlunanas = (solUsdNum != null && !isNaN(solUsdNum) && floorBlunanasSol != null && !isNaN(floorBlunanasSol)) ? blunanasCount * floorBlunanasSol * solUsdNum : null;
           var nftValueUsd = null;
-          if (solUsdNum != null && !isNaN(solUsdNum) && (floorMnk3ysSol != null || floorZmb3ysSol != null)) {
-            var nftSol = mnk3ysCount * (floorMnk3ysSol || 0) + zmb3ysCount * (floorZmb3ysSol || 0);
+          if (solUsdNum != null && !isNaN(solUsdNum) && (floorMnk3ysSol != null || floorZmb3ysSol != null || floorBlunanasSol != null)) {
+            var nftSol = mnk3ysCount * (floorMnk3ysSol || 0) + zmb3ysCount * (floorZmb3ysSol || 0) + blunanasCount * (floorBlunanasSol || 0);
             nftValueUsd = nftSol * solUsdNum;
           }
           var valueUsd = null;
@@ -970,6 +981,7 @@
           } else if (sort === 'token') valueUsd = tokenValueUsd;
           else if (sort === 'mnk3ys') valueUsd = nftValueMnk3ys;
           else if (sort === 'zmb3ys') valueUsd = nftValueZmb3ys;
+          else if (sort === 'blunanas') valueUsd = nftValueBlunanas;
           else if (sort === 'nfts') valueUsd = nftValueUsd;
           var valueCell = valueUsd != null ? formatUsd(valueUsd) : '—';
           var nameCell = walletLink
@@ -981,13 +993,14 @@
             '<td data-col="token">' + escapeHtml(h.tokenBalanceFormatted || '0') + '</td>' +
             '<td data-col="mnk3ys">' + (h.mnk3ysCount || 0) + '</td>' +
             '<td data-col="zmb3ys">' + (h.zmb3ysCount || 0) + '</td>' +
+            '<td data-col="blunanas">' + (h.blunanasCount || 0) + '</td>' +
             '<td data-col="nfts">' + (h.totalNfts || 0) + '</td>' +
             '<td>' + escapeHtml(valueCell) + '</td>' +
             '</tr>';
         });
-        holdersTbody.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="7" class="holders-empty">No holders</td></tr>';
+        holdersTbody.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="8" class="holders-empty">No holders</td></tr>';
       }).catch(function () {
-        holdersTbody.innerHTML = '<tr><td colspan="7" class="holders-empty">Failed to load</td></tr>';
+        holdersTbody.innerHTML = '<tr><td colspan="8" class="holders-empty">Failed to load</td></tr>';
       });
     }
     loadHolders('total');

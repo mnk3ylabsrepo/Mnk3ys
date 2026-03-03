@@ -15,7 +15,7 @@ const axios = require('axios');
 
 const API_BASE = process.env.API_BASE || 'http://localhost:8080';
 const ME_BASE = 'https://api-mainnet.magiceden.dev/v2';
-const SLUGS = ['mnk3ys', 'zmb3ys'];
+const SLUGS = ['mnk3ys', 'zmb3ys', 'blunanas'];
 const OUT_DIR = path.join(__dirname, '..', 'assets', 'collections');
 
 function getExtFromUrl(url) {
