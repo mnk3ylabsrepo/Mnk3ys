@@ -1406,6 +1406,53 @@ body {
   pointer-events: none;
 }
 
+/* Utility cards (Uni-Fy, Flux Inc) — placeholder until banner images added */
+.card--utility {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+}
+.card--utility:hover {
+  opacity: 0.98;
+}
+.card--utility .card__bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+.card--utility .card__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
+}
+.card--utility .card__utility-content {
+  position: relative;
+  z-index: 2;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 140px;
+}
+.card--utility .card__title {
+  color: #fff;
+  font-size: 1.25rem;
+  margin-bottom: 0.35rem;
+}
+.card--utility .card__text {
+  color: rgba(255, 255, 255, 0.88);
+  margin-bottom: 1rem;
+  font-size: 0.9375rem;
+}
+.card--utility .btn {
+  pointer-events: none;
+}
+.card--unify .card__bg { background: linear-gradient(135deg, #2d1b4e 0%, #1a1a2e 100%); }
+.card--flux .card__bg { background: linear-gradient(135deg, #1e3a5f 0%, #1a1a2e 100%); }
+
 /* Trait Store — full-width card with right-aligned upgrade image */
 .card--traitstore {
   display: flex;
