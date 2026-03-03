@@ -37,7 +37,7 @@ window.MNK3YS_CONFIG = {
     title: 'MNK3YLABS',
     tagline: 'STRONGER TOGETHER',
     subtitle: 'Make NFTs Ape Again. NFT collections & project token built on Solana.',
-    solanaLogoUrl: 'https://cryptologos.cc/logos/solana-sol-logo.svg?v=040',
+    solanaLogoUrl: 'assets/solana-sol-logo.svg',
     backgroundImage: 'assets/hero-bg.png',
   },
 
