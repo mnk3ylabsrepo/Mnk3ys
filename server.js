@@ -557,6 +557,7 @@ app.get('/api/collections', async function (req, res) {
       });
       if (statsRes.status === 200 && statsRes.data) {
         const s = statsRes.data;
+        if (s.totalSupply != null || s.supply != null) out.supply = s.totalSupply != null ? s.totalSupply : s.supply;
         out.listedCount = s.listedCount != null ? s.listedCount : null;
         out.floorPrice = s.floorPrice != null ? s.floorPrice : null;
         // ME returns floor in lamports (large integer). If we get a small number, it may already be in SOL.
@@ -584,7 +585,8 @@ app.get('/api/collections', async function (req, res) {
         const m = metaRes.data;
         if (m.name) out.name = m.name;
         if (m.description) out.description = m.description;
-        if (m.image || m.imageURI) out.image = m.image || m.imageURI;
+        const meImage = m.image || m.imageURI || m.image_url || m.collectionImage || m.banner_image || m.banner;
+        if (meImage) out.image = meImage;
         if (m.animation_url || m.animationUrl) out.animationUrl = m.animation_url || m.animationUrl;
         if (m.totalSupply != null) out.supply = m.totalSupply;
       }
@@ -592,47 +594,41 @@ app.get('/api/collections', async function (req, res) {
       // ignore
     }
 
-    // Helius DAS: derive supply by counting all NFTs in the collection when we have collection mint
+    // Helius DAS: supply (showGrandTotal) and image (collection metadata or first NFT)
     if (HELIUS_API_KEY && col.collectionMint) {
       try {
-        let page = 1;
-        let totalItems = 0;
-        let hasMore = true;
-        while (hasMore) {
-          const heliusRes = await axios.post(
-            `${HELIUS_RPC}/?api-key=${HELIUS_API_KEY}`,
-            {
-              jsonrpc: '2.0',
-              id: '1',
-              method: 'getAssetsByGroup',
-              params: {
-                groupKey: 'collection',
-                groupValue: col.collectionMint,
-                page,
-                limit: 1000,
-                options: {
-                  showCollectionMetadata: page === 1,
-                },
+        const heliusRes = await axios.post(
+          `${HELIUS_RPC}/?api-key=${HELIUS_API_KEY}`,
+          {
+            jsonrpc: '2.0',
+            id: '1',
+            method: 'getAssetsByGroup',
+            params: {
+              groupKey: 'collection',
+              groupValue: col.collectionMint,
+              page: 1,
+              limit: 10,
+              options: {
+                showCollectionMetadata: true,
+                showGrandTotal: true,
               },
             },
-            { timeout: 10000, validateStatus: () => true }
-          );
-          const data = heliusRes.data?.result;
-          const items = data?.items || [];
-          totalItems += items.length;
-          if (page === 1) {
-            const meta = items[0]?.grouping?.find((g) => g.group_key === 'collection')?.collection_metadata;
-            if (meta) {
-              if (meta.name) out.name = meta.name;
-              if (meta.description) out.description = meta.description;
-              if (meta.image) out.image = meta.image;
-            }
+          },
+          { timeout: 15000, validateStatus: () => true }
+        );
+        const data = heliusRes.data?.result;
+        const items = data?.items || [];
+        if (data?.total != null && data.total > 0) out.supply = data.total;
+        if (items.length > 0) {
+          const meta = items[0]?.grouping?.find((g) => g.group_key === 'collection')?.collection_metadata;
+          if (meta?.image) out.image = meta.image;
+          if (!out.image) {
+            const first = items[0];
+            const imgUri = first?.content?.files?.[0]?.uri || first?.content?.files?.[0]?.cdn_uri
+              || first?.content?.metadata?.image;
+            if (imgUri) out.image = imgUri;
           }
-          hasMore = items.length === 1000;
-          page += 1;
-          if (page > 50) break;
         }
-        if (totalItems > 0) out.supply = totalItems;
       } catch (e) {
         console.warn('Helius DAS failed for', col.slug, e.message);
       }
