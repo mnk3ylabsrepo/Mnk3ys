@@ -558,6 +558,8 @@ app.get('/api/collections', async function (req, res) {
       if (statsRes.status === 200 && statsRes.data) {
         const s = statsRes.data;
         if (s.totalSupply != null || s.supply != null) out.supply = s.totalSupply != null ? s.totalSupply : s.supply;
+        const statsImg = s.image || s.imageURI || s.collectionImage;
+        if (!out.image && statsImg && typeof statsImg === 'string') out.image = statsImg.trim();
         out.listedCount = s.listedCount != null ? s.listedCount : null;
         out.floorPrice = s.floorPrice != null ? s.floorPrice : null;
         // ME returns floor in lamports (large integer). If we get a small number, it may already be in SOL.
@@ -585,8 +587,11 @@ app.get('/api/collections', async function (req, res) {
         const m = metaRes.data;
         if (m.name) out.name = m.name;
         if (m.description) out.description = m.description;
-        const meImage = m.image || m.imageURI || m.image_url || m.collectionImage || m.banner_image || m.banner;
-        if (meImage) out.image = meImage;
+        const meImage = m.image || m.imageURI || m.image_url || m.collectionImage || m.banner_image || m.banner || m.logo || m.thumbnail || (m.images && (m.images[0] || m.images.banner || m.images.logo));
+        if (meImage) {
+          const imgStr = typeof meImage === 'string' ? meImage : (meImage?.url || meImage?.href || null);
+          out.image = imgStr && typeof imgStr === 'string' ? imgStr.trim() : null;
+        }
         if (m.animation_url || m.animationUrl) out.animationUrl = m.animation_url || m.animationUrl;
         if (m.totalSupply != null) out.supply = m.totalSupply;
       }
@@ -594,9 +599,11 @@ app.get('/api/collections', async function (req, res) {
       // ignore
     }
 
-    // Helius DAS: supply by pagination; image from first item when ME didn't provide one. Use showUnverifiedCollections for cNFTs (e.g. Blunanas).
+    // Helius DAS: supply by pagination; image from first item when ME didn't provide one. Always showUnverifiedCollections so cNFTs (Blunanas) are included.
     if (HELIUS_API_KEY && col.collectionMint) {
-      const isCnft = col.slug === 'blunanas';
+      const groupValue = col.slug === 'blunanas' && process.env.BLUNANANAS_TREE_ID
+        ? process.env.BLUNANANAS_TREE_ID
+        : col.collectionMint;
       try {
         let page = 1;
         let totalItems = 0;
@@ -610,12 +617,12 @@ app.get('/api/collections', async function (req, res) {
               method: 'getAssetsByGroup',
               params: {
                 groupKey: 'collection',
-                groupValue: col.collectionMint,
+                groupValue,
                 page,
                 limit: 1000,
                 options: {
                   showCollectionMetadata: page === 1,
-                  showUnverifiedCollections: isCnft,
+                  showUnverifiedCollections: true,
                 },
               },
             },
@@ -639,6 +646,44 @@ app.get('/api/collections', async function (req, res) {
           if (page > 50) break;
         }
         if (totalItems > 0) out.supply = totalItems;
+        // Blunanas cNFTs: if collection group returned 0, try groupKey 'tree' with same mint (tree id)
+        if (col.slug === 'blunanas' && totalItems === 0 && col.collectionMint) {
+          try {
+            let page2 = 1;
+            let total2 = 0;
+            while (true) {
+              const res2 = await axios.post(
+                `${HELIUS_RPC}/?api-key=${HELIUS_API_KEY}`,
+                {
+                  jsonrpc: '2.0',
+                  id: '1',
+                  method: 'getAssetsByGroup',
+                  params: {
+                    groupKey: 'tree',
+                    groupValue: col.collectionMint,
+                    page: page2,
+                    limit: 1000,
+                    options: { showUnverifiedCollections: true, showCollectionMetadata: page2 === 1 },
+                  },
+                },
+                { timeout: 15000, validateStatus: () => true }
+              );
+              const items2 = res2.data?.result?.items || [];
+              total2 += items2.length;
+              if (page2 === 1 && items2.length > 0 && !out.image) {
+                const first = items2[0];
+                const imgUri = first?.content?.files?.[0]?.uri || first?.content?.files?.[0]?.cdn_uri || first?.content?.metadata?.image;
+                if (imgUri) out.image = imgUri;
+              }
+              if (items2.length < 1000) break;
+              page2++;
+              if (page2 > 50) break;
+            }
+            if (total2 > 0) out.supply = total2;
+          } catch (e2) {
+            // ignore
+          }
+        }
       } catch (e) {
         console.warn('Helius DAS failed for', col.slug, e.message);
       }
@@ -729,9 +774,12 @@ app.get('/api/holders', async function (req, res) {
       const col = COLLECTIONS[c];
       const key = col.slug === 'mnk3ys' ? 'mnk3ysCount' : col.slug === 'zmb3ys' ? 'zmb3ysCount' : col.slug === 'blunanas' ? 'blunanasCount' : null;
       if (!key || !col.collectionMint) continue;
-      const isCnft = col.slug === 'blunanas';
+      const groupValue = col.slug === 'blunanas' && process.env.BLUNANANAS_TREE_ID
+        ? process.env.BLUNANANAS_TREE_ID
+        : col.collectionMint;
       let page = 1;
       let hasMore = true;
+      let totalFetched = 0;
       while (hasMore) {
         try {
           const dasRes = await axios.post(
@@ -742,15 +790,16 @@ app.get('/api/holders', async function (req, res) {
               method: 'getAssetsByGroup',
               params: {
                 groupKey: 'collection',
-                groupValue: col.collectionMint,
+                groupValue,
                 page,
                 limit: 1000,
-                options: isCnft ? { showUnverifiedCollections: true } : undefined,
+                options: { showUnverifiedCollections: true },
               },
             },
             { timeout: 15000, validateStatus: () => true }
           );
           const items = dasRes.data?.result?.items || [];
+          totalFetched += items.length;
           for (const item of items) {
             const owner = item.ownership?.owner;
             if (owner) {
@@ -764,6 +813,43 @@ app.get('/api/holders', async function (req, res) {
         } catch (e) {
           console.warn('Holders NFT fetch failed for', col.slug, e.message);
           hasMore = false;
+        }
+      }
+      // Blunanas cNFTs: if collection group returned 0, try groupKey 'tree'
+      if (col.slug === 'blunanas' && totalFetched === 0 && col.collectionMint) {
+        let page2 = 1;
+        while (true) {
+          try {
+            const res2 = await axios.post(
+              `${HELIUS_RPC}/?api-key=${HELIUS_API_KEY}`,
+              {
+                jsonrpc: '2.0',
+                id: '1',
+                method: 'getAssetsByGroup',
+                params: {
+                  groupKey: 'tree',
+                  groupValue: col.collectionMint,
+                  page: page2,
+                  limit: 1000,
+                  options: { showUnverifiedCollections: true },
+                },
+              },
+              { timeout: 15000, validateStatus: () => true }
+            );
+            const items2 = res2.data?.result?.items || [];
+            for (const item of items2) {
+              const owner = item.ownership?.owner;
+              if (owner) {
+                const h = getOrCreate(owner);
+                h[key] = (h[key] || 0) + 1;
+              }
+            }
+            if (items2.length < 1000) break;
+            page2++;
+            if (page2 > 50) break;
+          } catch (e2) {
+            break;
+          }
         }
       }
     }
