@@ -775,12 +775,11 @@
       .then(function (data) {
         if (!data || !data.collections || !data.collections.length) return;
         grid.innerHTML = '';
-        var fallbacks = (window.MNK3YS_CONFIG && window.MNK3YS_CONFIG.collectionImageFallbacks) || {};
         data.collections.forEach(function (c) {
           var card = document.createElement('div');
           card.className = 'card card--nft card--embed';
           var mediaHtml = '';
-          var mediaSrc = c.animationUrl || c.image || (c.symbol && fallbacks[c.symbol]);
+          var mediaSrc = c.animationUrl || c.image;
           if (mediaSrc) {
             var isGif = /\.gif(\?|$)/i.test(mediaSrc) || (c.animationUrl && !c.image);
             if (isGif || c.animationUrl) {

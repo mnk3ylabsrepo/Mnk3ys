@@ -32,7 +32,7 @@ const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
 const HELIUS_RPC = 'https://mainnet.helius-rpc.com';
 const ME_BASE = 'https://api-mainnet.magiceden.dev/v2';
 
-// Collection slugs on Magic Eden; optional Helius collection mint for supply/metadata
+// Collection slugs on Magic Eden; optional Helius collection mint for supply/metadata (cNFTs: mint may be tree id)
 const COLLECTIONS = [
   { slug: 'mnk3ys', name: 'MNK3YS', collectionMint: process.env.MNK3YS_COLLECTION_MINT || '' },
   { slug: 'zmb3ys', name: 'ZMB3YS', collectionMint: process.env.ZMB3YS_COLLECTION_MINT || '' },
@@ -578,7 +578,7 @@ app.get('/api/collections', async function (req, res) {
     // Magic Eden: collection metadata (name, description, image) if available
     try {
       const metaRes = await axios.get(`${ME_BASE}/collections/${col.slug}`, {
-        timeout: 5000,
+        timeout: 10000,
         validateStatus: () => true,
       });
       if (metaRes.status === 200 && metaRes.data) {
@@ -594,8 +594,9 @@ app.get('/api/collections', async function (req, res) {
       // ignore
     }
 
-    // Helius DAS: supply by pagination (count all items); image from first page (collection_metadata or first NFT)
+    // Helius DAS: supply by pagination; image from first item when ME didn't provide one. Use showUnverifiedCollections for cNFTs (e.g. Blunanas).
     if (HELIUS_API_KEY && col.collectionMint) {
+      const isCnft = col.slug === 'blunanas';
       try {
         let page = 1;
         let totalItems = 0;
@@ -614,15 +615,16 @@ app.get('/api/collections', async function (req, res) {
                 limit: 1000,
                 options: {
                   showCollectionMetadata: page === 1,
+                  showUnverifiedCollections: isCnft,
                 },
               },
             },
-            { timeout: 10000, validateStatus: () => true }
+            { timeout: 15000, validateStatus: () => true }
           );
           const data = heliusRes.data?.result;
           const items = data?.items || [];
           totalItems += items.length;
-          if (page === 1 && items.length > 0) {
+          if (page === 1 && items.length > 0 && !out.image) {
             const meta = items[0]?.grouping?.find((g) => g.group_key === 'collection')?.collection_metadata;
             if (meta?.image) out.image = meta.image;
             if (!out.image) {
@@ -722,11 +724,12 @@ app.get('/api/holders', async function (req, res) {
       console.warn('Holders token fetch failed', e.message);
     }
 
-    // 2) NFT owner counts per collection (getAssetsByGroup paginate, aggregate by owner)
+    // 2) NFT owner counts per collection (getAssetsByGroup paginate, aggregate by owner). showUnverifiedCollections for cNFTs (Blunanas).
     for (let c = 0; c < COLLECTIONS.length; c++) {
       const col = COLLECTIONS[c];
       const key = col.slug === 'mnk3ys' ? 'mnk3ysCount' : col.slug === 'zmb3ys' ? 'zmb3ysCount' : col.slug === 'blunanas' ? 'blunanasCount' : null;
       if (!key || !col.collectionMint) continue;
+      const isCnft = col.slug === 'blunanas';
       let page = 1;
       let hasMore = true;
       while (hasMore) {
@@ -742,6 +745,7 @@ app.get('/api/holders', async function (req, res) {
                 groupValue: col.collectionMint,
                 page,
                 limit: 1000,
+                options: isCnft ? { showUnverifiedCollections: true } : undefined,
               },
             },
             { timeout: 15000, validateStatus: () => true }

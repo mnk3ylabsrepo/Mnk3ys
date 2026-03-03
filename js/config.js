@@ -85,11 +85,6 @@ window.MNK3YS_CONFIG = {
     zmb3ys: 'https://magiceden.io/marketplace/zmb3ys',
     blunanas: 'https://magiceden.io/marketplace/blunanas',
   },
-  // Fallback image when API returns none (e.g. Blunanas / compressed collection)
-  collectionImageFallbacks: {
-    blunanas: 'assets/blunana-bg.png',
-  },
-
   // ——— X spaces ———
   xSpacesBannerUrl: 'assets/jungle-juice-banner.png',
   xSpacesLead: 'Tune in to our weekly X space...',
