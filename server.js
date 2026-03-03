@@ -594,41 +594,49 @@ app.get('/api/collections', async function (req, res) {
       // ignore
     }
 
-    // Helius DAS: supply (showGrandTotal) and image (collection metadata or first NFT)
+    // Helius DAS: supply by pagination (count all items); image from first page (collection_metadata or first NFT)
     if (HELIUS_API_KEY && col.collectionMint) {
       try {
-        const heliusRes = await axios.post(
-          `${HELIUS_RPC}/?api-key=${HELIUS_API_KEY}`,
-          {
-            jsonrpc: '2.0',
-            id: '1',
-            method: 'getAssetsByGroup',
-            params: {
-              groupKey: 'collection',
-              groupValue: col.collectionMint,
-              page: 1,
-              limit: 10,
-              options: {
-                showCollectionMetadata: true,
-                showGrandTotal: true,
+        let page = 1;
+        let totalItems = 0;
+        let hasMore = true;
+        while (hasMore) {
+          const heliusRes = await axios.post(
+            `${HELIUS_RPC}/?api-key=${HELIUS_API_KEY}`,
+            {
+              jsonrpc: '2.0',
+              id: '1',
+              method: 'getAssetsByGroup',
+              params: {
+                groupKey: 'collection',
+                groupValue: col.collectionMint,
+                page,
+                limit: 1000,
+                options: {
+                  showCollectionMetadata: page === 1,
+                },
               },
             },
-          },
-          { timeout: 15000, validateStatus: () => true }
-        );
-        const data = heliusRes.data?.result;
-        const items = data?.items || [];
-        if (data?.total != null && data.total > 0) out.supply = data.total;
-        if (items.length > 0) {
-          const meta = items[0]?.grouping?.find((g) => g.group_key === 'collection')?.collection_metadata;
-          if (meta?.image) out.image = meta.image;
-          if (!out.image) {
-            const first = items[0];
-            const imgUri = first?.content?.files?.[0]?.uri || first?.content?.files?.[0]?.cdn_uri
-              || first?.content?.metadata?.image;
-            if (imgUri) out.image = imgUri;
+            { timeout: 10000, validateStatus: () => true }
+          );
+          const data = heliusRes.data?.result;
+          const items = data?.items || [];
+          totalItems += items.length;
+          if (page === 1 && items.length > 0) {
+            const meta = items[0]?.grouping?.find((g) => g.group_key === 'collection')?.collection_metadata;
+            if (meta?.image) out.image = meta.image;
+            if (!out.image) {
+              const first = items[0];
+              const imgUri = first?.content?.files?.[0]?.uri || first?.content?.files?.[0]?.cdn_uri
+                || first?.content?.metadata?.image;
+              if (imgUri) out.image = imgUri;
+            }
           }
+          hasMore = items.length === 1000;
+          page += 1;
+          if (page > 50) break;
         }
+        if (totalItems > 0) out.supply = totalItems;
       } catch (e) {
         console.warn('Helius DAS failed for', col.slug, e.message);
       }
