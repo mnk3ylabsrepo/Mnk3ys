@@ -584,7 +584,11 @@ app.get('/api/collections', async function (req, res) {
       marketplaceUrl: `https://magiceden.io/marketplace/${col.slug}`,
     };
 
-    // Blunanas: apply pre-fetched ME metadata and holder_stats (same source as other collections)
+    // Blunanas: use known collection image; apply pre-fetched ME metadata and holder_stats
+    const BLUNANAS_IMAGE = 'https://img-cdn.magiceden.dev/rs:fill:400:0:0/plain/https%3A%2F%2Fcreator-hub-prod.s3.us-east-2.amazonaws.com%2Fblunanas_pfp_1721931688406.png';
+    if (col.slug === 'blunanas') {
+      out.image = BLUNANAS_IMAGE;
+    }
     if (col.slug === 'blunanas' && (blunanasMeMeta || blunanasMeHolderStats || blunanasHeliusFirstPage)) {
       const m = blunanasMeMeta;
       if (m) {
@@ -611,6 +615,7 @@ app.get('/api/collections', async function (req, res) {
         const imgUri = first?.content?.links?.image || first?.content?.files?.[0]?.uri || first?.content?.files?.[0]?.cdn_uri || first?.content?.metadata?.image;
         if (imgUri && typeof imgUri === 'string') out.image = imgUri.trim();
       }
+      out.image = BLUNANAS_IMAGE;
     }
 
     try {
