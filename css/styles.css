@@ -1775,30 +1775,52 @@ body {
 /* Show only relevant columns by sort: one count column + Value ($) */
 .holders-table--sort-token th[data-col="mnk3ys"],
 .holders-table--sort-token th[data-col="zmb3ys"],
+.holders-table--sort-token th[data-col="blunanas"],
 .holders-table--sort-token th[data-col="nfts"],
 .holders-table--sort-token td[data-col="mnk3ys"],
 .holders-table--sort-token td[data-col="zmb3ys"],
+.holders-table--sort-token td[data-col="blunanas"],
 .holders-table--sort-token td[data-col="nfts"] {
   display: none;
 }
 .holders-table--sort-mnk3ys th[data-col="token"],
 .holders-table--sort-mnk3ys th[data-col="zmb3ys"],
+.holders-table--sort-mnk3ys th[data-col="blunanas"],
 .holders-table--sort-mnk3ys th[data-col="nfts"],
 .holders-table--sort-mnk3ys td[data-col="token"],
 .holders-table--sort-mnk3ys td[data-col="zmb3ys"],
+.holders-table--sort-mnk3ys td[data-col="blunanas"],
 .holders-table--sort-mnk3ys td[data-col="nfts"] {
   display: none;
 }
 .holders-table--sort-zmb3ys th[data-col="token"],
 .holders-table--sort-zmb3ys th[data-col="mnk3ys"],
+.holders-table--sort-zmb3ys th[data-col="blunanas"],
 .holders-table--sort-zmb3ys th[data-col="nfts"],
 .holders-table--sort-zmb3ys td[data-col="token"],
 .holders-table--sort-zmb3ys td[data-col="mnk3ys"],
+.holders-table--sort-zmb3ys td[data-col="blunanas"],
 .holders-table--sort-zmb3ys td[data-col="nfts"] {
   display: none;
 }
+.holders-table--sort-blunanas th[data-col="token"],
+.holders-table--sort-blunanas th[data-col="mnk3ys"],
+.holders-table--sort-blunanas th[data-col="zmb3ys"],
+.holders-table--sort-blunanas th[data-col="nfts"],
+.holders-table--sort-blunanas td[data-col="token"],
+.holders-table--sort-blunanas td[data-col="mnk3ys"],
+.holders-table--sort-blunanas td[data-col="zmb3ys"],
+.holders-table--sort-blunanas td[data-col="nfts"] {
+  display: none;
+}
 .holders-table--sort-nfts th[data-col="token"],
-.holders-table--sort-nfts td[data-col="token"] {
+.holders-table--sort-nfts th[data-col="mnk3ys"],
+.holders-table--sort-nfts th[data-col="zmb3ys"],
+.holders-table--sort-nfts th[data-col="blunanas"],
+.holders-table--sort-nfts td[data-col="token"],
+.holders-table--sort-nfts td[data-col="mnk3ys"],
+.holders-table--sort-nfts td[data-col="zmb3ys"],
+.holders-table--sort-nfts td[data-col="blunanas"] {
   display: none;
 }
 .holders-wallet {

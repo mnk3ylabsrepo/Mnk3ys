@@ -537,7 +537,7 @@ app.get('/api/collections', async function (req, res) {
   let blunanasMeHolderStats = null;
   let blunanasHeliusFirstPage = null;
   if (blunanasCol) {
-    const [metaRes, holderRes, heliusRes] = await Promise.all([
+    const settled = await Promise.allSettled([
       axios.get(`${ME_BASE}/collections/blunanas`, { timeout: 10000, validateStatus: () => true }),
       axios.get(`${ME_BASE}/collections/blunanas/holder_stats`, { timeout: 8000, validateStatus: () => true }),
       HELIUS_API_KEY && blunanasCol.collectionMint
@@ -559,9 +559,10 @@ app.get('/api/collections', async function (req, res) {
           )
         : Promise.resolve(null),
     ]);
-    if (metaRes?.status === 200 && metaRes.data) blunanasMeMeta = metaRes.data;
-    if (holderRes?.status === 200 && holderRes.data) blunanasMeHolderStats = holderRes.data;
-    if (heliusRes?.data?.result) blunanasHeliusFirstPage = heliusRes.data.result;
+    if (settled[0]?.status === 'fulfilled' && settled[0].value?.status === 200 && settled[0].value?.data) blunanasMeMeta = settled[0].value.data;
+    if (settled[1]?.status === 'fulfilled' && settled[1].value?.status === 200 && settled[1].value?.data) blunanasMeHolderStats = settled[1].value.data;
+    const heliusData = settled[2]?.status === 'fulfilled' && settled[2].value?.data ? settled[2].value.data : null;
+    blunanasHeliusFirstPage = heliusData?.result ?? heliusData;
   }
 
   const results = [];
@@ -605,13 +606,10 @@ app.get('/api/collections', async function (req, res) {
       }
       if (blunanasMeHolderStats && out.supply == null && blunanasMeHolderStats.totalSupply != null) out.supply = blunanasMeHolderStats.totalSupply;
       const items = blunanasHeliusFirstPage?.items || [];
-      if (items.length > 0) {
-        if (!out.image) {
-          const first = items[0];
-          const imgUri = first?.content?.files?.[0]?.uri || first?.content?.files?.[0]?.cdn_uri
-            || first?.content?.links?.image || first?.content?.metadata?.image;
-          if (imgUri) out.image = imgUri;
-        }
+      if (items.length > 0 && !out.image) {
+        const first = items[0];
+        const imgUri = first?.content?.links?.image || first?.content?.files?.[0]?.uri || first?.content?.files?.[0]?.cdn_uri || first?.content?.metadata?.image;
+        if (imgUri && typeof imgUri === 'string') out.image = imgUri.trim();
       }
     }
 
