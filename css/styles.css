@@ -1308,7 +1308,7 @@ body {
 .card--gotm .card__bg {
   position: absolute;
   inset: 0;
-  background: url("../assets/gotm-labz-bg.png") center / cover no-repeat;
+  background: url("../assets/gotm-labz-bg.png") right bottom / cover no-repeat;
   z-index: 0;
 }
 .card--gotm .card__bg::after {
@@ -1370,7 +1370,7 @@ body {
 .card--mobtools .card__bg {
   position: absolute;
   inset: 0;
-  background: url("../assets/mobtools-bg.png") center / cover no-repeat;
+  background: url("../assets/mobtools-bg.png") right bottom / cover no-repeat;
   z-index: 0;
 }
 .card--mobtools .card__bg::after {
@@ -1406,13 +1406,16 @@ body {
   pointer-events: none;
 }
 
-/* Utility cards (Uni-Fy, Flux Inc) — placeholder until banner images added */
+/* Utility cards (Uni-Fy, Flux Inc) — banner bg pinned bottom-right so logo stays visible on shrink */
 .card--utility {
   display: block;
   position: relative;
   overflow: hidden;
+  padding: 0;
+  min-height: 360px;
   text-decoration: none;
   color: inherit;
+  transition: opacity 0.2s;
 }
 .card--utility:hover {
   opacity: 0.98;
@@ -1420,38 +1423,51 @@ body {
 .card--utility .card__bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: #1a1a2e right bottom / cover no-repeat;
+  z-index: 0;
 }
 .card--utility .card__bg::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
+  background: linear-gradient(90deg, rgba(13, 14, 18, 0.88) 0%, rgba(13, 14, 18, 0.5) 55%, transparent 100%);
+  z-index: 1;
 }
 .card--utility .card__utility-content {
   position: relative;
   z-index: 2;
-  padding: 1.5rem;
+  padding: 1.5rem 1.5rem;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  min-height: 140px;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 360px;
 }
 .card--utility .card__title {
   color: #fff;
   font-size: 1.25rem;
   margin-bottom: 0.35rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 .card--utility .card__text {
-  color: rgba(255, 255, 255, 0.88);
+  color: rgba(255, 255, 255, 0.9);
   margin-bottom: 1rem;
   font-size: 0.9375rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 .card--utility .btn {
   pointer-events: none;
 }
-.card--unify .card__bg { background: linear-gradient(135deg, #2d1b4e 0%, #1a1a2e 100%); }
-.card--flux .card__bg { background: linear-gradient(135deg, #1e3a5f 0%, #1a1a2e 100%); }
+.card--unify .card__bg {
+  background-image: url("../assets/uni-fy-banner-cbef83e6-22ff-4210-a9ab-1f6317ec7b06.png");
+  background-position: right bottom;
+  background-size: cover;
+}
+.card--flux .card__bg {
+  background-image: url("../assets/flux-inc-banner-24cb09d8-2a70-4a6f-a46b-4d64ff313dab.png");
+  background-position: right bottom;
+  background-size: cover;
+}
 
 /* Trait Store — full-width card with right-aligned upgrade image */
 .card--traitstore {

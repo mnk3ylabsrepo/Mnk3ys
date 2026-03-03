@@ -1042,16 +1042,17 @@
       });
   }
 
+  var chartWrap = document.getElementById('tokenomics-chart-wrap');
   if (chartEl) {
     fetch(window.location.origin + '/api/blunana-ohlc?type=15m', { credentials: 'include' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
         var items = (data && data.data && data.data.items) ? data.data.items : [];
-        if (chartHintEl) chartHintEl.textContent = data && data.message ? data.message : '';
         if (items.length === 0) {
-          if (chartHintEl && !chartHintEl.textContent) chartHintEl.textContent = 'Add BIRDEYE_API_KEY in server .env to show 15m chart.';
+          if (chartWrap) chartWrap.style.display = 'none';
           return;
         }
+        if (chartHintEl) chartHintEl.textContent = data && data.message ? data.message : '';
         var candlestickData = items.map(function (c) {
           return {
             time: c.unix_time,
