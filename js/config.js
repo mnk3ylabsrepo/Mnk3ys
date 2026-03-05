@@ -106,7 +106,6 @@ window.MNK3YS_CONFIG = {
   // ——— Team ———
   team: [
     { xProfileUrl: 'https://x.com/deano_sol', discordId: '890995564949434468', description: 'Founder & artist' },
-    { xProfileUrl: 'https://x.com/GrandFracton', discordId: '978993938318897203', description: 'Community manager' },
     { xProfileUrl: 'https://x.com/BUXDAO', discordId: '931160720261939230', description: 'Lead dev' },
     { xProfileUrl: 'https://x.com/azgog', discordId: '302103384440438784', description: 'Community Manager, Pirate DAO Lead' },
     { xProfileUrl: 'https://x.com/13igDogg', discordId: '873581817620471849', description: 'Pirate DAO Lead' },
@@ -116,5 +115,6 @@ window.MNK3YS_CONFIG = {
     { xProfileUrl: '', discordId: '188553411476586496', description: 'MetaMate Founder and Advisor' },
     { xProfileUrl: 'https://x.com/cillygirl1977', discordId: '275804962355806208', description: 'Community Advisor' },
     { xProfileUrl: '', discordId: '1256517171119394939', description: 'Advisor' },
+    { xProfileUrl: 'https://x.com/GrandFracton', discordId: '978993938318897203', description: 'Community manager' },
   ],
 };
