@@ -54,6 +54,16 @@ module.exports = (req, res) => {
   }
   const q = (req.url || '').includes('?') ? '?' + (req.url || '').split('?').slice(1).join('?') : '';
 
+  if (raw === '/api/pairs' || raw === '/api/pairs/') {
+    try {
+      const body = fs.readFileSync(path.join(ROOT, 'pairs.html'), 'utf8');
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.status(200).send(body);
+    } catch (e) {
+      return res.status(404).end();
+    }
+  }
+
   const isApiRoute = /^\/api\/(discord|verify|collections|holders|prices|blunana-ohlc|wallets|pairs)(\/|$|\?)/.test(raw);
   if (isApiRoute) {
     req.url = raw + q;
