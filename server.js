@@ -2,7 +2,7 @@
  * Mnk3ys — Express server with Discord OAuth2 login
  * Serves static site and provides /api/discord/* routes.
  *
- * Required env: DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, SESSION_SECRET, BASE_URL
+ * Required env: DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, SESSION_SECRET, BASE_URL. Pairs game: PAIRS_TREASURY_SECRET_KEY (testing).
  */
 
 require('dotenv').config();
@@ -43,6 +43,21 @@ const LAMPORTS_PER_SOL = 1e9;
 const BLUNANA_TOKEN_MINT = process.env.BLUNANA_TOKEN_MINT || process.env.TOKEN_MINT || 'KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS';
 const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 const BLUNANA_DECIMALS = parseInt(process.env.BLUNANA_DECIMALS || '6', 10);
+
+// Pairs game: treasury wallet (testing then production). No SOL fee during testing.
+const PAIRS_COST_BLUNANA = parseInt(process.env.PAIRS_COST_BLUNANA || '100000', 10);
+const PAIRS_TURNS_PER_BUY = parseInt(process.env.PAIRS_TURNS_PER_BUY || '5', 10);
+const PAIRS_SOL_FEE_LAMPORTS = parseInt(process.env.PAIRS_SOL_FEE_LAMPORTS || '0', 10); // 0 = no fee (testing)
+let pairsTreasuryKeypair = null;
+if (process.env.PAIRS_TREASURY_SECRET_KEY) {
+  try {
+    const secret = bs58.decode(process.env.PAIRS_TREASURY_SECRET_KEY);
+    pairsTreasuryKeypair = require('@solana/web3.js').Keypair.fromSecretKey(secret);
+  } catch (e) {
+    console.warn('PAIRS_TREASURY_SECRET_KEY invalid:', e.message);
+  }
+}
+const PAIRS_TREASURY_WALLET = pairsTreasuryKeypair ? pairsTreasuryKeypair.publicKey.toBase58() : (process.env.PAIRS_TREASURY_WALLET || '');
 
 if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET) {
   console.warn('Missing DISCORD_CLIENT_ID or DISCORD_CLIENT_SECRET. Set them in .env to enable Discord login.');
@@ -206,26 +221,31 @@ app.get('/api/wallets', async function (req, res) {
 app.get('/api/pairs/state', async function (req, res) {
   if (!req.session?.discord) return res.status(401).json({ error: 'Not logged in' });
   if (!db.getPairsState) return res.json({ state: null });
-  const state = await db.getPairsState(req.session.discord.id);
-  res.json({ state });
+  const discordId = req.session.discord.id;
+  const state = await db.getPairsState(discordId);
+  const pendingPrizes = (db.getPendingPairsPrizes && (await db.getPendingPairsPrizes(discordId))) || [];
+  res.json({ state, pendingPrizes });
 });
 
-app.post('/api/pairs/buy', express.json(), async function (req, res) {
-  if (!req.session?.discord) return res.status(401).json({ error: 'Not logged in' });
-  const { turns } = req.body || {};
-  const n = parseInt(turns, 10);
-  if (isNaN(n) || n < 1 || n > 100) return res.status(400).json({ error: 'turns must be 1–100' });
-  if (!db.getPairsState || !db.savePairsState) return res.status(503).json({ error: 'Database not configured' });
-  try {
-    let state = await db.getPairsState(req.session.discord.id);
-    if (!state) state = { turnsRemaining: 0, deck: [], flipped: [], matched: {}, prizesWon: [] };
-    state.turnsRemaining = (state.turnsRemaining || 0) + n;
-    await db.savePairsState(req.session.discord.id, state);
-    res.json({ ok: true, turnsRemaining: state.turnsRemaining });
-  } catch (e) {
-    return res.status(500).json({ error: e.message });
-  }
+require('./pairs-routes').registerPairsRoutes(app, {
+  express,
+  db,
+  HELIUS_API_KEY,
+  HELIUS_RPC,
+  getPairsState: db.getPairsState,
+  savePairsState: db.savePairsState,
+  env: process.env,
 });
+
+function prizeLabelToId(label) {
+  if (!label || typeof label !== 'string') return null;
+  const s = label.trim();
+  if (/mnk3ys/i.test(s)) return 'mnk3ys';
+  if (/zmb3ys/i.test(s)) return 'zmb3ys';
+  const m = s.match(/(\d+)k/);
+  if (m) return m[1] + 'k';
+  return s;
+}
 
 app.post('/api/pairs/play', express.json(), async function (req, res) {
   if (!req.session?.discord) return res.status(401).json({ error: 'Not logged in' });
@@ -242,7 +262,29 @@ app.post('/api/pairs/play', express.json(), async function (req, res) {
       turnsRemaining: parseInt(turnsRemaining, 10) || 0,
       prizesWon: Array.isArray(prizesWon) ? prizesWon : [],
     };
-    await db.savePairsState(req.session.discord.id, state);
+    const discordId = req.session.discord.id;
+    const pendingList = (db.getPendingPairsPrizes && (await db.getPendingPairsPrizes(discordId))) || [];
+    if (pendingList.length === 0) {
+      const prev = await db.getPairsState(discordId);
+      const oldPrizes = (prev && Array.isArray(prev.prizesWon) ? prev.prizesWon : []).map(prizeLabelToId).filter(Boolean);
+      const newPrizes = (state.prizesWon || []).map(prizeLabelToId).filter(Boolean);
+      const oldCounts = {};
+      oldPrizes.forEach((id) => { oldCounts[id] = (oldCounts[id] || 0) + 1; });
+      const newCounts = {};
+      newPrizes.forEach((id) => { newCounts[id] = (newCounts[id] || 0) + 1; });
+      const allIds = new Set([...Object.keys(oldCounts), ...Object.keys(newCounts)]);
+      let inserted = 0;
+      for (const prizeId of allIds) {
+        const add = (newCounts[prizeId] || 0) - (oldCounts[prizeId] || 0);
+        for (let i = 0; i < add && inserted < 1; i++) {
+          if (db.insertPairsPrize) {
+            await db.insertPairsPrize(discordId, prizeId);
+            inserted++;
+          }
+        }
+      }
+    }
+    await db.savePairsState(discordId, state);
     res.json({ ok: true });
   } catch (e) {
     return res.status(500).json({ error: e.message });

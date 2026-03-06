@@ -40,6 +40,19 @@ CREATE TABLE IF NOT EXISTS pairs_buys (
   tx_signature TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS pairs_prizes (
+  id SERIAL PRIMARY KEY,
+  discord_id TEXT NOT NULL REFERENCES users(discord_id) ON DELETE CASCADE,
+  prize_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  tx_signature TEXT,
+  error_message TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_pairs_prizes_discord_status ON pairs_prizes(discord_id, status);
 `;
 
 async function run() {

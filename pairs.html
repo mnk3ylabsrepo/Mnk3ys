@@ -22,6 +22,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/styles.css" />
   <link rel="stylesheet" href="/css/pairs.css?v=10" />
+  <script src="https://unpkg.com/@solana/web3.js@1.95.4/lib/index.iife.min.js"></script>
 </head>
 <body class="pairs-page">
   <div class="pairs-page__bg" aria-hidden="true"></div>
@@ -77,7 +78,17 @@
     <div class="pairs-modal__box">
       <h2 class="pairs-modal__title">Congrats!</h2>
       <p class="pairs-modal__text" id="pairs-congrats-prize">You won</p>
+      <p class="pairs-modal__hint pairs-modal__hint--wallet" id="pairs-congrats-wallet-hint" hidden>Connect a wallet (top right) to collect.</p>
       <button type="button" class="btn pairs-modal__btn" id="pairs-congrats-collect">Collect</button>
+    </div>
+  </div>
+  <div class="pairs-modal pairs-sent-modal" id="pairs-sent-modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="pairs-modal__backdrop" id="pairs-sent-modal-backdrop"></div>
+    <div class="pairs-modal__box">
+      <h2 class="pairs-modal__title">Prize sent</h2>
+      <p class="pairs-modal__text">Your prize has been sent to your wallet.</p>
+      <a class="btn pairs-modal__btn pairs-modal__link" id="pairs-sent-tx-link" href="#" target="_blank" rel="noopener noreferrer">View transaction</a>
+      <button type="button" class="btn pairs-modal__btn" id="pairs-sent-modal-close">OK</button>
     </div>
   </div>
   <div class="pairs-prizes-modal" id="pairs-prizes-modal" aria-hidden="true" role="dialog" aria-labelledby="pairs-prizes-modal-title" aria-modal="true">

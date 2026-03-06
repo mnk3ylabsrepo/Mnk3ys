@@ -134,6 +134,110 @@ async function savePairsState(discordId, state) {
   return state;
 }
 
+async function recordPairsBuy(discordId, turnsBought, txSignature) {
+  const p = getPool();
+  if (!p) return null;
+  await p.query(
+    `INSERT INTO pairs_buys (discord_id, turns_bought, tx_signature)
+     VALUES ($1, $2, $3)`,
+    [discordId, turnsBought, txSignature || null]
+  );
+  return { discordId, turnsBought, txSignature };
+}
+
+// ——— Pairs prizes (persistent record for collect / retry) ———
+async function insertPairsPrize(discordId, prizeId) {
+  const p = getPool();
+  if (!p) return null;
+  const res = await p.query(
+    `INSERT INTO pairs_prizes (discord_id, prize_id, status) VALUES ($1, $2, 'pending')
+     RETURNING id`,
+    [discordId, String(prizeId).trim()]
+  );
+  return res.rows?.[0]?.id ?? null;
+}
+
+async function getPendingPairsPrizes(discordId) {
+  const p = getPool();
+  if (!p) return [];
+  const res = await p.query(
+    `SELECT id, prize_id, created_at FROM pairs_prizes
+     WHERE discord_id = $1 AND status = 'pending'
+     ORDER BY created_at ASC
+     LIMIT 1`,
+    [discordId]
+  );
+  return (res.rows || []).map((r) => ({ id: r.id, prizeId: r.prize_id, createdAt: r.created_at }));
+}
+
+async function countPendingByPrizeId(discordId) {
+  const p = getPool();
+  if (!p) return {};
+  const res = await p.query(
+    `SELECT prize_id, COUNT(*)::int AS cnt FROM pairs_prizes
+     WHERE discord_id = $1 AND status = 'pending'
+     GROUP BY prize_id`,
+    [discordId]
+  );
+  const out = {};
+  (res.rows || []).forEach((r) => { out[r.prize_id] = r.cnt; });
+  return out;
+}
+
+async function claimPendingPairsPrize(discordId, prizeId) {
+  const p = getPool();
+  if (!p) return null;
+  const res = await p.query(
+    `UPDATE pairs_prizes SET status = 'claimed', updated_at = NOW()
+     WHERE id = (
+       SELECT id FROM pairs_prizes
+       WHERE discord_id = $1 AND prize_id = $2 AND status = 'pending'
+       ORDER BY created_at ASC LIMIT 1
+     )
+     RETURNING id, prize_id AS "prizeId"`,
+    [discordId, String(prizeId).trim()]
+  );
+  const row = res.rows?.[0];
+  return row ? { id: row.id, prizeId: row.prizeId } : null;
+}
+
+async function claimFirstPendingPairsPrize(discordId) {
+  const p = getPool();
+  if (!p) return null;
+  const res = await p.query(
+    `UPDATE pairs_prizes SET status = 'claimed', updated_at = NOW()
+     WHERE id = (
+       SELECT id FROM pairs_prizes
+       WHERE discord_id = $1 AND status = 'pending'
+       ORDER BY created_at ASC LIMIT 1
+     )
+     RETURNING id, prize_id AS "prizeId"`,
+    [discordId]
+  );
+  const row = res.rows?.[0];
+  return row ? { id: row.id, prizeId: row.prizeId } : null;
+}
+
+async function markPairsPrizeSent(prizeRowId, txSignature) {
+  const p = getPool();
+  if (!p) return;
+  const id = typeof prizeRowId === 'object' && prizeRowId != null && prizeRowId.id != null ? prizeRowId.id : prizeRowId;
+  await p.query(
+    `UPDATE pairs_prizes SET status = 'sent', tx_signature = $2, updated_at = NOW() WHERE id = $1`,
+    [id, txSignature || null]
+  );
+}
+
+async function markPairsPrizeFailed(prizeRowId, errorMessage) {
+  const p = getPool();
+  if (!p) return;
+  const id = typeof prizeRowId === 'object' && prizeRowId != null && prizeRowId.id != null ? prizeRowId.id : prizeRowId;
+  await p.query(
+    `UPDATE pairs_prizes SET status = 'pending', error_message = $2, updated_at = NOW() WHERE id = $1 AND status = 'claimed'`,
+    [id, (errorMessage || '').slice(0, 500)]
+  );
+}
+
 module.exports = {
   getPool,
   upsertUser,
@@ -144,4 +248,12 @@ module.exports = {
   getDiscordUsernames,
   getPairsState,
   savePairsState,
+  recordPairsBuy,
+  insertPairsPrize,
+  getPendingPairsPrizes,
+  countPendingByPrizeId,
+  claimPendingPairsPrize,
+  claimFirstPendingPairsPrize,
+  markPairsPrizeSent,
+  markPairsPrizeFailed,
 };

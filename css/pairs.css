@@ -377,8 +377,20 @@
   color: var(--text);
 }
 
+.pairs-modal__hint {
+  margin: 0;
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--text-muted, #888);
+}
+
 .pairs-modal__btn {
   min-width: 140px;
+}
+
+.pairs-modal__link.pairs-modal__btn {
+  text-decoration: none;
+  display: inline-flex;
 }
 
 /* Shuffle animation */

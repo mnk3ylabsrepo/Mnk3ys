@@ -1,0 +1,7 @@
+Pairs game - add to .env for testing.
+
+PAIRS_TREASURY_SECRET_KEY=your_base58_private_key_here
+
+Optional: PAIRS_COST_BLUNANA=100000 PAIRS_TURNS_PER_BUY=5
+No SOL fee during testing: PAIRS_SOL_FEE_LAMPORTS=0
+NFT prizes: PAIRS_TREASURY_MNK3YS_NFT_MINT= PAIRS_TREASURY_ZMB3YS_NFT_MINT=
