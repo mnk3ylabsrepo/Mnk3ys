@@ -83,8 +83,11 @@ app.get('/favicon.ico', function (req, res) {
   res.status(204).end();
 });
 
-// Pairs game: standalone page
+// Pairs game: standalone page (Vercel sends /api/pairs for GET /pairs via rewrite)
 app.get('/pairs', function (req, res) {
+  res.sendFile(path.join(__dirname, 'pairs.html'));
+});
+app.get('/api/pairs', function (req, res) {
   res.sendFile(path.join(__dirname, 'pairs.html'));
 });
 
