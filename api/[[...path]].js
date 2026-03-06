@@ -49,12 +49,12 @@ module.exports = (req, res) => {
     if (normalized === 'pairs') raw = '/pairs';
     else raw = '/api/' + (rest ? rest.replace(/^\/+/, '') : '');
   }
-  if (/^\/(discord|verify|collections|holders|prices|blunana-ohlc|wallets)(\/|$|\?)/.test(raw)) {
+  if (/^\/(discord|verify|collections|holders|prices|blunana-ohlc|wallets|pairs)(\/|$|\?)/.test(raw)) {
     raw = '/api' + raw;
   }
   const q = (req.url || '').includes('?') ? '?' + (req.url || '').split('?').slice(1).join('?') : '';
 
-  const isApiRoute = /^\/api\/(discord|verify|collections|holders|prices|blunana-ohlc|wallets)(\/|$|\?)/.test(raw);
+  const isApiRoute = /^\/api\/(discord|verify|collections|holders|prices|blunana-ohlc|wallets|pairs)(\/|$|\?)/.test(raw);
   if (isApiRoute) {
     req.url = raw + q;
     return app(req, res);
