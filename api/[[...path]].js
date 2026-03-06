@@ -35,21 +35,26 @@ function sendFile(res, filePath, ext) {
 }
 
 module.exports = (req, res) => {
-  let raw = (req.url || req.path || '').split('?')[0];
-  if (raw.startsWith('http')) {
-    try {
-      raw = new URL(raw).pathname;
-    } catch (_) {}
-  }
-  if (!raw.startsWith('/')) raw = '/' + raw;
   const pathSegments = req.query && req.query.path;
-  if (pathSegments && !/^\/api\//.test(raw)) {
-    const rest = Array.isArray(pathSegments) ? pathSegments.join('/') : String(pathSegments);
-    const normalized = (rest || '').replace(/^\/+|\/+$/, '');
-    if (normalized === 'pairs') raw = '/pairs';
-    else raw = '/api/' + (rest ? rest.replace(/^\/+/, '') : '');
+  let raw;
+  if (pathSegments != null) {
+    const rest = Array.isArray(pathSegments) ? pathSegments.filter(Boolean).join('/') : String(pathSegments).replace(/^\/+|\/+$/, '');
+    raw = rest ? '/api/' + rest : '/api';
+  } else {
+    raw = (req.url || req.path || '').split('?')[0];
+    if (raw.startsWith('http')) {
+      try {
+        raw = new URL(raw).pathname;
+      } catch (_) {}
+    }
+    if (!raw.startsWith('/')) raw = '/' + raw;
+    if (!raw.startsWith('/api')) {
+      if (/^\/(discord|verify|collections|holders|prices|blunana-ohlc|wallets|pairs)(\/|$|\?)/.test(raw)) {
+        raw = '/api' + raw;
+      }
+    }
   }
-  if (/^\/(discord|verify|collections|holders|prices|blunana-ohlc|wallets|pairs)(\/|$|\?)/.test(raw)) {
+  if (!raw.startsWith('/api') && /^\/(discord|verify|collections|holders|prices|blunana-ohlc|wallets|pairs)(\/|$|\?)/.test(raw)) {
     raw = '/api' + raw;
   }
   const q = (req.url || '').includes('?') ? '?' + (req.url || '').split('?').slice(1).join('?') : '';
