@@ -302,6 +302,7 @@ function registerPairsRoutes(app, opts) {
   });
 
   app.post('/api/pairs/collect', express.json(), async function (req, res) {
+    try {
     const { prizeId, wallet } = req.body || {};
     if (!wallet) return res.status(400).json({ error: 'wallet required' });
     if (!config.treasuryKeypair || !connection) return res.status(503).json({ error: 'Pairs treasury not configured' });
@@ -408,6 +409,11 @@ function registerPairsRoutes(app, opts) {
     }
     if (claimed && db.markPairsPrizeFailed) await db.markPairsPrizeFailed(claimed, 'Unknown prize: ' + actualPrizeId);
     res.status(400).json({ error: 'Unknown prize: ' + actualPrizeId });
+    } catch (e) {
+      const errMsg = (e && e.message) || (e && typeof e.toString === 'function' && e.toString()) || String(e) || 'Collect failed';
+      console.error('[pairs] Collect error:', errMsg, e);
+      res.status(500).json({ error: errMsg });
+    }
   });
 }
 
