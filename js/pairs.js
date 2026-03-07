@@ -20,6 +20,7 @@
     return null;
   }
 
+  var afterSyncWallet = null;
   function syncPairsWallet() {
     var btn = document.getElementById('btn-connect-wallet');
     var wrap = document.getElementById('pairs-wallet-connected');
@@ -49,6 +50,7 @@
       wrap.hidden = true;
       if (balanceEl) balanceEl.textContent = '—';
     }
+    if (typeof afterSyncWallet === 'function') afterSyncWallet();
   }
 
   function getConfig() {
@@ -151,6 +153,9 @@
     var messageEl = document.getElementById('pairs-message');
 
     if (!gridEl) return;
+    afterSyncWallet = function () {
+      if (buyBtn) buyBtn.disabled = !getWalletPublicKey() || state.turns > 0;
+    };
 
     var state = {
       deck: [],
