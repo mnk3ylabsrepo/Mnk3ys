@@ -9,7 +9,13 @@ const ROOT = path.resolve(path.join(__dirname, '..', '..'));
 
 module.exports = (req, res) => {
   const slug = req.query && req.query.slug;
-  const rest = Array.isArray(slug) ? slug.filter(Boolean).join('/') : (slug ? String(slug).replace(/^\/+|\/+$/, '') : '');
+  let rest = Array.isArray(slug) ? slug.filter(Boolean).join('/') : (slug ? String(slug).replace(/^\/+|\/+$/, '') : '');
+  if (!rest && (req.url || req.originalUrl)) {
+    const raw = (req.url || req.originalUrl || '').split('?')[0];
+    const pathOnly = raw.startsWith('http') ? (() => { try { return new URL(raw).pathname; } catch (_) { return raw; } })() : raw;
+    const match = (pathOnly || '').match(/^\/?api\/pairs(?:\/(.+))?$/);
+    if (match) rest = (match[1] || '').replace(/\/+$/, '');
+  }
   const pathname = '/api/pairs' + (rest ? '/' + rest : '');
   const q = (req.url || '').includes('?') ? '?' + (req.url || '').split('?').slice(1).join('?') : '';
 
