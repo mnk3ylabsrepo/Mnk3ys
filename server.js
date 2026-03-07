@@ -63,6 +63,18 @@ if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET) {
   console.warn('Missing DISCORD_CLIENT_ID or DISCORD_CLIENT_SECRET. Set them in .env to enable Discord login.');
 }
 
+// Vercel/serverless: request may have Web API Headers; Express expects plain object so cookie-session can read req.headers.cookie
+app.use(function (req, res, next) {
+  if (req.headers && typeof req.headers.get === 'function') {
+    const plain = {};
+    req.headers.forEach(function (v, k) { plain[k.toLowerCase()] = v; });
+    req.headers = plain;
+  }
+  next();
+});
+
+app.set('trust proxy', 1);
+
 app.use(cookieParser());
 app.use(
   cookieSession({
