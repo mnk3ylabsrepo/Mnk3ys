@@ -168,7 +168,6 @@
       localCollectionImages: {},
       lastWonPrizeId: null,
       pendingPrizes: [],
-      loggedIn: false,
     };
 
     var BLUNANA_LOGO_URL = 'https://ipfs.io/ipfs/QmTKRAZEcTfDeVDt8hebrCv27DctYghtdfXRMc9FRA6NU3';
@@ -502,7 +501,6 @@
     });
 
     buyBtn.addEventListener('click', function () {
-      if (!state.loggedIn) { setMessage('Log in with Discord to play'); return; }
       if (state.pendingPrizes && state.pendingPrizes.length > 0) { setMessage('Collect your prize first'); return; }
       if (state.turns > 0) return;
       var walletPk = getWalletPublicKey();
@@ -558,17 +556,9 @@
         });
     });
 
-    var loginLinkEl = document.getElementById('pairs-login-link');
-    function updateLoginUI() {
-      if (loginLinkEl) loginLinkEl.style.display = state.loggedIn ? 'none' : 'inline-block';
-    }
     function load() {
       fetch(window.location.origin + '/api/pairs/state', { credentials: 'include' })
-        .then(function (r) {
-          state.loggedIn = r.status !== 401;
-          updateLoginUI();
-          return r.status === 401 ? null : r.json();
-        })
+        .then(function (r) { return r.status === 401 ? null : r.json(); })
         .then(function (data) {
           state.pendingPrizes = Array.isArray(data && data.pendingPrizes) ? data.pendingPrizes : [];
           var s = data && data.state && Array.isArray(data.state.deck) && data.state.deck.length === 24 ? data.state : loadFromStorage();
