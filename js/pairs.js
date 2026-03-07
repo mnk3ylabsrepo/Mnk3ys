@@ -216,7 +216,7 @@
     function setTurns(n) {
       state.turns = n;
       if (turnsEl) turnsEl.textContent = n;
-      if (buyBtn) buyBtn.disabled = n > 0;
+      if (buyBtn) buyBtn.disabled = !getWalletPublicKey() || n > 0;
     }
 
     function setPrizes() {
