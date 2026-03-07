@@ -53,6 +53,35 @@ CREATE TABLE IF NOT EXISTS pairs_prizes (
 );
 
 CREATE INDEX IF NOT EXISTS idx_pairs_prizes_discord_status ON pairs_prizes(discord_id, status);
+
+-- Pairs by wallet (no Discord)
+CREATE TABLE IF NOT EXISTS pairs_state_wallet (
+  wallet_address TEXT PRIMARY KEY,
+  turns_remaining INTEGER DEFAULT 0,
+  deck_json JSONB DEFAULT '[]',
+  flipped_json JSONB DEFAULT '[]',
+  matched_json JSONB DEFAULT '{}',
+  prizes_won_json JSONB DEFAULT '[]',
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS pairs_buys_wallet (
+  id SERIAL PRIMARY KEY,
+  wallet_address TEXT NOT NULL,
+  turns_bought INTEGER NOT NULL,
+  tx_signature TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS pairs_prizes_wallet (
+  id SERIAL PRIMARY KEY,
+  wallet_address TEXT NOT NULL,
+  prize_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  tx_signature TEXT,
+  error_message TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_pairs_prizes_wallet_status ON pairs_prizes_wallet(wallet_address, status);
 `;
 
 async function run() {

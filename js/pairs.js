@@ -94,12 +94,13 @@
   }
 
   function init() {
+    var reloadState = function () {};
     syncPairsWallet();
     var mo = new MutationObserver(syncPairsWallet);
     if (document.body) mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
     getDetectedWallets().forEach(function (w) {
       if (w.provider && typeof w.provider.on === 'function') {
-        w.provider.on('accountChanged', syncPairsWallet);
+        w.provider.on('accountChanged', function () { syncPairsWallet(); reloadState(); });
       }
     });
 
@@ -123,7 +124,7 @@
         btn.textContent = w.name;
         btn.addEventListener('click', function () {
           if (walletPicker) walletPicker.setAttribute('aria-hidden', 'true');
-          w.provider.connect({ onlyIfTrusted: false }).then(function () { syncPairsWallet(); }).catch(function (err) {
+          w.provider.connect({ onlyIfTrusted: false }).then(function () { syncPairsWallet(); reloadState(); }).catch(function (err) {
             if (err && err.code !== 4001) console.warn('Wallet connect error', err);
           });
         });
@@ -272,10 +273,13 @@
     }
 
     function saveToServer() {
+      var w = getWalletPublicKey();
+      if (!w) return;
       fetch(window.location.origin + '/api/pairs/play', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          wallet: w,
           deck: state.deck,
           flipped: state.flipped || [],
           matched: state.matched || {},
@@ -525,7 +529,7 @@
               var sig = result && (result.signature || result.transactionSignature || (typeof result === 'string' ? result : null));
               if (!sig) throw new Error('No signature from wallet');
               if (typeof sig !== 'string' && sig.toString) sig = sig.toString();
-              return fetch(origin + '/api/pairs/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signature: sig }), credentials: 'include' });
+              return fetch(origin + '/api/pairs/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signature: sig, wallet: walletPk }), credentials: 'include' });
             });
           }
           return provider.signTransaction(tx).then(function (signedTx) {
@@ -534,7 +538,7 @@
             var binary = '';
             for (var i = 0; i < serialized.length; i++) binary += String.fromCharCode(serialized[i]);
             var b64 = btoa(binary);
-            return fetch(origin + '/api/pairs/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signedTransaction: b64 }), credentials: 'include' });
+            return fetch(origin + '/api/pairs/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signedTransaction: b64, wallet: walletPk }), credentials: 'include' });
           });
         })
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
@@ -557,8 +561,10 @@
     });
 
     function load() {
-      fetch(window.location.origin + '/api/pairs/state', { credentials: 'include' })
-        .then(function (r) { return r.status === 401 ? null : r.json(); })
+      var w = getWalletPublicKey();
+      var stateUrl = w ? '/api/pairs/state?wallet=' + encodeURIComponent(w) : '/api/pairs/state';
+      fetch(window.location.origin + stateUrl, { credentials: 'include' })
+        .then(function (r) { return r.ok ? r.json() : { state: null, pendingPrizes: [] }; })
         .then(function (data) {
           state.pendingPrizes = Array.isArray(data && data.pendingPrizes) ? data.pendingPrizes : [];
           var s = data && data.state && Array.isArray(data.state.deck) && data.state.deck.length === 24 ? data.state : loadFromStorage();
@@ -604,6 +610,7 @@
 
     setTurns(0);
     load();
+    reloadState = load;
 
     function onCollectionImagesReady() {
       render();

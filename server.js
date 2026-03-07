@@ -108,7 +108,11 @@ app.get('/api/discord/auth', function (req, res) {
   if (!DISCORD_CLIENT_ID) {
     return res.redirect('/?discord=not_configured');
   }
-  const state = Math.random().toString(36).slice(2);
+  const token = Math.random().toString(36).slice(2);
+  const nextPath = (req.query.next && typeof req.query.next === 'string')
+    ? req.query.next.replace(/^\/+/, '/').replace(/[<>"']/g, '').slice(0, 200) || ''
+    : '';
+  const state = nextPath ? token + ':' + nextPath : token;
   req.session.discordState = state;
   const qs = new URLSearchParams({
     client_id: DISCORD_CLIENT_ID,
@@ -232,13 +236,13 @@ app.get('/api/wallets', async function (req, res) {
   res.json({ wallets });
 });
 
-// ——— Pairs: state / buy / play ———
+// ——— Pairs: state (wallet only, no Discord) ———
 app.get('/api/pairs/state', async function (req, res) {
-  if (!req.session?.discord) return res.status(401).json({ error: 'Not logged in' });
-  if (!db.getPairsState) return res.json({ state: null });
-  const discordId = req.session.discord.id;
-  const state = await db.getPairsState(discordId);
-  const pendingPrizes = (db.getPendingPairsPrizes && (await db.getPendingPairsPrizes(discordId))) || [];
+  const wallet = (req.query.wallet && String(req.query.wallet).trim()) || '';
+  if (!wallet) return res.json({ state: null, pendingPrizes: [] });
+  if (!db.getPairsStateByWallet) return res.json({ state: null, pendingPrizes: [] });
+  const state = await db.getPairsStateByWallet(wallet);
+  const pendingPrizes = (db.getPendingPairsPrizesByWallet && (await db.getPendingPairsPrizesByWallet(wallet))) || [];
   res.json({ state, pendingPrizes });
 });
 
@@ -247,8 +251,8 @@ require('./pairs-routes').registerPairsRoutes(app, {
   db,
   HELIUS_API_KEY,
   HELIUS_RPC,
-  getPairsState: db.getPairsState,
-  savePairsState: db.savePairsState,
+  getPairsState: db.getPairsStateByWallet,
+  savePairsState: db.savePairsStateByWallet,
   env: process.env,
 });
 
@@ -263,9 +267,10 @@ function prizeLabelToId(label) {
 }
 
 app.post('/api/pairs/play', express.json(), async function (req, res) {
-  if (!req.session?.discord) return res.status(401).json({ error: 'Not logged in' });
+  const wallet = (req.body && req.body.wallet && String(req.body.wallet).trim()) || '';
+  if (!wallet) return res.status(400).json({ error: 'wallet required' });
   const { deck, flipped, matched, turnsRemaining, prizesWon } = req.body || {};
-  if (!db.savePairsState) return res.status(503).json({ error: 'Database not configured' });
+  if (!db.savePairsStateByWallet) return res.status(503).json({ error: 'Database not configured' });
   if (!Array.isArray(deck) || !Array.isArray(flipped) || typeof matched !== 'object') {
     return res.status(400).json({ error: 'deck, flipped, matched required' });
   }
@@ -277,10 +282,9 @@ app.post('/api/pairs/play', express.json(), async function (req, res) {
       turnsRemaining: parseInt(turnsRemaining, 10) || 0,
       prizesWon: Array.isArray(prizesWon) ? prizesWon : [],
     };
-    const discordId = req.session.discord.id;
-    const pendingList = (db.getPendingPairsPrizes && (await db.getPendingPairsPrizes(discordId))) || [];
+    const pendingList = (db.getPendingPairsPrizesByWallet && (await db.getPendingPairsPrizesByWallet(wallet))) || [];
     if (pendingList.length === 0) {
-      const prev = await db.getPairsState(discordId);
+      const prev = await db.getPairsStateByWallet(wallet);
       const oldPrizes = (prev && Array.isArray(prev.prizesWon) ? prev.prizesWon : []).map(prizeLabelToId).filter(Boolean);
       const newPrizes = (state.prizesWon || []).map(prizeLabelToId).filter(Boolean);
       const oldCounts = {};
@@ -292,14 +296,14 @@ app.post('/api/pairs/play', express.json(), async function (req, res) {
       for (const prizeId of allIds) {
         const add = (newCounts[prizeId] || 0) - (oldCounts[prizeId] || 0);
         for (let i = 0; i < add && inserted < 1; i++) {
-          if (db.insertPairsPrize) {
-            await db.insertPairsPrize(discordId, prizeId);
+          if (db.insertPairsPrizeByWallet) {
+            await db.insertPairsPrizeByWallet(wallet, prizeId);
             inserted++;
           }
         }
       }
     }
-    await db.savePairsState(discordId, state);
+    await db.savePairsStateByWallet(wallet, state);
     res.json({ ok: true });
   } catch (e) {
     return res.status(500).json({ error: e.message });

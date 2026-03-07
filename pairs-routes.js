@@ -260,11 +260,12 @@ function registerPairsRoutes(app, opts) {
   });
 
   app.post('/api/pairs/buy', express.json(), async function (req, res) {
-    if (!req.session?.discord) return res.status(401).json({ error: 'Not logged in' });
+    const wallet = (req.body && req.body.wallet && String(req.body.wallet).trim()) || '';
+    if (!wallet) return res.status(400).json({ error: 'wallet required' });
     const { signature, signedTransaction } = req.body || {};
     if (!signature && !signedTransaction) return res.status(400).json({ error: 'signature or signedTransaction required' });
     if (!config.treasuryPubkey || !connection) return res.status(503).json({ error: 'Pairs treasury not configured' });
-    if (!db || !getPairsState || !savePairsState) return res.status(503).json({ error: 'Database not configured' });
+    if (!db || !db.getPairsStateByWallet || !db.savePairsStateByWallet) return res.status(503).json({ error: 'Database not configured' });
     let sig = typeof signature === 'string' ? signature.trim() : (signature && (signature.signature || signature.transactionSignature || signature.toString)) ? String(signature.signature || signature.transactionSignature || signature.toString()).trim() : null;
     if (signedTransaction) {
       try {
@@ -287,12 +288,12 @@ function registerPairsRoutes(app, opts) {
     );
     if (!verification.ok) return res.status(400).json({ error: verification.error || 'Invalid payment' });
     try {
-      let state = await getPairsState(req.session.discord.id);
+      let state = await db.getPairsStateByWallet(wallet);
       if (!state) state = { turnsRemaining: 0, deck: [], flipped: [], matched: {}, prizesWon: [] };
       state.turnsRemaining = (state.turnsRemaining || 0) + config.turnsPerBuy;
-      await savePairsState(req.session.discord.id, state);
-      if (db.recordPairsBuy) {
-        await db.recordPairsBuy(req.session.discord.id, config.turnsPerBuy, sig);
+      await db.savePairsStateByWallet(wallet, state);
+      if (db.recordPairsBuyByWallet) {
+        await db.recordPairsBuyByWallet(wallet, config.turnsPerBuy, sig);
       }
       res.json({ ok: true, turnsRemaining: state.turnsRemaining, signature: sig });
     } catch (e) {
@@ -301,24 +302,23 @@ function registerPairsRoutes(app, opts) {
   });
 
   app.post('/api/pairs/collect', express.json(), async function (req, res) {
-    if (!req.session?.discord) return res.status(401).json({ error: 'Not logged in' });
     const { prizeId, wallet } = req.body || {};
     if (!wallet) return res.status(400).json({ error: 'wallet required' });
     if (!config.treasuryKeypair || !connection) return res.status(503).json({ error: 'Pairs treasury not configured' });
-    if (!db || !getPairsState || !savePairsState) return res.status(503).json({ error: 'Database not configured' });
+    if (!db || !db.getPairsStateByWallet || !db.savePairsStateByWallet) return res.status(503).json({ error: 'Database not configured' });
     let userWallet;
     try {
       userWallet = new PublicKey(wallet);
     } catch (e) {
       return res.status(400).json({ error: 'Invalid wallet address' });
     }
-    const discordId = req.session.discord.id;
+    const walletStr = String(wallet).trim().toLowerCase();
     let claimed = null;
-    if (db.claimPendingPairsPrize && db.claimFirstPendingPairsPrize) {
-      claimed = prizeId ? await db.claimPendingPairsPrize(discordId, prizeId) : null;
-      if (!claimed) claimed = await db.claimFirstPendingPairsPrize(discordId);
+    if (db.claimPendingPairsPrizeByWallet && db.claimFirstPendingPairsPrizeByWallet) {
+      claimed = prizeId ? await db.claimPendingPairsPrizeByWallet(walletStr, prizeId) : null;
+      if (!claimed) claimed = await db.claimFirstPendingPairsPrizeByWallet(walletStr);
     }
-    if (!claimed && (db.claimPendingPairsPrize || db.claimFirstPendingPairsPrize)) {
+    if (!claimed && (db.claimPendingPairsPrizeByWallet || db.claimFirstPendingPairsPrizeByWallet)) {
       return res.status(400).json({ error: 'No pending prize to collect. It may already have been sent.' });
     }
     const actualPrizeId = (claimed && claimed.prizeId) || prizeId || '';
@@ -334,18 +334,18 @@ function registerPairsRoutes(app, opts) {
           amountRaw,
           config.blunanaMint
         );
-        if (db.markPairsPrizeSent && claimed) await db.markPairsPrizeSent(claimed, txSig);
-        let state = await getPairsState(discordId);
+        if (db.markPairsPrizeSentWallet && claimed) await db.markPairsPrizeSentWallet(claimed, txSig);
+        let state = await db.getPairsStateByWallet(walletStr);
         if (state && Array.isArray(state.prizesWon)) {
           const idx = state.prizesWon.indexOf(actualPrizeId);
           if (idx !== -1) {
             state.prizesWon = state.prizesWon.slice(0, idx).concat(state.prizesWon.slice(idx + 1));
-            await savePairsState(discordId, state);
+            await db.savePairsStateByWallet(walletStr, state);
           }
         }
         res.json({ ok: true, txSignature: txSig });
       } catch (e) {
-        if (db.markPairsPrizeFailed && claimed) await db.markPairsPrizeFailed(claimed, e && e.message);
+        if (db.markPairsPrizeFailedWallet && claimed) await db.markPairsPrizeFailedWallet(claimed, e && e.message);
         const errMsg = (e && e.message) || (e && typeof e.toString === 'function' && e.toString()) || String(e) || 'Transfer failed';
         console.error('[pairs] Collect token prize failed:', errMsg, e);
         res.status(500).json({ error: errMsg });
@@ -388,25 +388,25 @@ function registerPairsRoutes(app, opts) {
         if (txResult && txResult.meta && txResult.meta.err) {
           throw new Error('Transaction failed on-chain: ' + JSON.stringify(txResult.meta.err));
         }
-        if (db.markPairsPrizeSent && claimed) await db.markPairsPrizeSent(claimed, txSig);
-        let state = await getPairsState(discordId);
+        if (db.markPairsPrizeSentWallet && claimed) await db.markPairsPrizeSentWallet(claimed, txSig);
+        let state = await db.getPairsStateByWallet(walletStr);
         if (state && Array.isArray(state.prizesWon)) {
           const idx = state.prizesWon.indexOf(actualPrizeId);
           if (idx !== -1) {
             state.prizesWon = state.prizesWon.slice(0, idx).concat(state.prizesWon.slice(idx + 1));
-            await savePairsState(discordId, state);
+            await db.savePairsStateByWallet(walletStr, state);
           }
         }
         res.json({ ok: true, txSignature: txSig });
       } catch (e) {
-        if (db.markPairsPrizeFailed && claimed) await db.markPairsPrizeFailed(claimed, e && e.message);
+        if (db.markPairsPrizeFailedWallet && claimed) await db.markPairsPrizeFailedWallet(claimed, e && e.message);
         const errMsg = (e && e.message) || (e && typeof e.toString === 'function' && e.toString()) || String(e) || 'NFT transfer failed';
         console.error('[pairs] Collect NFT prize failed:', errMsg, e);
         res.status(500).json({ error: errMsg });
       }
       return;
     }
-    if (claimed) await db.markPairsPrizeFailed(claimed, 'Unknown prize: ' + actualPrizeId);
+    if (claimed && db.markPairsPrizeFailedWallet) await db.markPairsPrizeFailedWallet(claimed, 'Unknown prize: ' + actualPrizeId);
     res.status(400).json({ error: 'Unknown prize: ' + actualPrizeId });
   });
 }
