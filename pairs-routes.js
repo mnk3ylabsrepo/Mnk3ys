@@ -118,8 +118,11 @@ async function sendTokenPrize(connection, treasuryKeypair, userWalletPubkey, amo
   const sourceAta = await getAssociatedTokenAddress(mint, treasuryKeypair.publicKey);
   const destAta = await getAssociatedTokenAddress(mint, userWalletPubkey);
   const sourceAccount = await getAccount(connection, sourceAta).catch(() => null);
-  if (!sourceAccount || sourceAccount.amount < amountRaw) {
-    throw new Error('Treasury has insufficient balance to send this prize. Need ' + amountRaw.toString() + ' raw, have ' + (sourceAccount ? sourceAccount.amount.toString() : '0') + '.');
+  if (!sourceAccount) {
+    throw new Error('Treasury has no BLUNANA balance. Add BLUNANA to the treasury wallet.');
+  }
+  if (sourceAccount.amount < amountRaw) {
+    throw new Error('Treasury has insufficient BLUNANA to send this prize. Top up the treasury.');
   }
   console.log('[pairs] Collect: sending to', userWalletPubkey.toBase58(), 'amountRaw', amountRaw.toString(), 'destAta', destAta.toBase58());
   const tx = new Transaction();
