@@ -90,13 +90,19 @@ async function getDiscordUsernames(discordIds) {
   return m;
 }
 
-// ——— Pairs game state ———
-async function getPairsState(discordId) {
+// ——— Pairs game state (keyed by wallet_address) ———
+function normWallet(w) {
+  return w && typeof w === 'string' ? w.trim().toLowerCase() : '';
+}
+
+async function getPairsState(wallet) {
   const p = getPool();
   if (!p) return null;
+  const w = normWallet(wallet);
+  if (!w) return null;
   const res = await p.query(
-    'SELECT turns_remaining, deck_json, flipped_json, matched_json, prizes_won_json FROM pairs_state WHERE discord_id = $1',
-    [discordId]
+    'SELECT turns_remaining, deck_json, flipped_json, matched_json, prizes_won_json FROM pairs_state WHERE wallet_address = $1',
+    [w]
   );
   const row = res.rows?.[0];
   if (!row) return null;
@@ -109,13 +115,15 @@ async function getPairsState(discordId) {
   };
 }
 
-async function savePairsState(discordId, state) {
+async function savePairsState(wallet, state) {
   const p = getPool();
   if (!p) return null;
+  const w = normWallet(wallet);
+  if (!w) return null;
   await p.query(
-    `INSERT INTO pairs_state (discord_id, turns_remaining, deck_json, flipped_json, matched_json, prizes_won_json, updated_at)
+    `INSERT INTO pairs_state (wallet_address, turns_remaining, deck_json, flipped_json, matched_json, prizes_won_json, updated_at)
      VALUES ($1, $2, $3::jsonb, $4::jsonb, $5::jsonb, $6::jsonb, NOW())
-     ON CONFLICT (discord_id) DO UPDATE SET
+     ON CONFLICT (wallet_address) DO UPDATE SET
        turns_remaining = EXCLUDED.turns_remaining,
        deck_json = EXCLUDED.deck_json,
        flipped_json = EXCLUDED.flipped_json,
@@ -123,7 +131,7 @@ async function savePairsState(discordId, state) {
        prizes_won_json = EXCLUDED.prizes_won_json,
        updated_at = NOW()`,
     [
-      discordId,
+      w,
       state.turnsRemaining ?? 0,
       JSON.stringify(state.deck || []),
       JSON.stringify(state.flipped || []),
@@ -134,85 +142,93 @@ async function savePairsState(discordId, state) {
   return state;
 }
 
-async function recordPairsBuy(discordId, turnsBought, txSignature) {
+async function recordPairsBuy(wallet, turnsBought, txSignature) {
   const p = getPool();
   if (!p) return null;
+  const w = normWallet(wallet);
+  if (!w) return null;
   await p.query(
-    `INSERT INTO pairs_buys (discord_id, turns_bought, tx_signature)
-     VALUES ($1, $2, $3)`,
-    [discordId, turnsBought, txSignature || null]
+    `INSERT INTO pairs_buys (wallet_address, turns_bought, tx_signature) VALUES ($1, $2, $3)`,
+    [w, turnsBought, txSignature || null]
   );
-  return { discordId, turnsBought, txSignature };
+  return { wallet: w, turnsBought, txSignature };
 }
 
-// ——— Pairs prizes (persistent record for collect / retry) ———
-async function insertPairsPrize(discordId, prizeId) {
+async function insertPairsPrize(wallet, prizeId) {
   const p = getPool();
   if (!p) return null;
+  const w = normWallet(wallet);
+  if (!w) return null;
   const res = await p.query(
-    `INSERT INTO pairs_prizes (discord_id, prize_id, status) VALUES ($1, $2, 'pending')
-     RETURNING id`,
-    [discordId, String(prizeId).trim()]
+    `INSERT INTO pairs_prizes (wallet_address, prize_id, status) VALUES ($1, $2, 'pending') RETURNING id`,
+    [w, String(prizeId).trim()]
   );
   return res.rows?.[0]?.id ?? null;
 }
 
-async function getPendingPairsPrizes(discordId) {
+async function getPendingPairsPrizes(wallet) {
   const p = getPool();
   if (!p) return [];
+  const w = normWallet(wallet);
+  if (!w) return [];
   const res = await p.query(
     `SELECT id, prize_id, created_at FROM pairs_prizes
-     WHERE discord_id = $1 AND status = 'pending'
-     ORDER BY created_at ASC
-     LIMIT 1`,
-    [discordId]
+     WHERE wallet_address = $1 AND status = 'pending'
+     ORDER BY created_at ASC`,
+    [w]
   );
   return (res.rows || []).map((r) => ({ id: r.id, prizeId: r.prize_id, createdAt: r.created_at }));
 }
 
-async function countPendingByPrizeId(discordId) {
+async function countPendingByPrizeId(wallet) {
   const p = getPool();
   if (!p) return {};
+  const w = normWallet(wallet);
+  if (!w) return {};
   const res = await p.query(
     `SELECT prize_id, COUNT(*)::int AS cnt FROM pairs_prizes
-     WHERE discord_id = $1 AND status = 'pending'
+     WHERE wallet_address = $1 AND status = 'pending'
      GROUP BY prize_id`,
-    [discordId]
+    [w]
   );
   const out = {};
   (res.rows || []).forEach((r) => { out[r.prize_id] = r.cnt; });
   return out;
 }
 
-async function claimPendingPairsPrize(discordId, prizeId) {
+async function claimPendingPairsPrize(wallet, prizeId) {
   const p = getPool();
   if (!p) return null;
+  const w = normWallet(wallet);
+  if (!w) return null;
   const res = await p.query(
     `UPDATE pairs_prizes SET status = 'claimed', updated_at = NOW()
      WHERE id = (
        SELECT id FROM pairs_prizes
-       WHERE discord_id = $1 AND prize_id = $2 AND status = 'pending'
+       WHERE wallet_address = $1 AND prize_id = $2 AND status = 'pending'
        ORDER BY created_at ASC LIMIT 1
      )
      RETURNING id, prize_id AS "prizeId"`,
-    [discordId, String(prizeId).trim()]
+    [w, String(prizeId).trim()]
   );
   const row = res.rows?.[0];
   return row ? { id: row.id, prizeId: row.prizeId } : null;
 }
 
-async function claimFirstPendingPairsPrize(discordId) {
+async function claimFirstPendingPairsPrize(wallet) {
   const p = getPool();
   if (!p) return null;
+  const w = normWallet(wallet);
+  if (!w) return null;
   const res = await p.query(
     `UPDATE pairs_prizes SET status = 'claimed', updated_at = NOW()
      WHERE id = (
        SELECT id FROM pairs_prizes
-       WHERE discord_id = $1 AND status = 'pending'
+       WHERE wallet_address = $1 AND status = 'pending'
        ORDER BY created_at ASC LIMIT 1
      )
      RETURNING id, prize_id AS "prizeId"`,
-    [discordId]
+    [w]
   );
   const row = res.rows?.[0];
   return row ? { id: row.id, prizeId: row.prizeId } : null;
@@ -238,154 +254,6 @@ async function markPairsPrizeFailed(prizeRowId, errorMessage) {
   );
 }
 
-// ——— Pairs by wallet (no Discord) ———
-function normWallet(w) {
-  return w && typeof w === 'string' ? w.trim().toLowerCase() : '';
-}
-
-async function getPairsStateByWallet(wallet) {
-  const p = getPool();
-  if (!p) return null;
-  const w = normWallet(wallet);
-  if (!w) return null;
-  const res = await p.query(
-    'SELECT turns_remaining, deck_json, flipped_json, matched_json, prizes_won_json FROM pairs_state_wallet WHERE wallet_address = $1',
-    [w]
-  );
-  const row = res.rows?.[0];
-  if (!row) return null;
-  return {
-    turnsRemaining: row.turns_remaining || 0,
-    deck: row.deck_json || [],
-    flipped: row.flipped_json || [],
-    matched: row.matched_json || {},
-    prizesWon: row.prizes_won_json || [],
-  };
-}
-
-async function savePairsStateByWallet(wallet, state) {
-  const p = getPool();
-  if (!p) return null;
-  const w = normWallet(wallet);
-  if (!w) return null;
-  await p.query(
-    `INSERT INTO pairs_state_wallet (wallet_address, turns_remaining, deck_json, flipped_json, matched_json, prizes_won_json, updated_at)
-     VALUES ($1, $2, $3::jsonb, $4::jsonb, $5::jsonb, $6::jsonb, NOW())
-     ON CONFLICT (wallet_address) DO UPDATE SET
-       turns_remaining = EXCLUDED.turns_remaining,
-       deck_json = EXCLUDED.deck_json,
-       flipped_json = EXCLUDED.flipped_json,
-       matched_json = EXCLUDED.matched_json,
-       prizes_won_json = EXCLUDED.prizes_won_json,
-       updated_at = NOW()`,
-    [
-      w,
-      state.turnsRemaining ?? 0,
-      JSON.stringify(state.deck || []),
-      JSON.stringify(state.flipped || []),
-      JSON.stringify(state.matched || {}),
-      JSON.stringify(state.prizesWon || []),
-    ]
-  );
-  return state;
-}
-
-async function recordPairsBuyByWallet(wallet, turnsBought, txSignature) {
-  const p = getPool();
-  if (!p) return null;
-  const w = normWallet(wallet);
-  if (!w) return null;
-  await p.query(
-    `INSERT INTO pairs_buys_wallet (wallet_address, turns_bought, tx_signature) VALUES ($1, $2, $3)`,
-    [w, turnsBought, txSignature || null]
-  );
-  return { wallet: w, turnsBought, txSignature };
-}
-
-async function insertPairsPrizeByWallet(wallet, prizeId) {
-  const p = getPool();
-  if (!p) return null;
-  const w = normWallet(wallet);
-  if (!w) return null;
-  const res = await p.query(
-    `INSERT INTO pairs_prizes_wallet (wallet_address, prize_id, status) VALUES ($1, $2, 'pending') RETURNING id`,
-    [w, String(prizeId).trim()]
-  );
-  return res.rows?.[0]?.id ?? null;
-}
-
-async function getPendingPairsPrizesByWallet(wallet) {
-  const p = getPool();
-  if (!p) return [];
-  const w = normWallet(wallet);
-  if (!w) return [];
-  const res = await p.query(
-    `SELECT id, prize_id, created_at FROM pairs_prizes_wallet
-     WHERE wallet_address = $1 AND status = 'pending'
-     ORDER BY created_at ASC`,
-    [w]
-  );
-  return (res.rows || []).map((r) => ({ id: r.id, prizeId: r.prize_id, createdAt: r.created_at }));
-}
-
-async function claimPendingPairsPrizeByWallet(wallet, prizeId) {
-  const p = getPool();
-  if (!p) return null;
-  const w = normWallet(wallet);
-  if (!w) return null;
-  const res = await p.query(
-    `UPDATE pairs_prizes_wallet SET status = 'claimed', updated_at = NOW()
-     WHERE id = (
-       SELECT id FROM pairs_prizes_wallet
-       WHERE wallet_address = $1 AND prize_id = $2 AND status = 'pending'
-       ORDER BY created_at ASC LIMIT 1
-     )
-     RETURNING id, prize_id AS "prizeId"`,
-    [w, String(prizeId).trim()]
-  );
-  const row = res.rows?.[0];
-  return row ? { id: row.id, prizeId: row.prizeId } : null;
-}
-
-async function claimFirstPendingPairsPrizeByWallet(wallet) {
-  const p = getPool();
-  if (!p) return null;
-  const w = normWallet(wallet);
-  if (!w) return null;
-  const res = await p.query(
-    `UPDATE pairs_prizes_wallet SET status = 'claimed', updated_at = NOW()
-     WHERE id = (
-       SELECT id FROM pairs_prizes_wallet
-       WHERE wallet_address = $1 AND status = 'pending'
-       ORDER BY created_at ASC LIMIT 1
-     )
-     RETURNING id, prize_id AS "prizeId"`,
-    [w]
-  );
-  const row = res.rows?.[0];
-  return row ? { id: row.id, prizeId: row.prizeId } : null;
-}
-
-async function markPairsPrizeSentWallet(prizeRowId, txSignature) {
-  const p = getPool();
-  if (!p) return;
-  const id = typeof prizeRowId === 'object' && prizeRowId != null && prizeRowId.id != null ? prizeRowId.id : prizeRowId;
-  await p.query(
-    `UPDATE pairs_prizes_wallet SET status = 'sent', tx_signature = $2, updated_at = NOW() WHERE id = $1`,
-    [id, txSignature || null]
-  );
-}
-
-async function markPairsPrizeFailedWallet(prizeRowId, errorMessage) {
-  const p = getPool();
-  if (!p) return;
-  const id = typeof prizeRowId === 'object' && prizeRowId != null && prizeRowId.id != null ? prizeRowId.id : prizeRowId;
-  await p.query(
-    `UPDATE pairs_prizes_wallet SET status = 'pending', error_message = $2, updated_at = NOW() WHERE id = $1 AND status = 'claimed'`,
-    [id, (errorMessage || '').slice(0, 500)]
-  );
-}
-
 module.exports = {
   getPool,
   upsertUser,
@@ -404,13 +272,4 @@ module.exports = {
   claimFirstPendingPairsPrize,
   markPairsPrizeSent,
   markPairsPrizeFailed,
-  getPairsStateByWallet,
-  savePairsStateByWallet,
-  recordPairsBuyByWallet,
-  insertPairsPrizeByWallet,
-  getPendingPairsPrizesByWallet,
-  claimPendingPairsPrizeByWallet,
-  claimFirstPendingPairsPrizeByWallet,
-  markPairsPrizeSentWallet,
-  markPairsPrizeFailedWallet,
 };

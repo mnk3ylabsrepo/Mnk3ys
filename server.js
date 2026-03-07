@@ -240,9 +240,9 @@ app.get('/api/wallets', async function (req, res) {
 app.get('/api/pairs/state', async function (req, res) {
   const wallet = (req.query.wallet && String(req.query.wallet).trim()) || '';
   if (!wallet) return res.json({ state: null, pendingPrizes: [] });
-  if (!db.getPairsStateByWallet) return res.json({ state: null, pendingPrizes: [] });
-  const state = await db.getPairsStateByWallet(wallet);
-  const pendingPrizes = (db.getPendingPairsPrizesByWallet && (await db.getPendingPairsPrizesByWallet(wallet))) || [];
+  if (!db.getPairsState) return res.json({ state: null, pendingPrizes: [] });
+  const state = await db.getPairsState(wallet);
+  const pendingPrizes = (db.getPendingPairsPrizes && (await db.getPendingPairsPrizes(wallet))) || [];
   res.json({ state, pendingPrizes });
 });
 
@@ -251,8 +251,8 @@ require('./pairs-routes').registerPairsRoutes(app, {
   db,
   HELIUS_API_KEY,
   HELIUS_RPC,
-  getPairsState: db.getPairsStateByWallet,
-  savePairsState: db.savePairsStateByWallet,
+  getPairsState: db.getPairsState,
+  savePairsState: db.savePairsState,
   env: process.env,
 });
 
@@ -270,7 +270,7 @@ app.post('/api/pairs/play', express.json(), async function (req, res) {
   const wallet = (req.body && req.body.wallet && String(req.body.wallet).trim()) || '';
   if (!wallet) return res.status(400).json({ error: 'wallet required' });
   const { deck, flipped, matched, turnsRemaining, prizesWon } = req.body || {};
-  if (!db.savePairsStateByWallet) return res.status(503).json({ error: 'Database not configured' });
+  if (!db.savePairsState) return res.status(503).json({ error: 'Database not configured' });
   if (!Array.isArray(deck) || !Array.isArray(flipped) || typeof matched !== 'object') {
     return res.status(400).json({ error: 'deck, flipped, matched required' });
   }
@@ -282,9 +282,9 @@ app.post('/api/pairs/play', express.json(), async function (req, res) {
       turnsRemaining: parseInt(turnsRemaining, 10) || 0,
       prizesWon: Array.isArray(prizesWon) ? prizesWon : [],
     };
-    const pendingList = (db.getPendingPairsPrizesByWallet && (await db.getPendingPairsPrizesByWallet(wallet))) || [];
+    const pendingList = (db.getPendingPairsPrizes && (await db.getPendingPairsPrizes(wallet))) || [];
     if (pendingList.length === 0) {
-      const prev = await db.getPairsStateByWallet(wallet);
+      const prev = await db.getPairsState(wallet);
       const oldPrizes = (prev && Array.isArray(prev.prizesWon) ? prev.prizesWon : []).map(prizeLabelToId).filter(Boolean);
       const newPrizes = (state.prizesWon || []).map(prizeLabelToId).filter(Boolean);
       const oldCounts = {};
@@ -296,14 +296,14 @@ app.post('/api/pairs/play', express.json(), async function (req, res) {
       for (const prizeId of allIds) {
         const add = (newCounts[prizeId] || 0) - (oldCounts[prizeId] || 0);
         for (let i = 0; i < add && inserted < 1; i++) {
-          if (db.insertPairsPrizeByWallet) {
-            await db.insertPairsPrizeByWallet(wallet, prizeId);
+          if (db.insertPairsPrize) {
+            await db.insertPairsPrize(wallet, prizeId);
             inserted++;
           }
         }
       }
     }
-    await db.savePairsStateByWallet(wallet, state);
+    await db.savePairsState(wallet, state);
     res.json({ ok: true });
   } catch (e) {
     return res.status(500).json({ error: e.message });

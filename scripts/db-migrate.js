@@ -23,39 +23,8 @@ CREATE TABLE IF NOT EXISTS wallets (
 
 CREATE INDEX IF NOT EXISTS idx_wallets_discord ON wallets(discord_id);
 
+-- Pairs (keyed by wallet_address, no Discord)
 CREATE TABLE IF NOT EXISTS pairs_state (
-  discord_id TEXT PRIMARY KEY REFERENCES users(discord_id) ON DELETE CASCADE,
-  turns_remaining INTEGER DEFAULT 0,
-  deck_json JSONB DEFAULT '[]',
-  flipped_json JSONB DEFAULT '[]',
-  matched_json JSONB DEFAULT '{}',
-  prizes_won_json JSONB DEFAULT '[]',
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS pairs_buys (
-  id SERIAL PRIMARY KEY,
-  discord_id TEXT NOT NULL REFERENCES users(discord_id) ON DELETE CASCADE,
-  turns_bought INTEGER NOT NULL,
-  tx_signature TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS pairs_prizes (
-  id SERIAL PRIMARY KEY,
-  discord_id TEXT NOT NULL REFERENCES users(discord_id) ON DELETE CASCADE,
-  prize_id TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'pending',
-  tx_signature TEXT,
-  error_message TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_pairs_prizes_discord_status ON pairs_prizes(discord_id, status);
-
--- Pairs by wallet (no Discord)
-CREATE TABLE IF NOT EXISTS pairs_state_wallet (
   wallet_address TEXT PRIMARY KEY,
   turns_remaining INTEGER DEFAULT 0,
   deck_json JSONB DEFAULT '[]',
@@ -64,14 +33,14 @@ CREATE TABLE IF NOT EXISTS pairs_state_wallet (
   prizes_won_json JSONB DEFAULT '[]',
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE TABLE IF NOT EXISTS pairs_buys_wallet (
+CREATE TABLE IF NOT EXISTS pairs_buys (
   id SERIAL PRIMARY KEY,
   wallet_address TEXT NOT NULL,
   turns_bought INTEGER NOT NULL,
   tx_signature TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE TABLE IF NOT EXISTS pairs_prizes_wallet (
+CREATE TABLE IF NOT EXISTS pairs_prizes (
   id SERIAL PRIMARY KEY,
   wallet_address TEXT NOT NULL,
   prize_id TEXT NOT NULL,
@@ -81,7 +50,7 @@ CREATE TABLE IF NOT EXISTS pairs_prizes_wallet (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_pairs_prizes_wallet_status ON pairs_prizes_wallet(wallet_address, status);
+CREATE INDEX IF NOT EXISTS idx_pairs_prizes_wallet_status ON pairs_prizes(wallet_address, status);
 `;
 
 async function run() {
