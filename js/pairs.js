@@ -64,13 +64,7 @@
   const CARD_TYPES = [
     { id: 'mnk3ys', label: 'Mnk3ys NFT', count: 2 },
     { id: 'zmb3ys', label: 'Zmb3ys NFT', count: 2 },
-    { id: '100k', label: '100k $BLUNANA', count: 2 },
-    { id: '150k', label: '150k $BLUNANA', count: 2 },
-    { id: '200k', label: '200k $BLUNANA', count: 2 },
-    { id: '250k', label: '250k $BLUNANA', count: 2 },
-    { id: '300k', label: '300k $BLUNANA', count: 2 },
-    { id: '400k', label: '400k $BLUNANA', count: 2 },
-    { id: '500k', label: '500k $BLUNANA', count: 2 },
+    { id: '100k', label: '100k $BLUNANA', count: 14 },
     { id: 'shuffle', label: 'SHUFFLE', count: 6 },
   ];
 
