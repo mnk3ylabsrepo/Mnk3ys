@@ -556,8 +556,15 @@
 
     function load() {
       var w = getWalletPublicKey();
-      var stateUrl = w ? '/api/pairs/state?wallet=' + encodeURIComponent(w) : '/api/pairs/state';
-      fetch(window.location.origin + stateUrl, { credentials: 'include' })
+      if (!w) {
+        state.pendingPrizes = [];
+        state.lastWonPrizeId = null;
+        setTurns(0);
+        deal();
+        render();
+        return;
+      }
+      fetch(window.location.origin + '/api/pairs/state?wallet=' + encodeURIComponent(w), { credentials: 'include' })
         .then(function (r) { return r.ok ? r.json() : { state: null, pendingPrizes: [] }; })
         .then(function (data) {
           state.pendingPrizes = Array.isArray(data && data.pendingPrizes) ? data.pendingPrizes : [];
