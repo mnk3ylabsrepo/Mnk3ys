@@ -40,7 +40,8 @@ const COLLECTIONS = [
 ];
 
 const LAMPORTS_PER_SOL = 1e9;
-const BLUNANA_TOKEN_MINT = process.env.BLUNANA_TOKEN_MINT || process.env.TOKEN_MINT || 'KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS';
+const BLUNANA_TOKEN_MINT = process.env.BLUNANA_TOKEN_MINT || process.env.TOKEN_MINT || 'C9vfeaCLhJy7sykgKnfzi6RikawQNoGtRKwsaupKavmV';
+const DEXSCREENER_PAIR_ADDRESS = (process.env.DEXSCREENER_PAIR_ADDRESS || '').trim();
 const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 const BLUNANA_DECIMALS = parseInt(process.env.BLUNANA_DECIMALS || '6', 10);
 
@@ -102,6 +103,13 @@ app.get('/pairs', function (req, res) {
 app.get('/api/pairs', function (req, res) {
   res.sendFile(path.join(__dirname, 'pairs.html'));
 });
+
+// UI preview revamp — localhost only (not deployed via Vercel static handler)
+if (process.env.VERCEL !== '1') {
+  app.get('/preview', function (req, res) {
+    res.sendFile(path.join(__dirname, 'preview', 'index.html'));
+  });
+}
 
 // ——— Discord OAuth: start ———
 app.get('/api/discord/auth', function (req, res) {
@@ -183,7 +191,14 @@ app.get('/api/discord/callback', async function (req, res) {
       );
     }
     res.setHeader('Cache-Control', 'no-store');
-    return res.redirect(302, '/?discord=connected');
+    let redirectTo = '/?discord=connected';
+    if (typeof savedState === 'string' && savedState.includes(':')) {
+      const nextPath = savedState.slice(savedState.indexOf(':') + 1);
+      if (nextPath && nextPath.startsWith('/')) {
+        redirectTo = nextPath + (nextPath.includes('?') ? '&' : '?') + 'discord=connected';
+      }
+    }
+    return res.redirect(302, redirectTo);
   } catch (err) {
     console.warn('Discord callback error', err.message);
     return res.redirect('/?discord=error');
@@ -452,52 +467,138 @@ app.get('/api/prices', async function (req, res) {
   res.json(out);
 });
 
-// ——— 15m OHLC for Blunana (Birdeye); optional BIRDEYE_API_KEY ———
+// ——— OHLC chart: Birdeye (optional key) → GeckoTerminal pool candles (no key) ———
 const BIRDEYE_API_KEY = process.env.BIRDEYE_API_KEY;
 const OHLC_CACHE_MS = 2 * 60 * 1000;
 let ohlcCache = { data: null, ts: 0 };
 
+const GECKO_TERMINAL_API = 'https://api.geckoterminal.com/api/v2';
+const GECKO_HEADERS = { Accept: 'application/json;version=20230203' };
+const GECKO_AGG_BY_TYPE = {
+  '1m': 1,
+  '3m': 3,
+  '5m': 5,
+  '15m': 15,
+  '30m': 30,
+  '1h': 60,
+  '2h': 120,
+  '4h': 240,
+  '6h': 360,
+  '8h': 480,
+  '12h': 720,
+  '1d': 1440,
+};
+
+async function geckoPrimaryPoolAddress(tokenMint) {
+  const r = await axios.get(
+    `${GECKO_TERMINAL_API}/networks/solana/tokens/${encodeURIComponent(tokenMint)}/pools`,
+    { headers: GECKO_HEADERS, timeout: 12000, validateStatus: () => true }
+  );
+  const rows = r.data?.data;
+  if (!Array.isArray(rows) || !rows.length) return null;
+  const sorted = [...rows].sort(function (a, b) {
+    return Number(b.attributes?.reserve_in_usd || 0) - Number(a.attributes?.reserve_in_usd || 0);
+  });
+  return sorted[0]?.attributes?.address || null;
+}
+
+async function fetchGeckoOhlcvUsd(poolAddress, aggregateMinutes) {
+  const r = await axios.get(
+    `${GECKO_TERMINAL_API}/networks/solana/pools/${encodeURIComponent(poolAddress)}/ohlcv/minute`,
+    {
+      params: { aggregate: aggregateMinutes, limit: 500 },
+      headers: GECKO_HEADERS,
+      timeout: 15000,
+      validateStatus: () => true,
+    }
+  );
+  const list = r.data?.data?.attributes?.ohlcv_list;
+  if (!Array.isArray(list) || !list.length) return [];
+  return list.map(function (row) {
+    return {
+      unix_time: row[0],
+      o: row[1],
+      h: row[2],
+      l: row[3],
+      c: row[4],
+    };
+  });
+}
+
 app.get('/api/blunana-ohlc', async function (req, res) {
   const type = (req.query.type || '15m').toLowerCase().replace(/\s/g, '');
   const validType = ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d'].includes(type) ? type : '15m';
-  if (!BIRDEYE_API_KEY) {
-    return res.json({ success: false, data: { items: [] }, message: 'Chart requires BIRDEYE_API_KEY in server .env' });
+  const aggregateMin = GECKO_AGG_BY_TYPE[validType] || 15;
+
+  if (!BLUNANA_TOKEN_MINT) {
+    return res.json({
+      success: false,
+      data: { items: [] },
+      message: 'Set BLUNANA_TOKEN_MINT in server .env to your SPL token mint.',
+    });
   }
-  const now = Math.floor(Date.now() / 1000);
+
   const cacheKey = validType;
-  if (ohlcCache.data && ohlcCache.type === cacheKey && now * 1000 - ohlcCache.ts < OHLC_CACHE_MS) {
+  if (ohlcCache.data && ohlcCache.type === cacheKey && Date.now() - ohlcCache.ts < OHLC_CACHE_MS) {
     return res.json(ohlcCache.data);
   }
-  const timeTo = now;
-  const timeFrom = now - 7 * 24 * 60 * 60;
-  try {
-    const r = await axios.get(
-      'https://public-api.birdeye.so/defi/v3/ohlcv',
-      {
-        params: {
-          address: BLUNANA_TOKEN_MINT,
-          type: validType,
-          time_from: timeFrom,
-          time_to: timeTo,
-          currency: 'usd',
-        },
-        timeout: 10000,
-        validateStatus: () => true,
-        headers: {
-          'X-API-KEY': BIRDEYE_API_KEY,
-          'Accept': 'application/json',
-        },
+
+  if (BIRDEYE_API_KEY) {
+    const timeTo = Math.floor(Date.now() / 1000);
+    const timeFrom = timeTo - 7 * 24 * 60 * 60;
+    try {
+      const r = await axios.get(
+        'https://public-api.birdeye.so/defi/v3/ohlcv',
+        {
+          params: {
+            address: BLUNANA_TOKEN_MINT,
+            type: validType,
+            time_from: timeFrom,
+            time_to: timeTo,
+            currency: 'usd',
+          },
+          timeout: 15000,
+          validateStatus: () => true,
+          headers: {
+            'X-API-KEY': BIRDEYE_API_KEY,
+            Accept: 'application/json',
+          },
+        }
+      );
+      if (r.status === 200 && r.data?.data?.items && r.data.data.items.length > 0) {
+        const payload = { success: true, data: { items: r.data.data.items }, message: '' };
+        ohlcCache = { data: payload, ts: Date.now(), type: cacheKey };
+        return res.json(payload);
       }
-    );
-    if (r.status !== 200 || !r.data?.data?.items) {
-      ohlcCache = { data: { success: false, data: { items: [] } }, ts: Date.now(), type: cacheKey };
-      return res.json(ohlcCache.data);
+    } catch (e) {
+      console.warn('Birdeye OHLC failed', e.message);
     }
-    const payload = { success: true, data: { items: r.data.data.items } };
+  }
+
+  try {
+    let poolAddr = DEXSCREENER_PAIR_ADDRESS || null;
+    if (!poolAddr) poolAddr = await geckoPrimaryPoolAddress(BLUNANA_TOKEN_MINT);
+    if (!poolAddr) {
+      return res.json({
+        success: false,
+        data: { items: [] },
+        message:
+          'No OHLC pool found. Set BLUNANA_TOKEN_MINT to the SPL token mint, or set DEXSCREENER_PAIR_ADDRESS to the pair id from dexscreener.com/solana/…',
+      });
+    }
+    const items = await fetchGeckoOhlcvUsd(poolAddr, aggregateMin);
+    if (!items.length) {
+      return res.json({
+        success: false,
+        data: { items: [] },
+        message: 'GeckoTerminal returned no candles for this pool.',
+      });
+    }
+    const payload = { success: true, data: { items }, message: '' };
     ohlcCache = { data: payload, ts: Date.now(), type: cacheKey };
     res.json(payload);
   } catch (e) {
-    console.warn('Birdeye OHLC failed', e.message);
+    console.warn('GeckoTerminal OHLC failed', e.message);
     res.json({ success: false, data: { items: [] }, message: e.message || 'OHLC fetch failed' });
   }
 });
@@ -643,6 +744,9 @@ app.get('/api/collections', async function (req, res) {
       avgPrice24hr: null,
       avgPrice24hrSol: null,
       marketplaceUrl: `https://magiceden.io/marketplace/${col.slug}`,
+      orbisUrl: col.slug === 'mnk3ys' || col.slug === 'zmb3ys'
+        ? `https://www.orbisonsol.io/marketplace/${col.slug}`
+        : null,
     };
 
     // Blunanas: use known collection image; apply pre-fetched ME metadata and holder_stats

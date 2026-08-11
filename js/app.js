@@ -12,11 +12,25 @@
   const PORTAL_URL = (CONFIG.holderPortalUrl || '').replace(/\/$/, '');
   const HOLDINGS_ENDPOINT = PORTAL_URL && CONFIG.endpoints?.holdings ? PORTAL_URL + CONFIG.endpoints.holdings : '';
 
+  function resolveAssetUrl(url) {
+    if (!url) return '/assets/logo.png';
+    if (/^https?:\/\//i.test(url) || url.startsWith('//')) return url;
+    if (url.startsWith('/')) return url;
+    return '/' + url.replace(/^\/+/, '');
+  }
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    var div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
   // ----- Apply project config to DOM (template: brand, hero, token, footer, etc.) -----
   function applyProjectConfig() {
     var c = CONFIG;
     var projectName = c.projectName || 'Project';
-    var logoUrl = c.logoUrl || 'assets/logo.png';
+    var logoUrl = resolveAssetUrl(c.logoUrl || '/assets/logo.png');
     var social = c.social || {};
     var token = c.token || {};
     var hero = c.hero || {};
@@ -32,9 +46,14 @@
     if (heroTagline) heroTagline.textContent = hero.tagline || '';
     var heroSub = document.getElementById('hero-subtitle');
     if (heroSub && hero.subtitle) {
-      var solanaUrl = hero.solanaLogoUrl || 'https://cryptologos.cc/logos/solana-sol-logo.svg?v=040';
-      var beforeSolana = hero.subtitle.replace(/\s+Solana\.?$/i, '');
-      heroSub.innerHTML = beforeSolana + ' <img src="' + solanaUrl + '" alt="" class="hero-home__solana-icon" width="20" height="20"> Solana.';
+      var solanaUrl = resolveAssetUrl(hero.solanaLogoUrl || '/assets/solana-sol-logo.svg');
+      heroSub.innerHTML = hero.subtitle + '<br>Built on <img src="' + solanaUrl + '" alt="" class="hero-home__solana-icon" width="20" height="20"> Solana.';
+    }
+
+    var heroTitleLogo = document.getElementById('hero-title-logo');
+    if (heroTitleLogo) {
+      heroTitleLogo.src = logoUrl;
+      heroTitleLogo.alt = projectName;
     }
 
     // Dashboard brand
@@ -55,9 +74,10 @@
     var contractEl = document.getElementById('tokenomics-contract');
     if (contractEl && c.tokenMint) contractEl.textContent = c.tokenMint;
     var solanaLogoEl = document.getElementById('tokenomics-solana-logo');
-    if (solanaLogoEl) solanaLogoEl.src = hero.solanaLogoUrl || 'https://cryptologos.cc/logos/solana-sol-logo.svg?v=040';
+    if (solanaLogoEl) solanaLogoEl.src = resolveAssetUrl(hero.solanaLogoUrl || '/assets/solana-sol-logo.svg');
     var dextoolsLink = document.getElementById('tokenomics-dextools-link');
-    if (dextoolsLink && c.tokenDextoolsPairUrl) dextoolsLink.href = c.tokenDextoolsPairUrl;
+    var dextoolsUrl = token.dextoolsUrl || c.tokenDextoolsPairUrl || '';
+    if (dextoolsLink && dextoolsUrl) dextoolsLink.href = dextoolsUrl;
     var birdeyeLink = document.getElementById('tokenomics-birdeye-link');
     if (birdeyeLink) birdeyeLink.href = c.tokenBirdeyeUrl || ('https://birdeye.so/solana/token/' + (c.tokenMint || ''));
     var solscanLink = document.getElementById('tokenomics-solscan-link');
@@ -74,8 +94,17 @@
     if (tokenPriceLabel && token.priceLabel) tokenPriceLabel.textContent = token.priceLabel;
     var tokenChartLabel = document.getElementById('tokenomics-chart-label');
     if (tokenChartLabel && token.chartLabel) tokenChartLabel.textContent = token.chartLabel;
-    var tokenSummary = document.getElementById('tokenomics-summary-text');
-    if (tokenSummary && token.summaryText) tokenSummary.textContent = token.summaryText;
+    var tokenSectionLead = document.getElementById('token-section-lead');
+    if (tokenSectionLead && token.sectionLead) tokenSectionLead.textContent = token.sectionLead;
+    var tokenBody = document.getElementById('tokenomics-body');
+    if (tokenBody && token.descriptionHtml) tokenBody.innerHTML = token.descriptionHtml;
+    var chartNoteEl = document.getElementById('tokenomics-chart-note');
+    if (chartNoteEl && dextoolsUrl) {
+      chartNoteEl.innerHTML =
+        '15-minute preview of recent price action. <a href="' +
+        dextoolsUrl +
+        '" target="_blank" rel="noopener">View the full chart on DEXTools →</a>';
+    }
 
     // Optional shop link (sidebar)
     var shopUrl = c.shopUrl;
@@ -109,7 +138,7 @@
     var partnersGrid = document.getElementById('partners-grid');
     if (partnersGrid && c.partners && c.partners.length) {
       partnersGrid.innerHTML = c.partners.map(function (p) {
-        return '<div class="partners__item"><img src="' + (p.logo || '') + '" alt="' + (p.name || '') + '" class="partners__logo" loading="lazy"><span class="partners__name">' + (p.name || '') + '</span></div>';
+        return '<div class="partners__item"><img src="' + escapeHtml(resolveAssetUrl(p.logo || '')) + '" alt="' + escapeHtml(p.name || '') + '" class="partners__logo" loading="lazy"><span class="partners__name">' + escapeHtml(p.name || '') + '</span></div>';
       }).join('');
     }
 
@@ -143,7 +172,8 @@
   }
   applyProjectConfig();
 
-  // ----- Section highlighting -----
+  // ----- Section highlighting (skipped on preview site — preview-nav.js handles it) -----
+  if (!document.body.classList.contains('site-preview')) {
   const navLinks = document.querySelectorAll('[data-section]');
   const sections = document.querySelectorAll('.section');
   var navScrollInProgress = false;
@@ -210,6 +240,7 @@
     if (section.id) observer.observe(section);
   });
   setActiveSection(getSectionIdFromHash());
+  }
 
   // ----- Wallet (Solana) -----
   function getDetectedWallets() {
@@ -246,9 +277,15 @@
 
   function setWalletConnected(connected) {
     document.body.classList.toggle('wallet-connected', connected);
-    var label = connected ? 'Connected' : 'Connect wallet';
+    var label = connected ? 'Wallet linked' : 'Link wallet';
     document.querySelectorAll('#btn-connect-wallet, #btn-connect-wallet-mobile').forEach(function (btn) {
-      if (btn) btn.textContent = label;
+      if (!btn) return;
+      if (btn.classList.contains('account-menu__orb')) {
+        btn.setAttribute('aria-label', label);
+        btn.title = label;
+      } else {
+        btn.textContent = connected ? 'Connected' : 'Connect wallet';
+      }
     });
     if (typeof syncVerifyModalState === 'function') syncVerifyModalState();
   }
@@ -382,7 +419,13 @@
     btns.forEach(function (btn) {
       if (!btn) return;
       btn.disabled = loading;
-      btn.textContent = loading ? 'Checking…' : 'Verify holdings';
+      if (btn.classList.contains('account-menu__orb')) {
+        btn.setAttribute('aria-label', loading ? 'Checking holdings' : 'Verify holdings');
+        btn.title = loading ? 'Checking…' : 'Verify holdings';
+        btn.classList.toggle('account-menu__orb--loading', loading);
+      } else {
+        btn.textContent = loading ? 'Checking…' : 'Verify holdings';
+      }
     });
   }
 
@@ -558,7 +601,7 @@
     openVerifyModal();
   });
   document.getElementById('hero-verify-cta')?.addEventListener('click', function () {
-    if (window.innerWidth < 900) openMobilePanel();
+    if (window.innerWidth < 900 && !document.body.classList.contains('site-preview')) openMobilePanel();
     openVerifyModal();
   });
 
@@ -594,7 +637,13 @@
     if (CONFIG.discordConnectUrl && (CONFIG.discordConnectUrl.startsWith('http://') || CONFIG.discordConnectUrl.startsWith('https://'))) {
       return CONFIG.discordConnectUrl;
     }
-    return window.location.origin + '/api/discord/auth';
+    var base = window.location.origin + '/api/discord/auth';
+    if (document.body.classList.contains('site-preview')) {
+      var path = window.location.pathname || '/';
+      var next = (path === '/preview' || path === '/preview/') ? '/preview' : '/';
+      return base + '?next=' + encodeURIComponent(next);
+    }
+    return base;
   }
 
   function setDiscordUI(connected, userOrUsername) {
@@ -611,14 +660,20 @@
     var wrapMobile = document.getElementById('discord-connected-mobile');
     if (btnSidebar) {
       btnSidebar.hidden = !!connected;
-      btnSidebar.textContent = 'Connect Discord';
-      btnSidebar.title = 'Sign in with Discord';
+      if (!btnSidebar.classList.contains('account-menu__orb')) {
+        btnSidebar.textContent = 'Connect Discord';
+      }
+      btnSidebar.title = connected ? 'Discord connected' : 'Sign in with Discord';
+      btnSidebar.setAttribute('aria-label', connected ? 'Discord connected' : 'Connect Discord');
       btnSidebar.dataset.discordConnected = connected ? '1' : '0';
     }
     if (btnMobile) {
       btnMobile.hidden = !!connected;
-      btnMobile.textContent = 'Connect Discord';
-      btnMobile.title = 'Sign in with Discord';
+      if (!btnMobile.classList.contains('account-menu__orb')) {
+        btnMobile.textContent = 'Connect Discord';
+      }
+      btnMobile.title = connected ? 'Discord connected' : 'Sign in with Discord';
+      btnMobile.setAttribute('aria-label', connected ? 'Discord connected' : 'Connect Discord');
       btnMobile.dataset.discordConnected = connected ? '1' : '0';
     }
     if (wrapSidebar) {
@@ -799,25 +854,36 @@
           if (c.floorPriceSol != null) stats.push({ label: 'Floor', value: c.floorPriceSol + ' SOL' });
           if (c.volumeAllSol != null) stats.push({ label: 'Volume', value: c.volumeAllSol + ' SOL' });
           if (c.avgPrice24hrSol != null) stats.push({ label: '24h avg', value: c.avgPrice24hrSol + ' SOL' });
-          var statsHtml = stats.length ? '<div class="embed__stats">' + stats.map(function (s) {
+          var statsHtml = '<div class="embed__stats">' + (stats.length ? stats.map(function (s) {
             return '<div class="embed__stat"><span class="embed__stat-label">' + escapeHtml(s.label) + '</span><span class="embed__stat-value">' + escapeHtml(s.value) + '</span></div>';
-          }).join('') + '</div>' : '';
+          }).join('') : '') + '</div>';
           var meUrl = c.marketplaceUrl || ('https://magiceden.io/marketplace/' + encodeURIComponent(c.symbol || ''));
           var tensorUrl = c.tensorUrl || ('https://www.tensor.trade/trade/' + encodeURIComponent(c.symbol || ''));
+          var orbisUrls = CONFIG.orbisCollections || {
+            mnk3ys: 'https://www.orbisonsol.io/marketplace/mnk3ys',
+            zmb3ys: 'https://www.orbisonsol.io/marketplace/zmb3ys',
+          };
+          var orbisUrl = c.orbisUrl || orbisUrls[(c.symbol || '').toLowerCase()] || null;
+          var marketplaceHtml = '<div class="collections__actions">' +
+            '<a href="' + escapeHtml(meUrl) + '" class="collections__btn" target="_blank" rel="noopener" aria-label="Trade on Magic Eden">' +
+              '<img src="' + escapeHtml(resolveAssetUrl('assets/magic-eden.png')) + '" alt="Magic Eden" class="collections__btn-img" loading="lazy" />' +
+            '</a>' +
+            '<a href="' + escapeHtml(tensorUrl) + '" class="collections__btn" target="_blank" rel="noopener" aria-label="Trade on Tensor">' +
+              '<img src="' + escapeHtml(resolveAssetUrl('assets/tensor.png')) + '" alt="Tensor" class="collections__btn-img" loading="lazy" />' +
+            '</a>';
+          if (orbisUrl) {
+            marketplaceHtml += '<a href="' + escapeHtml(orbisUrl) + '" class="collections__btn" target="_blank" rel="noopener" aria-label="Trade on Orbis">' +
+              '<img src="' + escapeHtml(resolveAssetUrl('assets/orbis.png')) + '" alt="Orbis" class="collections__btn-img" loading="lazy" />' +
+            '</a>';
+          }
+          marketplaceHtml += '</div>';
           card.innerHTML =
             mediaHtml +
             '<div class="embed__body">' +
               '<h3 class="card__title">' + escapeHtml(c.name || c.symbol) + '</h3>' +
               (desc ? '<p class="card__text">' + escapeHtml(desc) + '</p>' : '') +
               statsHtml +
-              '<div class="collections__actions">' +
-                '<a href="' + escapeHtml(meUrl) + '" class="collections__btn" target="_blank" rel="noopener" aria-label="Trade on Magic Eden">' +
-                  '<img src="assets/magic-eden.png" alt="Magic Eden" class="collections__btn-img collections__btn-img--me" loading="lazy" />' +
-                '</a>' +
-                '<a href="' + escapeHtml(tensorUrl) + '" class="collections__btn" target="_blank" rel="noopener" aria-label="Trade on Tensor">' +
-                  '<img src="assets/tensor.png" alt="Tensor" class="collections__btn-img" loading="lazy" />' +
-                '</a>' +
-              '</div>' +
+              marketplaceHtml +
             '</div>';
           grid.appendChild(card);
         });
@@ -825,12 +891,6 @@
       .catch(function () {});
   }
 
-  function escapeHtml(s) {
-    if (s == null) return '';
-    var div = document.createElement('div');
-    div.textContent = s;
-    return div.innerHTML;
-  }
   function formatNum(n) {
     if (n == null) return '—';
     if (typeof n !== 'number') return String(n);
@@ -918,6 +978,7 @@
   var holdersTbody = document.getElementById('holders-tbody');
   var holdersSortSelect = document.getElementById('holders-sort');
   if (holdersTbody && holdersSortSelect) {
+    var HOLDERS_MAGIC_EDEN_WALLET = '1BWutmTvYPwDtmw9abTkS4Ssr8no61spGAvW1X6NDix';
     function formatUsd(n) {
       if (n == null || isNaN(n)) return '—';
       if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
@@ -961,6 +1022,15 @@
           var baseName = h.displayName || (h.wallet && h.wallet.length > 12 ? h.wallet.slice(0, 4) + '…' + h.wallet.slice(-4) : (h.wallet || '—'));
           var displayName = baseName + (h.walletCount > 1 ? ' (' + h.walletCount + ' wallets)' : '');
           var walletLink = h.wallet ? 'https://solscan.io/account/' + encodeURIComponent(h.wallet) : null;
+          var walletLower = (h.wallet || '').toLowerCase();
+          var isMagicEden = walletLower === HOLDERS_MAGIC_EDEN_WALLET.toLowerCase();
+          var nameClass = 'holders-wallet';
+          if (isMagicEden) nameClass += ' holders-wallet--marketplace';
+          else if (h.discordId) nameClass += ' holders-wallet--discord';
+          var label = isMagicEden ? 'Magic Eden' : displayName;
+          var nameCell = walletLink && !isMagicEden
+            ? '<a href="' + escapeHtml(walletLink) + '" target="_blank" rel="noopener" class="' + nameClass + '">' + escapeHtml(label) + '</a>'
+            : '<span class="' + nameClass + '">' + escapeHtml(label) + '</span>';
           var tokenBal = h.tokenBalance != null ? Number(h.tokenBalance) : null;
           var mnk3ysCount = Number(h.mnk3ysCount) || 0;
           var zmb3ysCount = Number(h.zmb3ysCount) || 0;
@@ -984,9 +1054,6 @@
           else if (sort === 'blunanas') valueUsd = nftValueBlunanas;
           else if (sort === 'nfts') valueUsd = nftValueUsd;
           var valueCell = valueUsd != null ? formatUsd(valueUsd) : '—';
-          var nameCell = walletLink
-            ? '<a href="' + escapeHtml(walletLink) + '" target="_blank" rel="noopener" class="holders-wallet">' + escapeHtml(displayName) + '</a>'
-            : '<span class="holders-wallet">' + escapeHtml(displayName) + '</span>';
           return '<tr>' +
             '<td>' + (i + 1) + '</td>' +
             '<td>' + nameCell + '</td>' +
@@ -1036,6 +1103,20 @@
     return val < 0.0001 ? val.toExponential(2) : val.toFixed(6);
   }
 
+  /** Right-axis / crosshair labels for OHLC when USD price is sub-penny (Lightweight Charts defaults show 0.00). */
+  function formatChartPriceScale(val) {
+    if (val == null || isNaN(val)) return '';
+    var v = Number(val);
+    var a = Math.abs(v);
+    if (a >= 1) return v.toFixed(4);
+    if (a >= 0.01) return v.toFixed(6);
+    if (a >= 1e-12) {
+      var decimals = Math.min(14, Math.max(6, -Math.floor(Math.log10(a)) + 2));
+      return v.toFixed(decimals);
+    }
+    return v.toExponential(4);
+  }
+
   if (priceUsdEl || priceSolEl) {
     fetch(window.location.origin + '/api/prices', { credentials: 'include' })
       .then(function (r) { return r.ok ? r.json() : null; })
@@ -1055,17 +1136,18 @@
       });
   }
 
-  var chartWrap = document.getElementById('tokenomics-chart-wrap');
   if (chartEl) {
     fetch(window.location.origin + '/api/blunana-ohlc?type=15m', { credentials: 'include' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
         var items = (data && data.data && data.data.items) ? data.data.items : [];
+        if (chartHintEl) chartHintEl.textContent = data && data.message ? data.message : '';
         if (items.length === 0) {
-          if (chartWrap) chartWrap.style.display = 'none';
+          if (chartHintEl && !chartHintEl.textContent) {
+            chartHintEl.textContent = 'Chart needs BLUNANA_TOKEN_MINT in server .env. Pool OHLC uses GeckoTerminal / Dex liquidity.';
+          }
           return;
         }
-        if (chartHintEl) chartHintEl.textContent = data && data.message ? data.message : '';
         var candlestickData = items.map(function (c) {
           return {
             time: c.unix_time,
@@ -1076,15 +1158,21 @@
           };
         }).sort(function (a, b) { return a.time - b.time; });
         if (typeof window.LightweightCharts === 'undefined') return;
+        var chartHeight = Math.max(260, chartEl.clientHeight || 280);
         var chart = window.LightweightCharts.createChart(chartEl, {
           layout: { background: { color: 'transparent' }, textColor: '#8b8f9a' },
           grid: { vertLines: { color: '#2a2d38' }, horzLines: { color: '#2a2d38' } },
           width: chartEl.clientWidth,
-          height: 280,
+          height: chartHeight,
           timeScale: { borderColor: '#2a2d38', timeVisible: true, secondsVisible: false },
           rightPriceScale: { borderColor: '#2a2d38', scaleMargins: { top: 0.1, bottom: 0.2 } },
         });
         var candleSeries = chart.addCandlestickSeries({
+          priceFormat: {
+            type: 'custom',
+            minMove: 1e-15,
+            formatter: formatChartPriceScale,
+          },
           upColor: '#14f195',
           downColor: '#f87171',
           borderDownColor: '#f87171',
@@ -1093,7 +1181,7 @@
         candleSeries.setData(candlestickData);
         chart.timeScale().fitContent();
         window.addEventListener('resize', function () {
-          chart.applyOptions({ width: chartEl.clientWidth });
+          chart.applyOptions({ width: chartEl.clientWidth, height: Math.max(260, chartEl.clientHeight || 280) });
         });
       });
   }

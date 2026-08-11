@@ -17,7 +17,7 @@ window.MNK3YS_CONFIG = {
   // ——— Social ———
   social: {
     x: 'https://x.com/mnk3ylabs',
-    discord: 'https://discord.gg/sKeVmR3',
+    discord: 'https://discord.com/invite/HYBuc6SRSC',
   },
   // Optional: shop URL (if set, Shop link is shown in sidebar)
   shopUrl: 'https://mnk3ylabs.printify.me/',
@@ -29,14 +29,17 @@ window.MNK3YS_CONFIG = {
     logoUrl: 'https://ipfs.io/ipfs/QmTKRAZEcTfDeVDt8hebrCv27DctYghtdfXRMc9FRA6NU3',
     priceLabel: 'Blunana (BLUNANA / USD)',
     chartLabel: 'BLUNANA / USD — 15m',
-    summaryText: 'MNK3YLABS project token. Verify holdings in the dashboard.',
+    dextoolsUrl: 'https://www.dextools.io/app/solana/pair-explorer/xf1K6QsfF7YWKo4hvMVQwn3t8U9yafnsFP3yByw7UJc',
+    sectionLead: 'BLUNANA — the MNK3YLABS project token on Solana.',
+    descriptionHtml:
+      '<p><strong>$BLUNANA</strong> powers the MNK3YLABS ecosystem — used for games, rewards, and community utilities across our NFT collections.</p>',
   },
 
   // ——— Hero ———
   hero: {
     title: 'MNK3YLABS',
     tagline: 'STRONGER TOGETHER',
-    subtitle: 'Make NFTs Ape Again. NFT collections & project token built on Solana.',
+    subtitle: 'Make NFTs Ape Again.',
     solanaLogoUrl: 'assets/solana-sol-logo.svg',
     backgroundImage: 'assets/hero-bg.png',
   },
@@ -84,6 +87,10 @@ window.MNK3YS_CONFIG = {
     mnk3ys: 'https://magiceden.io/marketplace/mnk3ys',
     zmb3ys: 'https://magiceden.io/marketplace/zmb3ys',
     blunanas: 'https://magiceden.io/marketplace/blunanas',
+  },
+  orbisCollections: {
+    mnk3ys: 'https://www.orbisonsol.io/marketplace/mnk3ys',
+    zmb3ys: 'https://www.orbisonsol.io/marketplace/zmb3ys',
   },
   // ——— X spaces ———
   xSpacesBannerUrl: 'assets/jungle-juice-banner.png',

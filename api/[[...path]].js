@@ -4,6 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const app = require('../server');
+const { isPreviewSite, enforcePreviewAccess } = require('../lib/preview-site');
 
 const ROOT = path.resolve(path.join(__dirname, '..'));
 
@@ -75,6 +76,8 @@ module.exports = (req, res) => {
     return app(req, res);
   }
 
+  if (isPreviewSite() && !enforcePreviewAccess(req, res)) return;
+
   let u = raw;
   if (u.startsWith('/api/')) u = u.slice(4) || '/';
   else if (u === '/api') u = '/';
@@ -105,16 +108,18 @@ module.exports = (req, res) => {
   }
 
   const isRoot = u === '' || u === '/' || u === '/index.html';
+  const rootHtml = isPreviewSite() ? path.join(ROOT, 'preview', 'index.html') : path.join(ROOT, 'index.html');
   const rel = (u || '').replace(/^\/+/, '') || 'index.html';
-  const filePath = path.join(ROOT, isRoot ? 'index.html' : rel);
+  const filePath = path.join(ROOT, isRoot ? (isPreviewSite() ? path.join('preview', 'index.html') : 'index.html') : rel);
   const resolvedPath = path.resolve(filePath);
   if (!resolvedPath.startsWith(path.resolve(ROOT))) return res.status(404).end();
   const ext = path.extname(isRoot ? 'index.html' : u);
   if (isRoot || u.startsWith('/css/') || u.startsWith('/js/') || u.startsWith('/assets/')) {
     try {
+      const readPath = isRoot ? rootHtml : resolvedPath;
       const body = ['.css', '.js', '.json', '.html'].includes(ext)
-        ? fs.readFileSync(resolvedPath, 'utf8')
-        : fs.readFileSync(resolvedPath);
+        ? fs.readFileSync(readPath, 'utf8')
+        : fs.readFileSync(readPath);
       res.setHeader('Content-Type', isRoot ? 'text/html; charset=utf-8' : (MIME[ext] || 'application/octet-stream'));
       return res.status(200).send(body);
     } catch (e) {
