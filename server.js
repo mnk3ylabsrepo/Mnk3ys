@@ -21,19 +21,7 @@ const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const SESSION_SECRET = process.env.SESSION_SECRET || 'mnk3ys-session-secret-change-in-production';
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:' + PORT).replace(/\/$/, '');
-
-function oauthBaseUrl(req) {
-  if (process.env.VERCEL_GIT_COMMIT_REF === 'preview-ui' && req) {
-    const proto = (req.get('x-forwarded-proto') || req.protocol || 'https').split(',')[0].trim();
-    const host = (req.get('x-forwarded-host') || req.get('host') || '').split(',')[0].trim();
-    if (host) return (proto + '://' + host).replace(/\/$/, '');
-  }
-  return BASE_URL;
-}
-
-function discordRedirectUri(req) {
-  return oauthBaseUrl(req) + '/api/discord/callback';
-}
+const REDIRECT_URI = BASE_URL + '/api/discord/callback';
 
 const DISCORD_AUTH_URL = 'https://discord.com/api/oauth2/authorize';
 const DISCORD_TOKEN_URL = 'https://discord.com/api/oauth2/token';
@@ -116,12 +104,14 @@ app.get('/api/pairs', function (req, res) {
   res.sendFile(path.join(__dirname, 'pairs.html'));
 });
 
-// UI preview revamp — localhost only (not deployed via Vercel static handler)
-if (process.env.VERCEL !== '1') {
-  app.get('/preview', function (req, res) {
-    res.sendFile(path.join(__dirname, 'preview', 'index.html'));
-  });
-}
+// UI preview revamp at /preview (localhost + Vercel; live / unchanged)
+app.get('/preview', function (req, res) {
+  const { sendPreviewHtml } = require('./lib/preview-site');
+  if (!sendPreviewHtml(res, __dirname)) res.status(404).end();
+});
+app.get('/preview/', function (req, res) {
+  res.redirect(301, '/preview');
+});
 
 // ——— Discord OAuth: start ———
 app.get('/api/discord/auth', function (req, res) {
@@ -136,7 +126,7 @@ app.get('/api/discord/auth', function (req, res) {
   req.session.discordState = state;
   const qs = new URLSearchParams({
     client_id: DISCORD_CLIENT_ID,
-    redirect_uri: discordRedirectUri(req),
+    redirect_uri: REDIRECT_URI,
     response_type: 'code',
     scope: SCOPES,
     state: state,
@@ -167,7 +157,7 @@ app.get('/api/discord/callback', async function (req, res) {
         client_secret: DISCORD_CLIENT_SECRET,
         code: code,
         grant_type: 'authorization_code',
-        redirect_uri: discordRedirectUri(req),
+        redirect_uri: REDIRECT_URI,
       }).toString(),
       {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1234,7 +1224,7 @@ if (process.env.VERCEL !== '1') {
     if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET) {
       console.log('Discord login disabled: set DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET in .env');
     } else {
-      console.log('Discord redirect URI for Dev Portal:', BASE_URL + '/api/discord/callback');
+      console.log('Discord redirect URI for Dev Portal:', REDIRECT_URI);
     }
   });
 }

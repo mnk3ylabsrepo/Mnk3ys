@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const app = require('../server');
-const { isPreviewSite } = require('../lib/preview-site');
+const { sendPreviewHtml } = require('../lib/preview-site');
 
 const ROOT = path.resolve(path.join(__dirname, '..'));
 
@@ -105,16 +105,20 @@ module.exports = (req, res) => {
     }
   }
 
+  if (u === '/preview' || u === '/preview/') {
+    if (sendPreviewHtml(res, ROOT)) return;
+    return res.status(404).end();
+  }
+
   const isRoot = u === '' || u === '/' || u === '/index.html';
-  const rootHtml = isPreviewSite() ? path.join(ROOT, 'preview', 'index.html') : path.join(ROOT, 'index.html');
   const rel = (u || '').replace(/^\/+/, '') || 'index.html';
-  const filePath = path.join(ROOT, isRoot ? (isPreviewSite() ? path.join('preview', 'index.html') : 'index.html') : rel);
+  const filePath = path.join(ROOT, isRoot ? 'index.html' : rel);
   const resolvedPath = path.resolve(filePath);
   if (!resolvedPath.startsWith(path.resolve(ROOT))) return res.status(404).end();
   const ext = path.extname(isRoot ? 'index.html' : u);
   if (isRoot || u.startsWith('/css/') || u.startsWith('/js/') || u.startsWith('/assets/')) {
     try {
-      const readPath = isRoot ? rootHtml : resolvedPath;
+      const readPath = resolvedPath;
       const body = ['.css', '.js', '.json', '.html'].includes(ext)
         ? fs.readFileSync(readPath, 'utf8')
         : fs.readFileSync(readPath);
