@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const app = require('../server');
-const { isPreviewSite, enforcePreviewAccess } = require('../lib/preview-site');
+const { isPreviewSite } = require('../lib/preview-site');
 
 const ROOT = path.resolve(path.join(__dirname, '..'));
 
@@ -75,8 +75,6 @@ module.exports = (req, res) => {
     req.url = raw + q;
     return app(req, res);
   }
-
-  if (isPreviewSite() && !enforcePreviewAccess(req, res)) return;
 
   let u = raw;
   if (u.startsWith('/api/')) u = u.slice(4) || '/';
