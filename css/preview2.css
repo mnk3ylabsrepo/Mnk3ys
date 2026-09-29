@@ -209,7 +209,7 @@ body.p2 {
 
   .p2-page--lp {
     justify-content: flex-end;
-    padding-right: max(24px, 4vw);
+    padding-right: calc(20px + max(24px, 14vw));
   }
 
   .p2-page--lp .p2-center {
@@ -224,7 +224,7 @@ body.p2 {
   .p2-page--lp .p2-pills {
     --u-pill: calc(min(1vw, 1.778vh) * 1.8);
     margin: auto 0;
-    margin-right: calc(var(--p2-nav-right, 20vw) - max(24px, 4vw));
+    margin-right: calc(var(--p2-nav-right, 20vw) - 20px - max(24px, 14vw));
     align-self: flex-end;
   }
 
@@ -355,15 +355,10 @@ body.p2 {
 
 .p2-pill[data-todo] { opacity: 0.85; }
 
-.p2-pill { position: relative; }
-
 .p2-pill__icon {
-  position: absolute;
-  left: 0.3em;
-  top: 50%;
   width: 1.5em;
   height: 1.5em;
-  transform: translateY(-50%);
+  margin-right: 0.5em;
   border-radius: 50%;
   object-fit: cover;
   background: #000;
