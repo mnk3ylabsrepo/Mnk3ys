@@ -8,6 +8,8 @@
   --p2-nav-h: 56px;
   --p2-display: 'Poppins', system-ui, sans-serif;
   --p2-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  /* 1% of the 16:9 artwork width when it is fitted inside the viewport */
+  --u: min(1vw, 1.778vh);
 }
 
 *,
@@ -46,15 +48,19 @@ body.p2 {
 
 .p2-nav__logo img {
   display: block;
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   object-fit: cover;
   filter: brightness(1.9) grayscale(1);
 }
 
 .p2-nav__links {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   gap: clamp(10px, 1.25vw, 20px);
+  white-space: nowrap;
 }
 
 .p2-nav__links a {
@@ -103,12 +109,26 @@ body.p2 {
   background-color: var(--p2-bg);
   background-position: center;
   background-repeat: no-repeat;
-  background-size: cover;
+  background-size: contain;
   scroll-snap-align: start;
   overflow: hidden;
 }
 
-.p2-page--home      { background-image: url('/assets/preview2/home-landscape.jpg'); }
+/* Hero gorilla lives on a pseudo-element so it can pulse behind the title */
+.p2-page--home::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/assets/preview2/home-landscape.jpg') center / calc(72 * var(--u)) auto no-repeat;
+  animation: p2-hero-pulse 7s ease-in-out infinite alternate;
+}
+
+@keyframes p2-hero-pulse {
+  from { opacity: 0.15; }
+  to   { opacity: 1; }
+}
+
+.p2-page--home      { background-image: none; }
 .p2-page--mnk3ys    { background-image: url('/assets/preview2/mnk3ys-landscape.jpg'); }
 .p2-page--zmb3ys    { background-image: url('/assets/preview2/zmb3ys-landscape.jpg'); }
 .p2-page--blunana   { background-image: url('/assets/preview2/blunana-landscape.jpg'); }
@@ -144,7 +164,7 @@ body.p2 {
 .p2-page--split { justify-content: flex-start; }
 
 .p2-split {
-  margin-left: 30vw;
+  margin-left: calc((100vw - 100 * var(--u)) / 2 + 30 * var(--u));
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -155,7 +175,7 @@ body.p2 {
   margin: 0;
   font-family: var(--p2-display);
   font-weight: 800;
-  font-size: clamp(3rem, 7.2vw, 7.5rem);
+  font-size: max(2.2rem, calc(6.2 * var(--u)));
   line-height: 0.95;
   letter-spacing: -0.01em;
   color: var(--p2-white);
@@ -163,16 +183,16 @@ body.p2 {
 }
 
 .p2-title--hero {
-  font-size: clamp(3.2rem, 9vw, 9.5rem);
+  font-size: max(2.6rem, calc(7.3 * var(--u)));
   color: #fff;
 }
 
-.p2-split .p2-title { font-size: clamp(3rem, 6.4vw, 6.75rem); }
+.p2-split .p2-title { font-size: max(2.2rem, calc(5.8 * var(--u))); }
 
 .p2-tagline {
   margin: 0.35em 0 0;
   font-family: var(--p2-mono);
-  font-size: clamp(0.95rem, 1.6vw, 1.4rem);
+  font-size: max(0.85rem, calc(1.45 * var(--u)));
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -187,7 +207,7 @@ body.p2 {
 .p2-soon {
   margin: 0;
   font-family: var(--p2-mono);
-  font-size: clamp(0.8rem, 1.35vw, 1.15rem);
+  font-size: max(0.72rem, calc(1.25 * var(--u)));
   line-height: 1.05;
   text-transform: uppercase;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
@@ -203,7 +223,7 @@ body.p2 {
   margin: 0.6em 0 0;
   font-family: var(--p2-display);
   font-weight: 700;
-  font-size: clamp(0.9rem, 1.45vw, 1.25rem);
+  font-size: max(0.8rem, calc(1.3 * var(--u)));
   text-transform: uppercase;
   color: var(--p2-white);
 }
@@ -213,14 +233,14 @@ body.p2 {
 /* ——— Buttons ——— */
 .p2-socials {
   display: flex;
-  gap: clamp(24px, 4vw, 64px);
+  gap: max(24px, calc(4 * var(--u)));
   margin: 1.2em 0 1.4em;
 }
 
 .p2-socials a {
   display: block;
-  width: clamp(28px, 3.3vw, 44px);
-  height: clamp(28px, 3.3vw, 44px);
+  width: max(26px, calc(3 * var(--u)));
+  height: max(26px, calc(3 * var(--u)));
   color: #fff;
   transition: color 0.2s ease, transform 0.2s ease;
 }
@@ -231,7 +251,7 @@ body.p2 {
 .p2-pills {
   display: flex;
   flex-direction: column;
-  gap: clamp(10px, 1.3vw, 16px);
+  gap: max(8px, calc(1.2 * var(--u)));
   margin-top: 1.1em;
 }
 
@@ -239,15 +259,15 @@ body.p2 {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(160px, 16vw, 240px);
-  height: clamp(30px, 2.1vw, 38px);
+  width: max(140px, calc(15 * var(--u)));
+  height: max(28px, calc(2.1 * var(--u)));
   padding: 0 16px;
   border: 2px solid var(--p2-green);
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.55);
   color: #fff;
   font-family: var(--p2-mono);
-  font-size: clamp(0.9rem, 1.45vw, 1.2rem);
+  font-size: max(0.8rem, calc(1.3 * var(--u)));
   text-transform: uppercase;
   letter-spacing: 0.04em;
   cursor: pointer;
@@ -272,8 +292,8 @@ body.p2 {
 
 .p2-chart-links img {
   display: block;
-  width: clamp(30px, 3.4vw, 42px);
-  height: clamp(30px, 3.4vw, 42px);
+  width: max(28px, calc(3.2 * var(--u)));
+  height: max(28px, calc(3.2 * var(--u)));
   object-fit: contain;
   transition: transform 0.2s ease;
 }
@@ -291,7 +311,7 @@ body.p2 {
   position: absolute;
   left: 0;
   right: 0;
-  top: 25%;
+  top: calc(50% - 14 * var(--u));
   transform: translateY(-50%);
 }
 
@@ -299,12 +319,12 @@ body.p2 {
   position: absolute;
   left: 0;
   right: 0;
-  top: 71%;
+  top: calc(50% + 11.5 * var(--u));
   margin: 0;
   padding: 0 20px;
   font-family: var(--p2-display);
   font-weight: 600;
-  font-size: clamp(0.8rem, 1.35vw, 1.15rem);
+  font-size: max(0.72rem, calc(1.25 * var(--u)));
   text-transform: uppercase;
   letter-spacing: -0.01em;
 }
@@ -380,9 +400,17 @@ body.p2 {
   .p2-page--mnk1sh    { background-image: url('/assets/preview2/mnk1sh-portrait.jpg'); }
   .p2-page--partners  { background-image: url('/assets/preview2/partners-portrait.jpg'); }
 
+  .p2-page--home      { background-image: none; }
+
+  .p2-page--home::before {
+    background-image: url('/assets/preview2/home-portrait.jpg');
+    background-size: cover;
+  }
+
   .p2-page {
     align-items: flex-start;
     padding-top: calc(var(--p2-nav-h) + 4vh);
+    background-size: cover;
   }
 
   .p2-page--blunana,
@@ -450,4 +478,5 @@ body.p2 {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .p2-page__content { opacity: 1; transform: none; transition: none; }
+  .p2-page--home::before { animation: none; }
 }
