@@ -161,15 +161,15 @@ body.p2 {
 }
 
 /* Collection pages: text column left of the art */
+/* Artwork always fully visible and pinned right; text column pinned far left */
 .p2-page--split {
-  --u: 1vw;
   justify-content: flex-start;
-  background-size: 100vw auto;
-  background-position: center top;
+  background-size: contain;
+  background-position: right center;
 }
 
 .p2-split {
-  margin-left: calc((100vw - 100 * var(--u)) / 2 + 30 * var(--u));
+  margin-left: max(24px, 7vw);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -431,6 +431,7 @@ body.p2 {
   .p2-page--split {
     justify-content: center;
     padding-top: calc(var(--p2-nav-h) + 1vh);
+    background-position: center;
   }
 
   .p2-split .p2-pills { gap: 8px; margin-top: 0.5em; }
