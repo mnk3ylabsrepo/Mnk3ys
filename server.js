@@ -1126,10 +1126,11 @@ app.get('/api/collection-live', async function (req, res) {
   }
 });
 
-// ——— Preview 2: MNK3YS-only holders (merged by Discord) and rarity checker ———
-const MNK3YS_HOLDERS_TTL_MS = 10 * 60 * 1000;
-let mnk3ysHoldersCache = null;
-let mnk3ysRarity = null;
+// ——— Preview 2: per-collection holders (merged by Discord) and rarity checker ———
+const TOOL_COLLECTIONS = { mnk3ys: 'MNK3Y', zmb3ys: 'ZMB3Y' };
+const HOLDERS_TTL_MS = 10 * 60 * 1000;
+const holdersCache = {};
+const rarityData = {};
 
 async function fetchMeFloorSol(slug) {
   const r = await axios.get(`${ME_BASE}/collections/${slug}/stats`, { timeout: 8000, validateStatus: () => true });
@@ -1138,11 +1139,11 @@ async function fetchMeFloorSol(slug) {
   return fp >= 1000 ? fp / LAMPORTS_PER_SOL : Number(fp);
 }
 
-async function buildMnk3ysHolders() {
-  const mint = COLLECTIONS.find((c) => c.slug === 'mnk3ys')?.collectionMint;
+async function buildCollectionHolders(slug) {
+  const mint = COLLECTIONS.find((c) => c.slug === slug)?.collectionMint;
   const [owners, floorSol] = await Promise.all([
-    fetchCollectionOwnerCounts(mint, 'mnk3ys'),
-    fetchMeFloorSol('mnk3ys').catch(() => null),
+    fetchCollectionOwnerCounts(mint, slug),
+    fetchMeFloorSol(slug).catch(() => null),
   ]);
   let walletToDiscord = new Map();
   let discordNames = new Map();
@@ -1151,7 +1152,7 @@ async function buildMnk3ysHolders() {
       walletToDiscord = await db.getAllWalletToDiscord();
       discordNames = await db.getDiscordUsernames([...new Set(walletToDiscord.values())]);
     } catch (e) {
-      console.warn('mnk3ys holders: Discord lookup failed', e.message);
+      console.warn(`${slug} holders: Discord lookup failed`, e.message);
     }
   }
   const rows = new Map();
@@ -1172,37 +1173,51 @@ async function buildMnk3ysHolders() {
   return { holders, supply, floorSol, updatedAt: new Date().toISOString() };
 }
 
-app.get('/api/mnk3ys-holders', async function (req, res) {
+const holdersHandler = (slug) => async function (req, res) {
   if (!HELIUS_API_KEY) return res.status(503).json({ error: 'Holders unavailable' });
   try {
-    if (!mnk3ysHoldersCache || Date.now() - mnk3ysHoldersCache.at > MNK3YS_HOLDERS_TTL_MS) {
-      mnk3ysHoldersCache = { at: Date.now(), data: await buildMnk3ysHolders() };
+    const cached = holdersCache[slug];
+    if (!cached || Date.now() - cached.at > HOLDERS_TTL_MS) {
+      holdersCache[slug] = { at: Date.now(), data: await buildCollectionHolders(slug) };
     }
     res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
-    res.json(mnk3ysHoldersCache.data);
+    res.json(holdersCache[slug].data);
   } catch (e) {
-    console.warn('mnk3ys holders failed', e.message);
+    console.warn(`${slug} holders failed`, e.message);
     res.status(500).json({ error: 'Holders unavailable' });
   }
-});
+};
 
-app.get('/api/mnk3ys-rarity', async function (req, res) {
-  if (!mnk3ysRarity) {
-    mnk3ysRarity = require('./lib/mnk3ys-rarity.json');
-    mnk3ysRarity.rankByMint = {};
-    for (const [r, m] of Object.entries(mnk3ysRarity.ranks)) mnk3ysRarity.rankByMint[m] = Number(r);
+// Static requires so Vercel's file tracing bundles the JSON
+const RARITY_FILES = {
+  mnk3ys: () => require('./lib/mnk3ys-rarity.json'),
+  zmb3ys: () => require('./lib/zmb3ys-rarity.json'),
+};
+
+function getRarityData(slug) {
+  if (!rarityData[slug]) {
+    const data = RARITY_FILES[slug]();
+    data.rankByMint = {};
+    for (const [r, m] of Object.entries(data.ranks)) data.rankByMint[m] = Number(r);
+    rarityData[slug] = data;
   }
+  return rarityData[slug];
+}
+
+const rarityHandler = (slug) => async function (req, res) {
+  const rarity = getRarityData(slug);
+  const label = TOOL_COLLECTIONS[slug];
   let mint;
   if (req.query.number != null) {
     const number = parseInt(req.query.number, 10);
-    mint = mnk3ysRarity.numbers[number];
-    if (!mint) return res.status(404).json({ error: `MNK3Y #${number} not found — it may be burnt` });
+    mint = rarity.numbers[number];
+    if (!mint) return res.status(404).json({ error: `${label} #${number} not found — it may be burnt` });
   } else {
     const r = parseInt(req.query.rank, 10) || 1;
-    mint = mnk3ysRarity.ranks[r];
-    if (!mint) return res.status(404).json({ error: `No MNK3Y holds rank ${r} — it may be burnt` });
+    mint = rarity.ranks[r];
+    if (!mint) return res.status(404).json({ error: `No ${label} holds rank ${r} — it may be burnt` });
   }
-  const rank = mnk3ysRarity.rankByMint[mint] || null;
+  const rank = rarity.rankByMint[mint] || null;
   try {
     const [assetR, listingR] = await Promise.allSettled([
       axios.post(
@@ -1229,12 +1244,12 @@ app.get('/api/mnk3ys-rarity', async function (req, res) {
 
     const attributes = (asset?.content?.metadata?.attributes || [])
       .filter((t) => !/^rarity rank$/i.test(t.trait_type))
-      .map((t) => ({ type: t.trait_type, value: t.value, pct: mnk3ysRarity.traitPct[t.trait_type]?.[t.value] ?? null }));
+      .map((t) => ({ type: t.trait_type, value: t.value, pct: rarity.traitPct[t.trait_type]?.[t.value] ?? null }));
 
     res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
     res.json({
       rank,
-      supply: mnk3ysRarity.supply,
+      supply: rarity.supply,
       mint,
       name: asset?.content?.metadata?.name || null,
       image: asset?.content?.links?.image || null,
@@ -1244,10 +1259,15 @@ app.get('/api/mnk3ys-rarity', async function (req, res) {
       listing: listing ? { priceSol: listing.price, url: `https://magiceden.io/item-details/${mint}` } : null,
     });
   } catch (e) {
-    console.warn('rarity lookup failed', e.message);
+    console.warn(`${slug} rarity lookup failed`, e.message);
     res.status(500).json({ error: 'Lookup failed' });
   }
-});
+};
+
+for (const slug of Object.keys(TOOL_COLLECTIONS)) {
+  app.get(`/api/${slug}-holders`, holdersHandler(slug));
+  app.get(`/api/${slug}-rarity`, rarityHandler(slug));
+}
 
 app.get('/api/holders', async function (req, res) {
   const sortBy = (req.query.sort || 'total').toLowerCase();

@@ -1,10 +1,15 @@
 /**
- * Preview 2: collection tool modals — MNK3YS holders table and rarity checker.
+ * Preview 2: collection tool modals — holders table and rarity checker for MNK3YS and ZMB3YS.
  */
 (function () {
   'use strict';
 
   var MAGIC_EDEN_WALLET = '1BWutmTvYPwDtmw9abTkS4Ssr8no61spGAvW1X6NDix';
+
+  var COLLECTIONS = {
+    mnk3ys: { nameHtml: 'MNK<span class="g">3</span>YS', item: 'MNK3Y', limits: { rank: [1, 5000], number: [0, 4999] } },
+    zmb3ys: { nameHtml: 'ZMB<span class="g">3</span>YS', item: 'ZMB3Y', limits: { rank: [1, 5550], number: [0, 5554] } }
+  };
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -49,8 +54,9 @@
     if (opener) {
       var modal = document.getElementById(opener.getAttribute('data-modal'));
       if (!modal) return;
+      var slug = COLLECTIONS[opener.getAttribute('data-collection')] ? opener.getAttribute('data-collection') : 'mnk3ys';
       modal.showModal();
-      if (loaders[modal.id]) loaders[modal.id]();
+      if (loaders[modal.id]) loaders[modal.id](slug);
       return;
     }
     if (e.target.closest('[data-close]')) {
@@ -61,14 +67,21 @@
   });
 
   // ——— Holders ———
-  var holdersLoaded = false;
-  loaders['p2-holders'] = function () {
-    if (holdersLoaded) return;
-    holdersLoaded = true;
+  var holdersRequests = {};
+  var holdersSlug = null;
+  loaders['p2-holders'] = function (slug) {
     var meta = document.getElementById('p2-holders-meta');
     var tbody = document.getElementById('p2-holders-rows');
-    Promise.all([getJson('/api/mnk3ys-holders'), solUsd()])
+    if (slug !== holdersSlug) {
+      holdersSlug = slug;
+      document.getElementById('p2-holders-name').innerHTML = COLLECTIONS[slug].nameHtml;
+      meta.textContent = 'Loading…';
+      tbody.innerHTML = '';
+    }
+    if (!holdersRequests[slug]) holdersRequests[slug] = Promise.all([getJson('/api/' + slug + '-holders'), solUsd()]);
+    holdersRequests[slug]
       .then(function (res) {
+        if (slug !== holdersSlug) return;
         var data = res[0];
         var usd = res[1];
         var floor = data.floorSol;
@@ -84,7 +97,8 @@
         }).join('');
       })
       .catch(function (err) {
-        holdersLoaded = false;
+        delete holdersRequests[slug];
+        if (slug !== holdersSlug) return;
         meta.textContent = err.message || 'Failed to load';
       });
   };
@@ -98,7 +112,7 @@
   var stats = document.getElementById('p2-rarity-stats');
   var traitList = document.getElementById('p2-rarity-traits');
   var rarityForm = document.getElementById('p2-rarity-form');
-  var LIMITS = { rank: [1, 5000], number: [0, 4999] };
+  var raritySlug = null;
   var mode = 'rank';
   var lookupSeq = 0;
   var debounce;
@@ -107,13 +121,13 @@
     if (nextMode) mode = nextMode;
     var input = inputs[mode];
     var other = inputs[mode === 'rank' ? 'number' : 'rank'];
-    var lim = LIMITS[mode];
+    var lim = COLLECTIONS[raritySlug].limits[mode];
     var n = parseInt(input.value, 10);
     n = Math.min(lim[1], Math.max(lim[0], isNaN(n) ? lim[0] : n));
     input.value = n;
     var seq = ++lookupSeq;
-    stats.innerHTML = '<p class="p2-muted">Loading ' + (mode === 'rank' ? 'rank ' : 'MNK3Y #') + n + '…</p>';
-    getJson('/api/mnk3ys-rarity?' + mode + '=' + n)
+    stats.innerHTML = '<p class="p2-muted">Loading ' + (mode === 'rank' ? 'rank ' : COLLECTIONS[raritySlug].item + ' #') + n + '…</p>';
+    getJson('/api/' + raritySlug + '-rarity?' + mode + '=' + n)
       .then(function (d) {
         if (seq !== lookupSeq) return;
         var num = /#(\d+)/.exec(d.name || '');
@@ -127,7 +141,7 @@
           : '<span class="p2-muted">Not listed</span>';
         media.innerHTML = d.image ? '<img class="p2-rarity__img" src="' + esc(d.image) + '" alt="' + esc(d.name) + '" />' : '';
         stats.innerHTML =
-          '<p class="p2-rarity__name">' + esc(d.name || 'MNK3Y') + '</p>' +
+          '<p class="p2-rarity__name">' + esc(d.name || COLLECTIONS[raritySlug].item) + '</p>' +
           '<p class="p2-rarity__rank">' + (d.rank ? 'Rank <span class="g">#' + d.rank + '</span> of ' + fmt(d.supply, 0) : 'Unranked') + '</p>' +
           '<dl class="p2-rarity__facts"><dt>Owner</dt><dd>' + owner + '</dd><dt>Status</dt><dd>' + listing + '</dd></dl>';
         traitList.innerHTML = d.attributes.map(function (t) {
@@ -143,11 +157,19 @@
       });
   }
 
-  var rarityLoaded = false;
-  loaders['p2-rarity'] = function () {
-    if (rarityLoaded) return;
-    rarityLoaded = true;
-    lookup();
+  loaders['p2-rarity'] = function (slug) {
+    if (slug === raritySlug) return;
+    raritySlug = slug;
+    var limits = COLLECTIONS[slug].limits;
+    Object.keys(inputs).forEach(function (m) {
+      inputs[m].min = limits[m][0];
+      inputs[m].max = limits[m][1];
+    });
+    inputs.rank.value = 1;
+    inputs.number.value = '';
+    media.innerHTML = '';
+    traitList.innerHTML = '';
+    lookup('rank');
   };
 
   rarityForm.addEventListener('submit', function (e) {
@@ -169,7 +191,7 @@
     var m = step.closest('[data-mode]').getAttribute('data-mode');
     var input = inputs[m];
     var current = parseInt(input.value, 10);
-    input.value = (isNaN(current) ? LIMITS[m][0] : current) + parseInt(step.getAttribute('data-step'), 10);
+    input.value = (isNaN(current) ? COLLECTIONS[raritySlug].limits[m][0] : current) + parseInt(step.getAttribute('data-step'), 10);
     lookup(m);
   });
 })();
