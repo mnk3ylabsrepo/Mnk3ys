@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  if (!document.body.classList.contains('site-preview')) return;
+  if (!document.body.classList.contains('site-preview') || document.body.classList.contains('site-preview2')) return;
 
   var CONFIG = window.MNK3YS_CONFIG || {};
 

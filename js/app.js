@@ -36,7 +36,9 @@
     var hero = c.hero || {};
     var tokenSymbol = (token.symbol || 'Token').toUpperCase();
 
-    document.title = projectName + ' — NFT & Token';
+    if (!document.body.classList.contains('site-preview2')) {
+      document.title = projectName + ' — NFT & Token';
+    }
 
     // Hero
     var heroTitle = document.getElementById('hero-title');
@@ -59,7 +61,7 @@
     // Dashboard brand
     var dashTitle = document.querySelector('.dashboard__title');
     if (dashTitle) dashTitle.textContent = projectName;
-    var dashLogos = document.querySelectorAll('.dashboard__logo-img, .dashboard__icon-img, .footer__logo');
+    var dashLogos = document.querySelectorAll('.dashboard__logo-img, .dashboard__icon-img, .footer__logo, .p2-header__logo');
     dashLogos.forEach(function (img) { if (img && logoUrl) img.src = logoUrl; });
     var logoAlt = document.querySelector('.dashboard__logo-img');
     if (logoAlt) logoAlt.alt = projectName;
@@ -108,11 +110,14 @@
 
     // Optional shop link (sidebar)
     var shopUrl = c.shopUrl;
-    var shopLink = document.querySelector('[data-config="shop-link"]');
-    if (shopLink) {
-      if (shopUrl) { shopLink.href = shopUrl; shopLink.style.display = ''; }
-      else { shopLink.style.display = 'none'; }
-    }
+    document.querySelectorAll('[data-config="shop-link"]').forEach(function (shopLink) {
+      if (shopUrl) {
+        shopLink.href = shopUrl;
+        shopLink.style.display = '';
+      } else {
+        shopLink.style.display = 'none';
+      }
+    });
 
     // Footer
     var footerCopyText = document.getElementById('footer-copy-text');
@@ -640,7 +645,9 @@
     var base = window.location.origin + '/api/discord/auth';
     if (document.body.classList.contains('site-preview')) {
       var path = window.location.pathname || '/';
-      var next = (path === '/preview' || path === '/preview/') ? '/preview' : '/';
+      var next = '/';
+      if (path === '/preview' || path === '/preview/') next = '/preview';
+      else if (path === '/preview2' || path === '/preview2/') next = '/preview2';
       return base + '?next=' + encodeURIComponent(next);
     }
     return base;

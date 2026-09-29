@@ -113,6 +113,14 @@ app.get('/preview/', function (req, res) {
   res.redirect(301, '/preview');
 });
 
+app.get('/preview2', function (req, res) {
+  const { sendPreview2Html } = require('./lib/preview-site');
+  if (!sendPreview2Html(res, __dirname)) res.status(404).end();
+});
+app.get('/preview2/', function (req, res) {
+  res.redirect(301, '/preview2');
+});
+
 // ——— Discord OAuth: start ———
 app.get('/api/discord/auth', function (req, res) {
   if (!DISCORD_CLIENT_ID) {

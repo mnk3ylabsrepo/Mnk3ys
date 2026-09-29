@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const app = require('../server');
-const { sendPreviewHtml } = require('../lib/preview-site');
+const { sendPreviewHtml, sendPreview2Html } = require('../lib/preview-site');
 
 const ROOT = path.resolve(path.join(__dirname, '..'));
 
@@ -107,6 +107,11 @@ module.exports = (req, res) => {
 
   if (u === '/preview' || u === '/preview/') {
     if (sendPreviewHtml(res, ROOT)) return;
+    return res.status(404).end();
+  }
+
+  if (u === '/preview2' || u === '/preview2/') {
+    if (sendPreview2Html(res, ROOT)) return;
     return res.status(404).end();
   }
 
