@@ -254,6 +254,10 @@ body.p2 {
 
   .p2-page--art-left .p2-center { margin-right: 6vw; }
 
+  .p2-page--b3bs { background-position: calc(50% - 19vw) calc(50% + 5vh); }
+  .p2-page--b3bs .p2-title { font-size: max(2.97rem, calc(8.37 * var(--u))); }
+  .p2-page--b3bs .p2-desc { font-size: max(0.97rem, calc(1.69 * var(--u))); }
+
   .p2-page--blunana .p2-chart-links img {
     width: max(56px, calc(6.4 * var(--u)));
     height: max(56px, calc(6.4 * var(--u)));
