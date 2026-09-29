@@ -24,6 +24,18 @@
     a.addEventListener('click', function () { setMenu(false); });
   });
 
+  function setNavEdge() {
+    var last = links[links.length - 1];
+    var right = last && last.getBoundingClientRect().right;
+    if (right) {
+      document.documentElement.style.setProperty('--p2-nav-right', (document.documentElement.clientWidth - right) + 'px');
+    }
+  }
+
+  setNavEdge();
+  window.addEventListener('resize', setNavEdge);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(setNavEdge);
+
   function setActive(id) {
     links.forEach(function (a) {
       a.classList.toggle('is-active', a.getAttribute('data-section') === id);

@@ -207,7 +207,16 @@ body.p2 {
     background-position: calc(50% - 17vw) calc(50% - 7vh);
   }
 
-  .p2-page--lp .p2-center { margin-top: 4vh; }
+  .p2-page--lp {
+    justify-content: flex-end;
+    padding-right: var(--p2-nav-right, 20vw);
+  }
+
+  .p2-page--lp .p2-center {
+    margin-top: 4vh;
+    align-items: flex-end;
+    text-align: right;
+  }
 
   .p2-page--lp .p2-title { order: -1; }
   .p2-page--lp .p2-desc { margin: 0.8em 0 0; }
