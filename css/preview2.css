@@ -222,6 +222,7 @@ body.p2 {
   .p2-page--lp .p2-desc { margin: 0.8em 0 0; }
 
   .p2-page--lp .p2-pills {
+    --u-pill: calc(min(1vw, 1.778vh) * 2.4);
     margin: auto 0;
     align-self: flex-end;
   }
