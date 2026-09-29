@@ -189,8 +189,16 @@ body.p2 {
     margin-top: auto;
   }
 
-  .p2-page--blunana .p2-chart-links { order: 1; gap: 48px; }
-  .p2-page--blunana .p2-pills { order: 2; }
+  /* Negative right margin keeps the logo row out of the column's width, so buttons centre on the title */
+  .p2-page--blunana .p2-chart-links {
+    order: 1;
+    gap: 48px;
+    align-self: flex-start;
+    width: max-content;
+    margin-right: -100vw;
+  }
+
+  .p2-page--blunana .p2-pills { order: 2; margin-bottom: 6vh; }
 
   .p2-page--blunana .p2-chart-links img {
     width: max(56px, calc(6.4 * var(--u)));
@@ -333,7 +341,24 @@ body.p2 {
   transition: transform 0.2s ease;
 }
 
+.p2-chart-links a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--p2-grey);
+  text-decoration: none;
+}
+
+.p2-chart-links span {
+  font-family: var(--p2-mono);
+  font-size: max(0.65rem, calc(0.9 * var(--u)));
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
 .p2-chart-links a:hover img { transform: scale(1.1); }
+.p2-chart-links a:hover span { color: var(--p2-green); }
 
 /* ——— Partners: logos + Solana are baked into the background ——— */
 .p2-partners {
