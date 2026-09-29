@@ -224,8 +224,7 @@ body.p2 {
   .p2-page--lp .p2-pills {
     --u-pill: calc(min(1vw, 1.778vh) * 1.8);
     margin: auto 0;
-    margin-right: calc(var(--p2-nav-right, 20vw) - 20px - max(24px, 14vw));
-    align-self: flex-end;
+    align-self: center;
   }
 
   .p2-page--blunana .p2-chart-links img {
