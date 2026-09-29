@@ -91,7 +91,9 @@
 
   // ——— Rarity checker ———
   var rankInput = document.getElementById('p2-rarity-rank');
-  var result = document.getElementById('p2-rarity-result');
+  var media = document.getElementById('p2-rarity-media');
+  var stats = document.getElementById('p2-rarity-stats');
+  var traitList = document.getElementById('p2-rarity-traits');
   var rarityForm = document.getElementById('p2-rarity-form');
   var modeButtons = Array.prototype.slice.call(rarityForm.querySelectorAll('[data-mode]'));
   var LIMITS = { rank: [1, 5000], number: [0, 4999] };
@@ -112,7 +114,7 @@
     n = Math.min(lim[1], Math.max(lim[0], isNaN(n) ? lim[0] : n));
     rankInput.value = n;
     var seq = ++lookupSeq;
-    result.innerHTML = '<p class="p2-muted">Loading ' + (mode === 'rank' ? 'rank ' : 'MNK3Y #') + n + '…</p>';
+    stats.innerHTML = '<p class="p2-muted">Loading ' + (mode === 'rank' ? 'rank ' : 'MNK3Y #') + n + '…</p>';
     getJson('/api/mnk3ys-rarity?' + mode + '=' + n)
       .then(function (d) {
         if (seq !== lookupSeq) return;
@@ -122,23 +124,20 @@
         var listing = d.listing
           ? '<a class="p2-listed" href="' + esc(d.listing.url) + '" target="_blank" rel="noopener">Listed &middot; ' + fmt(d.listing.priceSol, 3) + ' SOL</a>'
           : '<span class="p2-muted">Not listed</span>';
-        var traits = d.attributes.map(function (t) {
+        media.innerHTML = d.image ? '<img class="p2-rarity__img" src="' + esc(d.image) + '" alt="' + esc(d.name) + '" />' : '';
+        stats.innerHTML =
+          '<p class="p2-rarity__name">' + esc(d.name || 'MNK3Y') + '</p>' +
+          '<p class="p2-rarity__rank">' + (d.rank ? 'Rank <span class="g">#' + d.rank + '</span> of ' + fmt(d.supply, 0) : 'Unranked') + '</p>' +
+          '<dl class="p2-rarity__facts"><dt>Owner</dt><dd>' + owner + '</dd><dt>Status</dt><dd>' + listing + '</dd></dl>';
+        traitList.innerHTML = d.attributes.map(function (t) {
           return '<li><span class="p2-trait__type">' + esc(t.type) + '</span><span class="p2-trait__value">' + esc(t.value) + '</span><span class="p2-trait__pct">' + (t.pct != null ? t.pct + '%' : '') + '</span></li>';
         }).join('');
-        result.innerHTML =
-          '<div class="p2-rarity">' +
-            (d.image ? '<img class="p2-rarity__img" src="' + esc(d.image) + '" alt="' + esc(d.name) + '" />' : '') +
-            '<div class="p2-rarity__info">' +
-              '<p class="p2-rarity__name">' + esc(d.name || 'MNK3Y') + '</p>' +
-              '<p class="p2-rarity__rank">' + (d.rank ? 'Rank <span class="g">#' + d.rank + '</span> of ' + fmt(d.supply, 0) : 'Unranked') + '</p>' +
-              '<dl class="p2-rarity__facts"><dt>Owner</dt><dd>' + owner + '</dd><dt>Status</dt><dd>' + listing + '</dd></dl>' +
-              '<ul class="p2-traits">' + traits + '</ul>' +
-            '</div>' +
-          '</div>';
       })
       .catch(function (err) {
         if (seq !== lookupSeq) return;
-        result.innerHTML = '<p class="p2-muted">' + esc(err.message || 'Lookup failed') + '</p>';
+        media.innerHTML = '';
+        traitList.innerHTML = '';
+        stats.innerHTML = '<p class="p2-muted">' + esc(err.message || 'Lookup failed') + '</p>';
       });
   }
 
