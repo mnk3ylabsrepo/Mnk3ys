@@ -119,7 +119,7 @@ body.p2 {
   content: '';
   position: absolute;
   inset: 0;
-  background: url('/assets/preview2/home-landscape.jpg') center / calc(72 * var(--u)) auto no-repeat;
+  background: url('/assets/preview2/home-landscape.jpg') center / calc(86 * var(--u)) auto no-repeat;
   animation: p2-hero-pulse 4.5s ease-in-out infinite alternate;
 }
 
@@ -183,7 +183,7 @@ body.p2 {
 }
 
 .p2-title--hero {
-  font-size: max(2.6rem, calc(7.3 * var(--u)));
+  font-size: max(2.6rem, calc(8.7 * var(--u)));
   color: #fff;
 }
 
