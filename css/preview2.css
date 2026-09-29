@@ -705,8 +705,8 @@ body.p2 {
 }
 
 .p2-rarity__step {
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   border: 2px solid var(--p2-green);
   border-radius: 50%;
   background: #000;
@@ -720,8 +720,8 @@ body.p2 {
 
 .p2-rarity {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 22px;
+  grid-template-columns: 35% 1fr;
+  gap: 26px;
   align-items: start;
 }
 
@@ -739,22 +739,23 @@ body.p2 {
   margin: 0;
   font-family: var(--p2-display);
   font-weight: 800;
-  font-size: 1.3rem;
+  font-size: 2.2rem;
+  line-height: 1.05;
   text-transform: uppercase;
 }
 
 .p2-rarity__rank {
-  margin: 2px 0 12px;
+  margin: 6px 0 16px;
   text-transform: uppercase;
-  font-size: 0.9rem;
+  font-size: 1.3rem;
 }
 
 .p2-rarity__facts {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 4px 14px;
+  gap: 6px 18px;
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 1.1rem;
 }
 
 .p2-rarity__facts dt { color: var(--p2-grey); text-transform: uppercase; }
