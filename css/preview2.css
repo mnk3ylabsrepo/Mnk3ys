@@ -227,27 +227,27 @@ body.p2 {
     align-self: center;
   }
 
-  /* Two-column pages: art pushed to one half, content in the other at the page margin */
+  /* Two-column pages: art pushed to one half, content centred in the other half */
+  .p2-page--art-right,
+  .p2-page--art-left {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .p2-page--art-right .p2-center,
+  .p2-page--art-left .p2-center {
+    width: 50%;
+    padding: 0 24px;
+  }
+
   .p2-page--art-right {
     justify-content: flex-start;
     background-position: calc(50% + 22vw) center;
   }
 
-  .p2-page--art-right .p2-center {
-    align-items: flex-start;
-    text-align: left;
-    margin-left: max(24px, 14vw);
-  }
-
   .p2-page--art-left {
     justify-content: flex-end;
-    padding-right: calc(20px + max(24px, 14vw));
     background-position: calc(50% - 22vw) center;
-  }
-
-  .p2-page--art-left .p2-center {
-    align-items: flex-end;
-    text-align: right;
   }
 
   .p2-page--blunana .p2-chart-links img {
