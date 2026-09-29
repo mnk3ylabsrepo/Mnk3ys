@@ -1,79 +1,77 @@
 /**
- * Preview 2 — bottom pipe nav + scroll spy (founder mockup).
+ * Preview 2: top nav (active link + mobile menu), page reveal, copy-to-clipboard pills.
  */
 (function () {
   'use strict';
 
-  if (!document.body.classList.contains('site-preview2')) return;
+  var nav = document.getElementById('p2-nav');
+  var toggle = document.getElementById('p2-nav-toggle');
+  var links = Array.prototype.slice.call(document.querySelectorAll('.p2-nav__links a'));
+  var pages = Array.prototype.slice.call(document.querySelectorAll('.p2-page'));
+  var toast = document.getElementById('p2-toast');
+  var toastTimer;
 
-  var CONFIG = window.MNK3YS_CONFIG || {};
-  var shopUrl = (CONFIG.shopUrl || '').trim();
-  var nav = document.getElementById('p2-bottom-nav');
-  if (!nav) return;
-
-  var shopLink = nav.querySelector('.p2-bottom-nav__link--shop');
-  var shopSep = nav.querySelector('.p2-bottom-nav__sep--shop');
-  if (shopLink && shopUrl) {
-    shopLink.href = shopUrl;
-    shopLink.style.display = '';
-    if (shopSep) shopSep.style.display = '';
+  function setMenu(open) {
+    nav.classList.toggle('is-open', open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
 
-  var tokenSymbol = (CONFIG.token && CONFIG.token.symbol) || 'BLUNANA';
-  nav.querySelectorAll('[data-config="token-symbol"]').forEach(function (el) {
-    el.textContent = '$' + tokenSymbol;
+  toggle.addEventListener('click', function () {
+    setMenu(!nav.classList.contains('is-open'));
   });
 
-  var SECTION_IDS = [
-    'home',
-    'about',
-    'collections',
-    'blunana',
-    'games',
-    'utilities',
-    'x-spaces',
-    'team',
-    'partners',
-  ];
+  links.forEach(function (a) {
+    a.addEventListener('click', function () { setMenu(false); });
+  });
 
-  var links = nav.querySelectorAll('.p2-bottom-nav__link[data-section]');
-  var sections = SECTION_IDS.map(function (id) {
-    return document.getElementById(id);
-  }).filter(Boolean);
-
-  function setActive(sectionId) {
-    links.forEach(function (link) {
-      var sid = link.getAttribute('data-section');
-      var isChart = link.getAttribute('href') === '#blunana-chart';
-      var active = !isChart && sid === sectionId;
-      link.classList.toggle('p2-bottom-nav__link--active', active);
+  function setActive(id) {
+    links.forEach(function (a) {
+      a.classList.toggle('is-active', a.getAttribute('data-section') === id);
     });
   }
 
-  function sectionInView() {
-    var mid = window.innerHeight * 0.35;
-    var current = 'home';
-    sections.forEach(function (sec) {
-      if (!sec) return;
-      var rect = sec.getBoundingClientRect();
-      if (rect.top <= mid && rect.bottom > mid) current = sec.id;
+  if ('IntersectionObserver' in window) {
+    var revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) entry.target.classList.add('is-visible');
+      });
+    }, { threshold: 0.25 });
+
+    var activeObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) setActive(entry.target.id);
+      });
+    }, { rootMargin: '-45% 0px -45% 0px' });
+
+    pages.forEach(function (page) {
+      revealObserver.observe(page);
+      activeObserver.observe(page);
     });
-    setActive(current);
+  } else {
+    pages.forEach(function (page) { page.classList.add('is-visible'); });
   }
 
-  links.forEach(function (link) {
-    link.addEventListener('click', function (e) {
-      var href = link.getAttribute('href') || '';
-      if (href.startsWith('#') && href.length > 1) {
-        var target = document.querySelector(href);
-        if (target) {
-          e.preventDefault();
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('is-shown');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('is-shown'); }, 1800);
+  }
+
+  document.addEventListener('click', function (e) {
+    var copyBtn = e.target.closest('[data-copy]');
+    if (copyBtn) {
+      var value = copyBtn.getAttribute('data-copy');
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(value).then(function () { showToast('CA copied'); });
+      } else {
+        showToast(value);
       }
-    });
+      return;
+    }
+    if (e.target.closest('[data-todo]')) {
+      e.preventDefault();
+      showToast('Coming soon');
+    }
   });
-
-  window.addEventListener('scroll', sectionInView, { passive: true });
-  sectionInView();
 })();
