@@ -120,7 +120,7 @@ body.p2 {
   position: absolute;
   inset: 0;
   background: url('/assets/preview2/home-landscape.jpg') center / calc(72 * var(--u)) auto no-repeat;
-  animation: p2-hero-pulse 7s ease-in-out infinite alternate;
+  animation: p2-hero-pulse 4.5s ease-in-out infinite alternate;
 }
 
 @keyframes p2-hero-pulse {
