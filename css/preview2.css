@@ -182,6 +182,9 @@ body.p2 {
     text-align: left;
     margin: 0 0 8vh max(24px, 14vw);
   }
+
+  .p2-page--blunana .p2-pills,
+  .p2-page--blunana .p2-chart-links { align-self: center; }
 }
 
 .p2-split {
