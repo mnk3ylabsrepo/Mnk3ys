@@ -227,6 +227,29 @@ body.p2 {
     align-self: center;
   }
 
+  /* Two-column pages: art pushed to one half, content in the other at the page margin */
+  .p2-page--art-right {
+    justify-content: flex-start;
+    background-position: calc(50% + 22vw) center;
+  }
+
+  .p2-page--art-right .p2-center {
+    align-items: flex-start;
+    text-align: left;
+    margin-left: max(24px, 14vw);
+  }
+
+  .p2-page--art-left {
+    justify-content: flex-end;
+    padding-right: calc(20px + max(24px, 14vw));
+    background-position: calc(50% - 22vw) center;
+  }
+
+  .p2-page--art-left .p2-center {
+    align-items: flex-end;
+    text-align: right;
+  }
+
   .p2-page--blunana .p2-chart-links img {
     width: max(56px, calc(6.4 * var(--u)));
     height: max(56px, calc(6.4 * var(--u)));
