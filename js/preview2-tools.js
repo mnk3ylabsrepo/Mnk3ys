@@ -90,34 +90,35 @@
   };
 
   // ——— Rarity checker ———
-  var rankInput = document.getElementById('p2-rarity-rank');
+  var inputs = {
+    rank: document.getElementById('p2-rarity-rank'),
+    number: document.getElementById('p2-rarity-number')
+  };
   var media = document.getElementById('p2-rarity-media');
   var stats = document.getElementById('p2-rarity-stats');
   var traitList = document.getElementById('p2-rarity-traits');
   var rarityForm = document.getElementById('p2-rarity-form');
-  var modeButtons = Array.prototype.slice.call(rarityForm.querySelectorAll('[data-mode]'));
   var LIMITS = { rank: [1, 5000], number: [0, 4999] };
   var mode = 'rank';
   var lookupSeq = 0;
   var debounce;
 
-  function setMode(next) {
-    mode = next;
-    modeButtons.forEach(function (b) { b.setAttribute('aria-checked', b.getAttribute('data-mode') === mode ? 'true' : 'false'); });
-    rankInput.min = LIMITS[mode][0];
-    rankInput.max = LIMITS[mode][1];
-  }
-
-  function lookup() {
+  function lookup(nextMode) {
+    if (nextMode) mode = nextMode;
+    var input = inputs[mode];
+    var other = inputs[mode === 'rank' ? 'number' : 'rank'];
     var lim = LIMITS[mode];
-    var n = parseInt(rankInput.value, 10);
+    var n = parseInt(input.value, 10);
     n = Math.min(lim[1], Math.max(lim[0], isNaN(n) ? lim[0] : n));
-    rankInput.value = n;
+    input.value = n;
     var seq = ++lookupSeq;
     stats.innerHTML = '<p class="p2-muted">Loading ' + (mode === 'rank' ? 'rank ' : 'MNK3Y #') + n + '…</p>';
     getJson('/api/mnk3ys-rarity?' + mode + '=' + n)
       .then(function (d) {
         if (seq !== lookupSeq) return;
+        var num = /#(\d+)/.exec(d.name || '');
+        inputs.rank.value = d.rank || '';
+        inputs.number.value = num ? num[1] : '';
         var owner = d.ownerDiscord
           ? '<span class="p2-discord">' + esc(d.ownerDiscord) + '</span>'
           : d.owner ? walletLink(d.owner) : '—';
@@ -135,6 +136,7 @@
       })
       .catch(function (err) {
         if (seq !== lookupSeq) return;
+        other.value = '';
         media.innerHTML = '';
         traitList.innerHTML = '';
         stats.innerHTML = '<p class="p2-muted">' + esc(err.message || 'Lookup failed') + '</p>';
@@ -153,23 +155,21 @@
     lookup();
   });
 
-  rankInput.addEventListener('input', function () {
-    clearTimeout(debounce);
-    debounce = setTimeout(lookup, 450);
+  Object.keys(inputs).forEach(function (m) {
+    inputs[m].addEventListener('input', function () {
+      clearTimeout(debounce);
+      debounce = setTimeout(function () { lookup(m); }, 450);
+    });
+    inputs[m].addEventListener('focus', function () { mode = m; });
   });
 
   rarityForm.addEventListener('click', function (e) {
-    var modeBtn = e.target.closest('[data-mode]');
-    if (modeBtn) {
-      if (modeBtn.getAttribute('data-mode') === mode) return;
-      setMode(modeBtn.getAttribute('data-mode'));
-      rankInput.select();
-      lookup();
-      return;
-    }
     var step = e.target.closest('[data-step]');
     if (!step) return;
-    rankInput.value = (parseInt(rankInput.value, 10) || 0) + parseInt(step.getAttribute('data-step'), 10);
-    lookup();
+    var m = step.closest('[data-mode]').getAttribute('data-mode');
+    var input = inputs[m];
+    var current = parseInt(input.value, 10);
+    input.value = (isNaN(current) ? LIMITS[m][0] : current) + parseInt(step.getAttribute('data-step'), 10);
+    lookup(m);
   });
 })();

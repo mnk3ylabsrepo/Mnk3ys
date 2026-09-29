@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/preview2.css?v=39" />
+  <link rel="stylesheet" href="/css/preview2.css?v=40" />
 </head>
 <body class="p2">
   <header class="p2-nav" id="p2-nav">
@@ -252,14 +252,17 @@
         <div class="p2-rarity__side">
           <div id="p2-rarity-stats"></div>
           <form class="p2-rarity__form" id="p2-rarity-form">
-            <div class="p2-rarity__mode" role="radiogroup" aria-label="Look up by">
-              <button type="button" role="radio" aria-checked="true" data-mode="rank">Rank</button>
-              <button type="button" role="radio" aria-checked="false" data-mode="number">NFT #</button>
+            <div class="p2-rarity__stepper" data-mode="rank">
+              <label class="p2-rarity__label" for="p2-rarity-rank">Rank</label>
+              <button type="button" class="p2-rarity__step" data-step="-1" aria-label="Previous rank">&lsaquo;</button>
+              <input id="p2-rarity-rank" type="number" min="1" max="5000" value="1" inputmode="numeric" />
+              <button type="button" class="p2-rarity__step" data-step="1" aria-label="Next rank">&rsaquo;</button>
             </div>
-            <div class="p2-rarity__stepper">
-              <button type="button" class="p2-rarity__step" data-step="-1" aria-label="Previous">&lsaquo;</button>
-              <input id="p2-rarity-rank" type="number" min="1" max="5000" value="1" inputmode="numeric" aria-label="Rank or NFT number" />
-              <button type="button" class="p2-rarity__step" data-step="1" aria-label="Next">&rsaquo;</button>
+            <div class="p2-rarity__stepper" data-mode="number">
+              <label class="p2-rarity__label" for="p2-rarity-number">NFT #</label>
+              <button type="button" class="p2-rarity__step" data-step="-1" aria-label="Previous NFT">&lsaquo;</button>
+              <input id="p2-rarity-number" type="number" min="0" max="4999" value="" inputmode="numeric" />
+              <button type="button" class="p2-rarity__step" data-step="1" aria-label="Next NFT">&rsaquo;</button>
             </div>
           </form>
         </div>
@@ -271,6 +274,6 @@
   <div class="p2-toast" id="p2-toast" role="status" aria-live="polite"></div>
 
   <script src="/js/preview2-nav.js?v=4"></script>
-  <script src="/js/preview2-tools.js?v=4"></script>
+  <script src="/js/preview2-tools.js?v=5"></script>
 </body>
 </html>
