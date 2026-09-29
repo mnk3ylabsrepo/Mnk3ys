@@ -173,18 +173,29 @@ body.p2 {
 @media (orientation: landscape) {
   .p2-page--blunana {
     justify-content: flex-start;
-    align-items: flex-end;
+    align-items: stretch;
     background-position: calc(50% + 20vw) center;
   }
 
   .p2-page--blunana .p2-center {
     align-items: flex-start;
     text-align: left;
-    margin: 0 0 8vh max(24px, 14vw);
+    margin: 6vh 0 8vh max(24px, 14vw);
   }
 
   .p2-page--blunana .p2-pills,
-  .p2-page--blunana .p2-chart-links { align-self: center; }
+  .p2-page--blunana .p2-chart-links {
+    align-self: center;
+    margin-top: auto;
+  }
+
+  .p2-page--blunana .p2-chart-links { order: 1; gap: 48px; }
+  .p2-page--blunana .p2-pills { order: 2; }
+
+  .p2-page--blunana .p2-chart-links img {
+    width: max(56px, calc(6.4 * var(--u)));
+    height: max(56px, calc(6.4 * var(--u)));
+  }
 }
 
 .p2-split {
