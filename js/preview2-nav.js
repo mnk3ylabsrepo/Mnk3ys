@@ -58,6 +58,21 @@
     toastTimer = setTimeout(function () { toast.classList.remove('is-shown'); }, 1800);
   }
 
+  var statEls = Array.prototype.slice.call(document.querySelectorAll('[data-stat]'));
+  if (statEls.length && window.fetch) {
+    fetch('/api/collection-stats')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) return;
+        statEls.forEach(function (el) {
+          var path = el.getAttribute('data-stat').split('.');
+          var value = data[path[0]] && data[path[0]][path[1]];
+          if (typeof value === 'number') el.textContent = value.toLocaleString('en-US');
+        });
+      })
+      .catch(function () {});
+  }
+
   document.addEventListener('click', function (e) {
     var copyBtn = e.target.closest('[data-copy]');
     if (copyBtn) {

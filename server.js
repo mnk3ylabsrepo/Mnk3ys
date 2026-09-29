@@ -966,6 +966,107 @@ function decodeTokenAccountOwnerAndAmount(dataBase64) {
   }
 }
 
+// Map of owner wallet -> NFT count for one collection (Helius DAS getAssetsByGroup, paginated)
+async function fetchCollectionOwnerCounts(groupValue, label) {
+  const owners = new Map();
+  let page = 1;
+  while (page <= 50) {
+    try {
+      const dasRes = await axios.post(
+        `${HELIUS_RPC}/?api-key=${HELIUS_API_KEY}`,
+        {
+          jsonrpc: '2.0',
+          id: '1',
+          method: 'getAssetsByGroup',
+          params: {
+            groupKey: 'collection',
+            groupValue,
+            page,
+            limit: 1000,
+            options: { showUnverifiedCollections: true },
+          },
+        },
+        { timeout: 15000, validateStatus: () => true }
+      );
+      const items = dasRes.data?.result?.items || [];
+      for (const item of items) {
+        const owner = item.ownership?.owner;
+        if (owner && !item.burnt) owners.set(owner, (owners.get(owner) || 0) + 1);
+      }
+      if (items.length < 1000) break;
+      page++;
+    } catch (e) {
+      console.warn('Holders NFT fetch failed for', label, e.message);
+      break;
+    }
+  }
+  return owners;
+}
+
+// ——— Collection stats for Preview 2: unique holders (Helius) + staked counts from each staking site ———
+const TTCC_STAKING_URL = 'https://new-ttcc-server-production.up.railway.app/getStakingProps';
+const TTCC_PROJECT_ID = 'IJRlvSCfMaGvu0VLYg0Q';
+const GOTM_ZMB3YS_STATS_URL = 'https://orbis-collection-data.support-0d3.workers.dev/89QfJ6BbhNNyHKZ9fa9W/staking-stats.json';
+const COLLECTION_STATS_TTL_MS = 10 * 60 * 1000;
+let collectionStatsCache = null;
+
+async function fetchMnk3ysStaking() {
+  const r = await axios.post(TTCC_STAKING_URL, { project: TTCC_PROJECT_ID, showHashlist: true, version: 2 }, { timeout: 15000 });
+  const props = JSON.parse(require('zlib').gunzipSync(Buffer.from(r.data.result, 'base64')).toString());
+  const col = (props.collections || []).find((c) => String(c.name).toUpperCase() === 'MNK3YS');
+  if (!col || col.staked == null) return null;
+  return { staked: col.staked, supply: Array.isArray(col.hashlist) ? col.hashlist.length : null };
+}
+
+async function fetchZmb3ysStaking() {
+  const r = await axios.get(GOTM_ZMB3YS_STATS_URL, { params: { t: Date.now() }, timeout: 15000 });
+  if (r.data?.totalStaked == null) return null;
+  return { staked: r.data.totalStaked, supply: r.data.supply ?? null };
+}
+
+async function buildCollectionStats() {
+  const holderCount = async (slug) => {
+    const mint = COLLECTIONS.find((c) => c.slug === slug)?.collectionMint;
+    if (!HELIUS_API_KEY || !mint) return { holders: null, supply: null };
+    const owners = await fetchCollectionOwnerCounts(mint, slug);
+    let supply = 0;
+    for (const n of owners.values()) supply += n;
+    return { holders: owners.size || null, supply: supply || null };
+  };
+  const [mH, zH, mS, zS] = await Promise.allSettled([
+    holderCount('mnk3ys'),
+    holderCount('zmb3ys'),
+    fetchMnk3ysStaking(),
+    fetchZmb3ysStaking(),
+  ]);
+  const combine = (h, s) => {
+    const hv = h.status === 'fulfilled' ? h.value : {};
+    const sv = s.status === 'fulfilled' && s.value ? s.value : {};
+    const supply = sv.supply || hv.supply || null;
+    const staked = sv.staked ?? null;
+    return {
+      holders: hv.holders ?? null,
+      staked,
+      supply,
+      stakedPct: staked != null && supply ? Math.round((staked / supply) * 100) : null,
+    };
+  };
+  return { mnk3ys: combine(mH, mS), zmb3ys: combine(zH, zS), updatedAt: new Date().toISOString() };
+}
+
+app.get('/api/collection-stats', async function (req, res) {
+  try {
+    if (!collectionStatsCache || Date.now() - collectionStatsCache.at > COLLECTION_STATS_TTL_MS) {
+      collectionStatsCache = { at: Date.now(), data: await buildCollectionStats() };
+    }
+    res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
+    res.json(collectionStatsCache.data);
+  } catch (e) {
+    console.warn('collection-stats failed', e.message);
+    res.status(500).json({ error: 'stats unavailable' });
+  }
+});
+
 app.get('/api/holders', async function (req, res) {
   const sortBy = (req.query.sort || 'total').toLowerCase();
   const validSort = ['total', 'token', 'mnk3ys', 'zmb3ys', 'blunanas', 'nfts'].includes(sortBy) ? sortBy : 'total';
@@ -1034,43 +1135,12 @@ app.get('/api/holders', async function (req, res) {
       const groupValue = col.slug === 'blunanas' && process.env.BLUNANANAS_TREE_ID
         ? process.env.BLUNANANAS_TREE_ID
         : col.collectionMint;
-      let page = 1;
-      let hasMore = true;
+      const ownerCounts = await fetchCollectionOwnerCounts(groupValue, col.slug);
       let totalFetched = 0;
-      while (hasMore) {
-        try {
-          const dasRes = await axios.post(
-            `${HELIUS_RPC}/?api-key=${HELIUS_API_KEY}`,
-            {
-              jsonrpc: '2.0',
-              id: '1',
-              method: 'getAssetsByGroup',
-              params: {
-                groupKey: 'collection',
-                groupValue,
-                page,
-                limit: 1000,
-                options: { showUnverifiedCollections: true },
-              },
-            },
-            { timeout: 15000, validateStatus: () => true }
-          );
-          const items = dasRes.data?.result?.items || [];
-          totalFetched += items.length;
-          for (const item of items) {
-            const owner = item.ownership?.owner;
-            if (owner) {
-              const h = getOrCreate(owner);
-              h[key] = (h[key] || 0) + 1;
-            }
-          }
-          hasMore = items.length === 1000;
-          page++;
-          if (page > 50) break;
-        } catch (e) {
-          console.warn('Holders NFT fetch failed for', col.slug, e.message);
-          hasMore = false;
-        }
+      for (const [owner, count] of ownerCounts) {
+        const h = getOrCreate(owner);
+        h[key] = (h[key] || 0) + count;
+        totalFetched += count;
       }
       // Blunanas cNFTs: if collection group returned 0, try groupKey 'tree'
       if (col.slug === 'blunanas' && totalFetched === 0 && col.collectionMint) {
