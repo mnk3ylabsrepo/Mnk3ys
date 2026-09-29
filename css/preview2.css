@@ -163,13 +163,14 @@ body.p2 {
 /* Collection pages: text column left of the art */
 /* Artwork always fully visible and pinned right; text column pinned far left */
 .p2-page--split {
+  --u: calc(min(1vw, 1.778vh) * 1.2);
   justify-content: flex-start;
   background-size: contain;
-  background-position: right center;
+  background-position: right 7vw center;
 }
 
 .p2-split {
-  margin-left: max(24px, 7vw);
+  margin-left: max(24px, 14vw);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
