@@ -242,16 +242,17 @@ body.p2 {
 
   .p2-page--art-right {
     justify-content: flex-start;
-    background-position: calc(50% + 22vw) center;
+    background-position: calc(50% + 19vw) center;
   }
+
+  .p2-page--art-right .p2-center { margin-left: 6vw; }
 
   .p2-page--art-left {
     justify-content: flex-end;
-    background-position: calc(50% - 22vw) center;
+    background-position: calc(50% - 19vw) center;
   }
 
-  .p2-page--utility { background-position: calc(50% + 19vw) center; }
-  .p2-page--utility .p2-center { margin-left: 6vw; }
+  .p2-page--art-left .p2-center { margin-right: 6vw; }
 
   .p2-page--blunana .p2-chart-links img {
     width: max(56px, calc(6.4 * var(--u)));
