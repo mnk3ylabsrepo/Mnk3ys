@@ -343,26 +343,21 @@ body.p2 {
   margin: 1.2em 0 1.4em;
 }
 
-/* ——— $BLUNANA: price beside the title, tool buttons beside the sub heading ——— */
+/* ——— $BLUNANA: price beside the title, tool buttons beside the sub heading, sharing a left edge ——— */
 .p2-headline {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: start;
   align-items: center;
-  gap: max(18px, calc(2.4 * var(--u)));
+  column-gap: max(28px, calc(4 * var(--u)));
+  row-gap: 0.6em;
 }
 
 .p2-headline__aside .p2-stats { margin: 0; }
 .p2-headline__aside .p2-live__status { margin-bottom: 0; }
+.p2-headline .p2-sub { margin: 0; }
 
-.p2-subline {
-  display: flex;
-  align-items: center;
-  gap: max(18px, calc(2.4 * var(--u)));
-  margin-top: 0.6em;
-}
-
-.p2-subline .p2-sub { margin: 0; }
-
-.p2-subline__tools {
+.p2-headline__tools {
   display: flex;
   gap: max(10px, calc(1.2 * var(--u)));
 }
@@ -987,9 +982,10 @@ body.p2 {
   .p2-socials .p2-tool { width: 34px; height: 34px; }
   .p2-live__status { justify-content: center; }
 
-  .p2-headline,
-  .p2-subline {
+  .p2-headline {
+    display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 0.6em;
   }
 
