@@ -203,8 +203,8 @@ body.p2 {
   /* LP: heading + copy top centre; below, padlock art left column, pool buttons right column */
   .p2-page--lp {
     align-items: stretch;
-    background-size: auto 92vh;
-    background-position: calc(50% - 17vw) calc(50% + 5vh);
+    background-size: auto 125vh;
+    background-position: calc(50% - 17vw) calc(50% - 7vh);
   }
 
   .p2-page--lp .p2-center { margin-top: 4vh; }
