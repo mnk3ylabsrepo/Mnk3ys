@@ -161,7 +161,12 @@ body.p2 {
 }
 
 /* Collection pages: text column left of the art */
-.p2-page--split { justify-content: flex-start; }
+.p2-page--split {
+  --u: 1vw;
+  justify-content: flex-start;
+  background-size: 100vw auto;
+  background-position: center top;
+}
 
 .p2-split {
   margin-left: calc((100vw - 100 * var(--u)) / 2 + 30 * var(--u));
