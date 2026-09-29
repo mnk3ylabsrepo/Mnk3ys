@@ -1067,6 +1067,119 @@ app.get('/api/collection-stats', async function (req, res) {
   }
 });
 
+// ——— Preview 2: MNK3YS-only holders (merged by Discord) and rarity checker ———
+const MNK3YS_HOLDERS_TTL_MS = 10 * 60 * 1000;
+let mnk3ysHoldersCache = null;
+let mnk3ysRarity = null;
+
+async function fetchMeFloorSol(slug) {
+  const r = await axios.get(`${ME_BASE}/collections/${slug}/stats`, { timeout: 8000, validateStatus: () => true });
+  const fp = r.status === 200 ? r.data?.floorPrice : null;
+  if (fp == null) return null;
+  return fp >= 1000 ? fp / LAMPORTS_PER_SOL : Number(fp);
+}
+
+async function buildMnk3ysHolders() {
+  const mint = COLLECTIONS.find((c) => c.slug === 'mnk3ys')?.collectionMint;
+  const [owners, floorSol] = await Promise.all([
+    fetchCollectionOwnerCounts(mint, 'mnk3ys'),
+    fetchMeFloorSol('mnk3ys').catch(() => null),
+  ]);
+  let walletToDiscord = new Map();
+  let discordNames = new Map();
+  if (db.getPool()) {
+    try {
+      walletToDiscord = await db.getAllWalletToDiscord();
+      discordNames = await db.getDiscordUsernames([...new Set(walletToDiscord.values())]);
+    } catch (e) {
+      console.warn('mnk3ys holders: Discord lookup failed', e.message);
+    }
+  }
+  const rows = new Map();
+  let supply = 0;
+  for (const [wallet, count] of owners) {
+    supply += count;
+    const discordId = walletToDiscord.get(wallet.toLowerCase()) || null;
+    const key = discordId || wallet;
+    let row = rows.get(key);
+    if (!row) {
+      row = { discordName: discordId ? discordNames.get(discordId) || null : null, wallet: discordId ? null : wallet, walletCount: 0, count: 0 };
+      rows.set(key, row);
+    }
+    row.count += count;
+    row.walletCount += 1;
+  }
+  const holders = [...rows.values()].sort((a, b) => b.count - a.count);
+  return { holders, supply, floorSol, updatedAt: new Date().toISOString() };
+}
+
+app.get('/api/mnk3ys/holders', async function (req, res) {
+  if (!HELIUS_API_KEY) return res.status(503).json({ error: 'Holders unavailable' });
+  try {
+    if (!mnk3ysHoldersCache || Date.now() - mnk3ysHoldersCache.at > MNK3YS_HOLDERS_TTL_MS) {
+      mnk3ysHoldersCache = { at: Date.now(), data: await buildMnk3ysHolders() };
+    }
+    res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
+    res.json(mnk3ysHoldersCache.data);
+  } catch (e) {
+    console.warn('mnk3ys holders failed', e.message);
+    res.status(500).json({ error: 'Holders unavailable' });
+  }
+});
+
+app.get('/api/mnk3ys/rarity', async function (req, res) {
+  if (!mnk3ysRarity) mnk3ysRarity = require('./lib/mnk3ys-rarity.json');
+  const rank = parseInt(req.query.rank, 10) || 1;
+  const mint = mnk3ysRarity.ranks[rank];
+  if (!mint) {
+    return res.status(404).json({ error: `No MNK3Y holds rank ${rank} — it may be burnt`, maxRank: 5000 });
+  }
+  try {
+    const [assetR, listingR] = await Promise.allSettled([
+      axios.post(
+        `${HELIUS_RPC}/?api-key=${HELIUS_API_KEY}`,
+        { jsonrpc: '2.0', id: '1', method: 'getAsset', params: { id: mint } },
+        { timeout: 12000, validateStatus: () => true }
+      ),
+      axios.get(`${ME_BASE}/tokens/${mint}/listings`, { timeout: 8000, validateStatus: () => true }),
+    ]);
+    const asset = assetR.status === 'fulfilled' ? assetR.value.data?.result : null;
+    const listings = listingR.status === 'fulfilled' && Array.isArray(listingR.value.data) ? listingR.value.data : [];
+    const listing = listings[0] || null;
+    const owner = listing?.seller || asset?.ownership?.owner || null;
+
+    let ownerDiscord = null;
+    if (owner && db.getPool()) {
+      try {
+        const discordId = await db.getDiscordByWallet(owner);
+        if (discordId) ownerDiscord = (await db.getDiscordUsernames([discordId])).get(discordId) || null;
+      } catch (e) {
+        console.warn('rarity: Discord lookup failed', e.message);
+      }
+    }
+
+    const attributes = (asset?.content?.metadata?.attributes || [])
+      .filter((t) => !/^rarity rank$/i.test(t.trait_type))
+      .map((t) => ({ type: t.trait_type, value: t.value, pct: mnk3ysRarity.traitPct[t.trait_type]?.[t.value] ?? null }));
+
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+    res.json({
+      rank,
+      supply: mnk3ysRarity.supply,
+      mint,
+      name: asset?.content?.metadata?.name || null,
+      image: asset?.content?.links?.image || null,
+      attributes,
+      owner,
+      ownerDiscord,
+      listing: listing ? { priceSol: listing.price, url: `https://magiceden.io/item-details/${mint}` } : null,
+    });
+  } catch (e) {
+    console.warn('rarity lookup failed', e.message);
+    res.status(500).json({ error: 'Lookup failed' });
+  }
+});
+
 app.get('/api/holders', async function (req, res) {
   const sortBy = (req.query.sort || 'total').toLowerCase();
   const validSort = ['total', 'token', 'mnk3ys', 'zmb3ys', 'blunanas', 'nfts'].includes(sortBy) ? sortBy : 'total';
