@@ -139,7 +139,7 @@ body.p2 {
 .p2-page--juicebags { background-image: url('/assets/preview2/juicebags-landscape.jpg'); }
 .p2-page--b3bs      { background-image: url('/assets/preview2/b3bs-landscape.jpg'); }
 .p2-page--mnk1sh    { background-image: url('/assets/preview2/mnk1sh-landscape.jpg'); }
-.p2-page--partners  { background-image: url('/assets/preview2/partners-landscape.jpg'); }
+.p2-page--partners  { background-image: none; }
 
 .p2-page__content {
   position: relative;
@@ -423,7 +423,7 @@ body.p2 {
 .p2-chart-links a:hover img { transform: scale(1.1); }
 .p2-chart-links a:hover span { color: var(--p2-green); }
 
-/* ——— Partners: logos + Solana are baked into the background ——— */
+/* ——— Partners: logos positioned in artwork units (--x/--y/--w landscape, --px/--py/--pw portrait) ——— */
 .p2-partners {
   position: absolute;
   inset: 0;
@@ -450,6 +450,41 @@ body.p2 {
   font-size: max(0.72rem, calc(1.25 * var(--u)));
   text-transform: uppercase;
   letter-spacing: -0.01em;
+}
+
+.p2-partners__title .p2-fade { animation: p2-letter-fade 3s ease-in-out infinite; }
+
+@keyframes p2-letter-fade {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.2; }
+}
+
+.p2-partner-logo {
+  position: absolute;
+  left: calc(50% + var(--x) * var(--u));
+  top: calc(50% + var(--y) * var(--u));
+  width: calc(var(--w) * var(--u));
+  height: auto;
+  translate: -50% -50%;
+  opacity: 0.8;
+  animation: p2-logo-pulse 10s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 2s);
+}
+
+.p2-partner-logo--solana {
+  opacity: 1;
+  animation: none;
+}
+
+/* Each logo's 2s pulse (1.5x the title fade) occupies one 20% slot of the 10s cycle */
+@keyframes p2-logo-pulse {
+  0%, 20%, 100% { opacity: 0.8; scale: 1; }
+  10%           { opacity: 1;   scale: 1.1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p2-partners__title .p2-fade,
+  .p2-partner-logo { animation: none; }
 }
 
 /* ——— Toast ——— */
@@ -521,7 +556,7 @@ body.p2 {
   .p2-page--juicebags { background-image: url('/assets/preview2/juicebags-portrait.jpg'); }
   .p2-page--b3bs      { background-image: url('/assets/preview2/b3bs-portrait.jpg'); }
   .p2-page--mnk1sh    { background-image: url('/assets/preview2/mnk1sh-portrait.jpg'); }
-  .p2-page--partners  { background-image: url('/assets/preview2/partners-portrait.jpg'); }
+  .p2-page--partners  { background-image: none; }
 
   .p2-page--home      { background-image: none; }
 
@@ -592,6 +627,14 @@ body.p2 {
   .p2-chart-links img { width: 38px; height: 38px; }
 
   .p2-partners__title { top: 20%; }
+
+  /* Portrait artwork was cover-sized: 1 unit = 1% of its rendered width */
+  .p2-partner-logo {
+    --pu: max(1vw, 0.5625vh);
+    left: calc(50% + var(--px) * var(--pu));
+    top: calc(50% + var(--py) * var(--pu));
+    width: calc(var(--pw) * var(--pu));
+  }
 
   .p2-partners__tagline {
     top: 66.5%;
