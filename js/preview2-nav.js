@@ -70,19 +70,47 @@
     toastTimer = setTimeout(function () { toast.classList.remove('is-shown'); }, 1800);
   }
 
-  var statEls = Array.prototype.slice.call(document.querySelectorAll('[data-stat]'));
-  if (statEls.length && window.fetch) {
-    fetch('/api/collection-stats')
+  var liveBlocks = Array.prototype.slice.call(document.querySelectorAll('[data-live]'));
+  var LIVE_POLL_MS = 60 * 1000;
+
+  function num(n) {
+    return typeof n === 'number' ? n.toLocaleString('en-US') : '—';
+  }
+
+  function renderLive(data) {
+    liveBlocks.forEach(function (block) {
+      var s = data && data[block.getAttribute('data-live')];
+      var ok = !!s && (s.holders != null || s.floorSol != null);
+      block.classList.toggle('is-offline', !ok);
+      block.querySelector('.p2-live__label').textContent = ok ? 'Live stats' : 'Stats offline';
+      if (!s) return;
+      var values = {
+        holders: num(s.holders),
+        staked: typeof s.stakedPct === 'number' ? s.stakedPct + '%' : '—',
+        floor: typeof s.floorSol === 'number' ? s.floorSol.toFixed(s.floorSol < 1 ? 3 : 2) + ' SOL' : '—',
+        listed: num(s.listed)
+      };
+      Object.keys(values).forEach(function (key) {
+        var el = block.querySelector('[data-live-stat="' + key + '"]');
+        if (el) el.textContent = values[key];
+      });
+      var stakedEl = block.querySelector('[data-live-stat="staked"]');
+      if (stakedEl && typeof s.staked === 'number') stakedEl.title = num(s.staked) + ' staked';
+    });
+  }
+
+  function pollLive() {
+    if (document.hidden) return;
+    fetch('/api/collection-live')
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (data) {
-        if (!data) return;
-        statEls.forEach(function (el) {
-          var path = el.getAttribute('data-stat').split('.');
-          var value = data[path[0]] && data[path[0]][path[1]];
-          if (typeof value === 'number') el.textContent = value.toLocaleString('en-US');
-        });
-      })
-      .catch(function () {});
+      .catch(function () { return null; })
+      .then(renderLive);
+  }
+
+  if (liveBlocks.length && window.fetch) {
+    pollLive();
+    setInterval(pollLive, LIVE_POLL_MS);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) pollLive(); });
   }
 
   document.addEventListener('click', function (e) {

@@ -1054,15 +1054,74 @@ async function buildCollectionStats() {
   return { mnk3ys: combine(mH, mS), zmb3ys: combine(zH, zS), updatedAt: new Date().toISOString() };
 }
 
+async function getCollectionStats() {
+  if (!collectionStatsCache || Date.now() - collectionStatsCache.at > COLLECTION_STATS_TTL_MS) {
+    collectionStatsCache = { at: Date.now(), data: await buildCollectionStats() };
+  }
+  return collectionStatsCache.data;
+}
+
 app.get('/api/collection-stats', async function (req, res) {
   try {
-    if (!collectionStatsCache || Date.now() - collectionStatsCache.at > COLLECTION_STATS_TTL_MS) {
-      collectionStatsCache = { at: Date.now(), data: await buildCollectionStats() };
-    }
+    const data = await getCollectionStats();
     res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
-    res.json(collectionStatsCache.data);
+    res.json(data);
   } catch (e) {
     console.warn('collection-stats failed', e.message);
+    res.status(500).json({ error: 'stats unavailable' });
+  }
+});
+
+// ——— Preview 2: live collection stats (holders refresh every 10 min; staked, floor and listings every minute) ———
+const COLLECTION_LIVE_TTL_MS = 60 * 1000;
+let collectionLiveCache = null;
+
+async function fetchMeCollectionStats(slug) {
+  const r = await axios.get(`${ME_BASE}/collections/${slug}/stats`, { timeout: 8000, validateStatus: () => true });
+  if (r.status !== 200 || !r.data) return {};
+  const fp = r.data.floorPrice;
+  return {
+    floorSol: fp == null ? null : fp >= 1000 ? fp / LAMPORTS_PER_SOL : Number(fp),
+    listed: r.data.listedCount ?? null,
+  };
+}
+
+async function buildCollectionLive() {
+  const [base, mS, zS, mMe, zMe] = await Promise.allSettled([
+    getCollectionStats(),
+    fetchMnk3ysStaking(),
+    fetchZmb3ysStaking(),
+    fetchMeCollectionStats('mnk3ys'),
+    fetchMeCollectionStats('zmb3ys'),
+  ]);
+  const value = (p) => (p.status === 'fulfilled' && p.value ? p.value : {});
+  const combine = (slug, s, me) => {
+    const b = value(base)[slug] || {};
+    const sv = value(s);
+    const mv = value(me);
+    const supply = sv.supply || b.supply || null;
+    const staked = sv.staked ?? b.staked ?? null;
+    return {
+      holders: b.holders ?? null,
+      staked,
+      supply,
+      stakedPct: staked != null && supply ? Math.round((staked / supply) * 100) : null,
+      floorSol: mv.floorSol ?? null,
+      listed: mv.listed ?? null,
+    };
+  };
+  return { mnk3ys: combine('mnk3ys', mS, mMe), zmb3ys: combine('zmb3ys', zS, zMe), updatedAt: new Date().toISOString() };
+}
+
+app.get('/api/collection-live', async function (req, res) {
+  try {
+    if (!collectionLiveCache || Date.now() - collectionLiveCache.at > COLLECTION_LIVE_TTL_MS) {
+      collectionLiveCache = { at: Date.now(), data: await buildCollectionLive() };
+    }
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=600');
+    res.json(collectionLiveCache.data);
+  } catch (e) {
+    console.warn('collection-live failed', e.message);
     res.status(500).json({ error: 'stats unavailable' });
   }
 });

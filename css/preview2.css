@@ -338,8 +338,77 @@ body.p2 {
 /* ——— Buttons ——— */
 .p2-socials {
   display: flex;
+  align-items: center;
   gap: max(24px, calc(4 * var(--u)));
   margin: 1.2em 0 1.4em;
+}
+
+.p2-split .p2-socials { margin: 1em 0 1.1em; }
+
+/* ——— Live collection stats ——— */
+.p2-live {
+  font-family: var(--p2-mono);
+  text-transform: uppercase;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+}
+
+.p2-live__grid {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  justify-content: start;
+  gap: 0.35em max(28px, calc(3.4 * var(--u)));
+  margin: 0;
+}
+
+.p2-live__grid div { display: flex; flex-direction: column; }
+
+.p2-live__grid dt {
+  color: var(--p2-grey);
+  font-size: max(0.62rem, calc(0.95 * var(--u)));
+  letter-spacing: 0.06em;
+}
+
+.p2-live__grid dd {
+  margin: 0;
+  font-family: var(--p2-display);
+  font-weight: 700;
+  font-size: max(1.05rem, calc(1.75 * var(--u)));
+  line-height: 1.05;
+  color: #fff;
+}
+
+.p2-live__status {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  margin: 0.7em 0 0;
+  color: var(--p2-grey);
+  font-size: max(0.6rem, calc(0.85 * var(--u)));
+  letter-spacing: 0.08em;
+}
+
+.p2-live__dot {
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: 50%;
+  background: #ff3b3b;
+  box-shadow: 0 0 8px rgba(255, 59, 59, 0.8);
+  animation: p2-live-pulse 1.6s ease-in-out infinite;
+}
+
+.p2-live.is-offline .p2-live__dot {
+  background: #666;
+  box-shadow: none;
+  animation: none;
+}
+
+@keyframes p2-live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.8); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p2-live__dot { animation: none; }
 }
 
 .p2-socials a {
@@ -518,12 +587,6 @@ body.p2 {
 }
 
 /* ——— Collection tools: icon buttons + modals ——— */
-.p2-tools {
-  display: flex;
-  gap: max(10px, calc(1.2 * var(--u-pill)));
-  margin: 0 0 0.2em;
-}
-
 .p2-tool {
   display: grid;
   place-items: center;
@@ -900,8 +963,11 @@ body.p2 {
 
   .p2-tagline { font-size: clamp(0.9rem, 4.2vw, 1.3rem); }
 
-  .p2-socials { margin: 0.9em 0 0.6em; }
+  .p2-socials,
+  .p2-split .p2-socials { margin: 0.9em 0 0.6em; }
   .p2-socials a { width: 34px; height: 34px; }
+  .p2-live__grid { justify-content: center; }
+  .p2-live__status { justify-content: center; }
 
   .p2-pills {
     gap: 10px;
