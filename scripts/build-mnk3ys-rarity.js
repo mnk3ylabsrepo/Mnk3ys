@@ -31,9 +31,12 @@ const RANK_TRAIT = /^rarity rank$/i;
 
   const live = assets.filter((a) => !a.burnt);
   const ranks = {};
+  const numbers = {};
   const oneOfOnes = [];
   const counts = {};
   for (const a of live) {
+    const num = /#(\d+)/.exec(a.content?.metadata?.name || '');
+    if (num) numbers[num[1]] = a.id;
     for (const t of a.content?.metadata?.attributes || []) {
       if (RANK_TRAIT.test(t.trait_type)) {
         if (/^\d+$/.test(String(t.value))) ranks[t.value] = a.id;
@@ -50,9 +53,9 @@ const RANK_TRAIT = /^rarity rank$/i;
     for (const [value, n] of Object.entries(byValue)) traitPct[type][value] = Math.round((n / live.length) * 10000) / 100;
   }
 
-  const out = { builtAt: new Date().toISOString(), supply: live.length, ranks, oneOfOnes, traitPct };
+  const out = { builtAt: new Date().toISOString(), supply: live.length, ranks, numbers, oneOfOnes, traitPct };
   fs.writeFileSync(OUT, JSON.stringify(out));
-  console.log('Wrote', OUT, '—', Object.keys(ranks).length, 'ranked,', oneOfOnes.length, '1/1s,', live.length, 'live');
+  console.log('Wrote', OUT, '—', Object.keys(ranks).length, 'ranked,', Object.keys(numbers).length, 'numbered,', oneOfOnes.length, '1/1s,', live.length, 'live');
 })().catch((e) => {
   console.error(e.message);
   process.exit(1);

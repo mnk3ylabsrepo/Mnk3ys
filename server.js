@@ -1128,12 +1128,22 @@ app.get('/api/mnk3ys-holders', async function (req, res) {
 });
 
 app.get('/api/mnk3ys-rarity', async function (req, res) {
-  if (!mnk3ysRarity) mnk3ysRarity = require('./lib/mnk3ys-rarity.json');
-  const rank = parseInt(req.query.rank, 10) || 1;
-  const mint = mnk3ysRarity.ranks[rank];
-  if (!mint) {
-    return res.status(404).json({ error: `No MNK3Y holds rank ${rank} — it may be burnt`, maxRank: 5000 });
+  if (!mnk3ysRarity) {
+    mnk3ysRarity = require('./lib/mnk3ys-rarity.json');
+    mnk3ysRarity.rankByMint = {};
+    for (const [r, m] of Object.entries(mnk3ysRarity.ranks)) mnk3ysRarity.rankByMint[m] = Number(r);
   }
+  let mint;
+  if (req.query.number != null) {
+    const number = parseInt(req.query.number, 10);
+    mint = mnk3ysRarity.numbers[number];
+    if (!mint) return res.status(404).json({ error: `MNK3Y #${number} not found — it may be burnt` });
+  } else {
+    const r = parseInt(req.query.rank, 10) || 1;
+    mint = mnk3ysRarity.ranks[r];
+    if (!mint) return res.status(404).json({ error: `No MNK3Y holds rank ${r} — it may be burnt` });
+  }
+  const rank = mnk3ysRarity.rankByMint[mint] || null;
   try {
     const [assetR, listingR] = await Promise.allSettled([
       axios.post(

@@ -93,15 +93,27 @@
   var rankInput = document.getElementById('p2-rarity-rank');
   var result = document.getElementById('p2-rarity-result');
   var rarityForm = document.getElementById('p2-rarity-form');
+  var modeButtons = Array.prototype.slice.call(rarityForm.querySelectorAll('[data-mode]'));
+  var LIMITS = { rank: [1, 5000], number: [0, 4999] };
+  var mode = 'rank';
   var lookupSeq = 0;
   var debounce;
 
+  function setMode(next) {
+    mode = next;
+    modeButtons.forEach(function (b) { b.setAttribute('aria-checked', b.getAttribute('data-mode') === mode ? 'true' : 'false'); });
+    rankInput.min = LIMITS[mode][0];
+    rankInput.max = LIMITS[mode][1];
+  }
+
   function lookup() {
-    var rank = Math.min(5000, Math.max(1, parseInt(rankInput.value, 10) || 1));
-    rankInput.value = rank;
+    var lim = LIMITS[mode];
+    var n = parseInt(rankInput.value, 10);
+    n = Math.min(lim[1], Math.max(lim[0], isNaN(n) ? lim[0] : n));
+    rankInput.value = n;
     var seq = ++lookupSeq;
-    result.innerHTML = '<p class="p2-muted">Loading rank ' + rank + '…</p>';
-    getJson('/api/mnk3ys-rarity?rank=' + rank)
+    result.innerHTML = '<p class="p2-muted">Loading ' + (mode === 'rank' ? 'rank ' : 'MNK3Y #') + n + '…</p>';
+    getJson('/api/mnk3ys-rarity?' + mode + '=' + n)
       .then(function (d) {
         if (seq !== lookupSeq) return;
         var owner = d.ownerDiscord
@@ -118,7 +130,7 @@
             (d.image ? '<img class="p2-rarity__img" src="' + esc(d.image) + '" alt="' + esc(d.name) + '" />' : '') +
             '<div class="p2-rarity__info">' +
               '<p class="p2-rarity__name">' + esc(d.name || 'MNK3Y') + '</p>' +
-              '<p class="p2-rarity__rank">Rank <span class="g">#' + d.rank + '</span> of ' + fmt(d.supply, 0) + '</p>' +
+              '<p class="p2-rarity__rank">' + (d.rank ? 'Rank <span class="g">#' + d.rank + '</span> of ' + fmt(d.supply, 0) : 'Unranked') + '</p>' +
               '<dl class="p2-rarity__facts"><dt>Owner</dt><dd>' + owner + '</dd><dt>Status</dt><dd>' + listing + '</dd></dl>' +
               '<ul class="p2-traits">' + traits + '</ul>' +
             '</div>' +
@@ -148,9 +160,17 @@
   });
 
   rarityForm.addEventListener('click', function (e) {
+    var modeBtn = e.target.closest('[data-mode]');
+    if (modeBtn) {
+      if (modeBtn.getAttribute('data-mode') === mode) return;
+      setMode(modeBtn.getAttribute('data-mode'));
+      rankInput.select();
+      lookup();
+      return;
+    }
     var step = e.target.closest('[data-step]');
     if (!step) return;
-    rankInput.value = (parseInt(rankInput.value, 10) || 1) + parseInt(step.getAttribute('data-step'), 10);
+    rankInput.value = (parseInt(rankInput.value, 10) || 0) + parseInt(step.getAttribute('data-step'), 10);
     lookup();
   });
 })();
