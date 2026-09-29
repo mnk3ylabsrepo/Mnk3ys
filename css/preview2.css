@@ -203,22 +203,18 @@ body.p2 {
   /* LP: heading + copy top centre; below, padlock art left column, pool buttons right column */
   .p2-page--lp {
     align-items: stretch;
-    background-size: auto 62vh;
-    background-position: calc(50% - 20vw) calc(50% + 12vh);
+    background-size: auto 92vh;
+    background-position: calc(50% - 17vw) calc(50% + 5vh);
   }
 
-  .p2-page--lp .p2-center {
-    width: 100%;
-    margin-top: 4vh;
-  }
+  .p2-page--lp .p2-center { margin-top: 4vh; }
 
   .p2-page--lp .p2-title { order: -1; }
   .p2-page--lp .p2-desc { margin: 0.8em 0 0; }
 
   .p2-page--lp .p2-pills {
     margin: auto 0;
-    position: relative;
-    left: 20vw;
+    align-self: flex-end;
   }
 
   .p2-page--blunana .p2-chart-links img {
