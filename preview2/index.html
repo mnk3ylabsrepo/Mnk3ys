@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/preview2.css?v=42" />
+  <link rel="stylesheet" href="/css/preview2.css?v=43" />
 </head>
 <body class="p2">
   <header class="p2-nav" id="p2-nav">
@@ -118,8 +118,20 @@
 
     <section class="p2-page p2-page--blunana" id="blunana">
       <div class="p2-page__content p2-center">
+        <div class="p2-live" data-live-price>
+          <p class="p2-stats"><span class="g" data-price="usd">$0.00001988</span> USDC<br /><span data-price="sol">0.0000001667</span> SOL</p>
+          <p class="p2-live__status"><span class="p2-live__dot" aria-hidden="true"></span><span class="p2-live__label">Live price</span></p>
+        </div>
         <h2 class="p2-title" style="--chars:8"><span class="g">$</span>BLUNANA</h2>
         <p class="p2-sub">The liquidity engine powering the MNK3Y<span class="g">TRIBE</span></p>
+        <div class="p2-socials">
+          <button type="button" class="p2-tool" data-modal="p2-holders" data-collection="blunana" aria-label="$BLUNANA holders" title="Holders">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </button>
+          <button type="button" class="p2-tool" data-modal="p2-chart" aria-label="$BLUNANA price chart" title="Price chart">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-6"/></svg>
+          </button>
+        </div>
         <div class="p2-pills">
           <button type="button" class="p2-pill" data-copy="C9vfeaCLhJy7sykgKnfzi6RikawQNoGtRKwsaupKavmV">Copy CA</button>
           <a class="p2-pill" href="https://vaults.mobcollective.io/mob_collective/vaults/03824440e89ae080f53e9e4eb6e60d2b" target="_blank" rel="noopener">Stake</a>
@@ -244,10 +256,22 @@
     <div class="p2-modal__body">
       <table class="p2-table">
         <thead>
-          <tr><th>#</th><th>Holder</th><th class="num">NFTs</th><th class="num">SOL</th><th class="num">USDC</th></tr>
+          <tr><th>#</th><th>Holder</th><th class="num" id="p2-holders-unit">NFTs</th><th class="num">SOL</th><th class="num">USDC</th></tr>
         </thead>
         <tbody id="p2-holders-rows"></tbody>
       </table>
+    </div>
+  </dialog>
+
+  <dialog class="p2-modal p2-modal--chart" id="p2-chart" aria-labelledby="p2-chart-title">
+    <div class="p2-modal__head">
+      <h3 class="p2-modal__title" id="p2-chart-title"><span class="g">$</span>BLUNANA <span class="g">chart</span></h3>
+      <button type="button" class="p2-modal__close" data-close aria-label="Close">&times;</button>
+    </div>
+    <p class="p2-modal__meta" id="p2-chart-meta">Loading…</p>
+    <div class="p2-modal__body">
+      <div class="p2-chart" id="p2-chart-canvas"></div>
+      <p class="p2-chart__note" id="p2-chart-note"></p>
     </div>
   </dialog>
 
@@ -283,7 +307,7 @@
 
   <div class="p2-toast" id="p2-toast" role="status" aria-live="polite"></div>
 
-  <script src="/js/preview2-nav.js?v=5"></script>
-  <script src="/js/preview2-tools.js?v=6"></script>
+  <script src="/js/preview2-nav.js?v=6"></script>
+  <script src="/js/preview2-tools.js?v=7"></script>
 </body>
 </html>

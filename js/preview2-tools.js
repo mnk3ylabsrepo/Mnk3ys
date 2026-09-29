@@ -1,5 +1,5 @@
 /**
- * Preview 2: collection tool modals — holders table and rarity checker for MNK3YS and ZMB3YS.
+ * Preview 2: tool modals — holders tables (MNK3YS, ZMB3YS, $BLUNANA), rarity checker and $BLUNANA price chart.
  */
 (function () {
   'use strict';
@@ -8,8 +8,12 @@
 
   var COLLECTIONS = {
     mnk3ys: { nameHtml: 'MNK<span class="g">3</span>YS', item: 'MNK3Y', limits: { rank: [1, 5000], number: [0, 4999] } },
-    zmb3ys: { nameHtml: 'ZMB<span class="g">3</span>YS', item: 'ZMB3Y', limits: { rank: [1, 5550], number: [0, 5554] } }
+    zmb3ys: { nameHtml: 'ZMB<span class="g">3</span>YS', item: 'ZMB3Y', limits: { rank: [1, 5550], number: [0, 5554] } },
+    blunana: { nameHtml: '<span class="g">$</span>BLUNANA', unit: '$BLUNANA', token: true }
   };
+
+  var DEXTOOLS_URL = 'https://www.dextools.io/app/solana/pair-explorer/xf1K6QsfF7YWKo4hvMVQwn3t8U9yafnsFP3yByw7UJc';
+  var CHART_LIB_URL = 'https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js';
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -27,6 +31,21 @@
 
   function fmt(n, digits) {
     return n == null || isNaN(n) ? '—' : n.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  }
+
+  function compact(n) {
+    if (n == null || isNaN(n)) return '—';
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+    return fmt(n, 0);
+  }
+
+  // Tiny token prices: keep 4 significant digits without exponent notation
+  function tokenPrice(n) {
+    if (typeof n !== 'number' || !isFinite(n) || n <= 0) return '—';
+    if (n >= 1) return n.toFixed(2);
+    return n.toFixed(Math.min(14, 3 - Math.floor(Math.log10(n))));
   }
 
   function getJson(url) {
@@ -75,6 +94,7 @@
     if (slug !== holdersSlug) {
       holdersSlug = slug;
       document.getElementById('p2-holders-name').innerHTML = COLLECTIONS[slug].nameHtml;
+      document.getElementById('p2-holders-unit').textContent = COLLECTIONS[slug].unit || 'NFTs';
       meta.textContent = 'Loading…';
       tbody.innerHTML = '';
     }
@@ -84,16 +104,19 @@
         if (slug !== holdersSlug) return;
         var data = res[0];
         var usd = res[1];
-        var floor = data.floorSol;
-        meta.innerHTML = fmt(data.holders.length, 0) + ' holders &middot; floor ' + (floor != null ? fmt(floor, 3) + ' SOL' : '—');
+        var token = COLLECTIONS[slug].token;
+        var unitSol = token ? data.priceSol : data.floorSol;
+        meta.innerHTML = fmt(data.holders.length, 0) + ' holders &middot; ' + (token
+          ? 'price ' + (data.priceUsd != null ? '$' + tokenPrice(data.priceUsd) : '—')
+          : 'floor ' + (unitSol != null ? fmt(unitSol, 3) + ' SOL' : '—'));
         tbody.innerHTML = data.holders.map(function (h, i) {
           var who;
           if (h.discordName) who = '<span class="p2-discord">' + esc(h.discordName) + '</span>' + (h.walletCount > 1 ? ' <span class="p2-muted">(' + h.walletCount + ' wallets)</span>' : '');
           else if (h.wallet === MAGIC_EDEN_WALLET) who = '<span class="p2-muted">Magic Eden</span>';
           else who = walletLink(h.wallet);
-          var sol = floor != null ? h.count * floor : null;
-          var usdc = sol != null && usd ? sol * usd : null;
-          return '<tr><td>' + (i + 1) + '</td><td>' + who + '</td><td class="num">' + h.count + '</td><td class="num">' + fmt(sol, 2) + '</td><td class="num">' + (usdc != null ? '$' + fmt(usdc, 0) : '—') + '</td></tr>';
+          var sol = unitSol != null ? h.count * unitSol : null;
+          var usdc = token && data.priceUsd != null ? h.count * data.priceUsd : sol != null && usd ? sol * usd : null;
+          return '<tr><td>' + (i + 1) + '</td><td>' + who + '</td><td class="num">' + (token ? compact(h.count) : h.count) + '</td><td class="num">' + fmt(sol, 2) + '</td><td class="num">' + (usdc != null ? '$' + fmt(usdc, 0) : '—') + '</td></tr>';
         }).join('');
       })
       .catch(function (err) {
@@ -194,4 +217,93 @@
     input.value = (isNaN(current) ? COLLECTIONS[raritySlug].limits[m][0] : current) + parseInt(step.getAttribute('data-step'), 10);
     lookup(m);
   });
+
+  // ——— $BLUNANA price chart ———
+  var chartLibPromise;
+  function loadChartLib() {
+    if (window.LightweightCharts) return Promise.resolve(window.LightweightCharts);
+    if (!chartLibPromise) {
+      chartLibPromise = new Promise(function (resolve, reject) {
+        var s = document.createElement('script');
+        s.src = CHART_LIB_URL;
+        s.onload = function () { resolve(window.LightweightCharts); };
+        s.onerror = function () { chartLibPromise = null; reject(new Error('Chart library failed to load')); };
+        document.head.appendChild(s);
+      });
+    }
+    return chartLibPromise;
+  }
+
+  // Price axis for sub-penny values (library defaults would show 0.00)
+  function chartPriceFormat(v) {
+    var a = Math.abs(v);
+    if (a >= 1) return v.toFixed(4);
+    if (a >= 1e-12) return v.toFixed(Math.min(14, Math.max(6, 2 - Math.floor(Math.log10(a)))));
+    return v.toExponential(4);
+  }
+
+  function chartNote(source) {
+    var what = source === 'birdeye'
+      ? '15-minute candles for the last 7 days, via Birdeye.'
+      : '15-minute candles from the main $BLUNANA pool only (via GeckoTerminal), up to the last 500 candles (about 5 days). Trades in other pools aren\'t included and quiet periods with no trades show as gaps.';
+    return 'Preview chart: ' + what + ' Data can lag a few minutes. For full history, other timeframes and indicators, ' +
+      '<a href="' + DEXTOOLS_URL + '" target="_blank" rel="noopener">open the full chart on DEXTools &rarr;</a>';
+  }
+
+  var chartLoaded = false;
+  loaders['p2-chart'] = function () {
+    if (chartLoaded) return;
+    chartLoaded = true;
+    var canvas = document.getElementById('p2-chart-canvas');
+    var meta = document.getElementById('p2-chart-meta');
+    var note = document.getElementById('p2-chart-note');
+    canvas.innerHTML = '';
+    Promise.all([getJson('/api/blunana-ohlc?type=15m'), getJson('/api/prices').catch(function () { return null; }), loadChartLib()])
+      .then(function (res) {
+        var data = res[0];
+        var p = res[1];
+        var items = data && data.data && data.data.items ? data.data.items : [];
+        note.innerHTML = chartNote(data.source);
+        if (p && p.blunanaUsd != null) {
+          var change = typeof p.priceChange24h === 'number'
+            ? ' <span class="' + (p.priceChange24h >= 0 ? 'g' : 'p2-neg') + '">' + (p.priceChange24h >= 0 ? '+' : '') + p.priceChange24h.toFixed(2) + '% 24h</span>'
+            : '';
+          meta.innerHTML = '$' + tokenPrice(p.blunanaUsd) + ' &middot; ' + tokenPrice(p.blunanaPerSol) + ' SOL' + change;
+        } else {
+          meta.textContent = '';
+        }
+        if (!items.length) throw new Error(data.message || 'No chart data right now');
+        var candles = items.map(function (c) {
+          return { time: c.unix_time, open: c.o, high: c.h, low: c.l, close: c.c };
+        }).sort(function (a, b) { return a.time - b.time; });
+        var chart = res[2].createChart(canvas, {
+          width: canvas.clientWidth,
+          height: canvas.clientHeight,
+          layout: { background: { color: 'transparent' }, textColor: '#9a9a9a', fontFamily: 'inherit' },
+          grid: { vertLines: { color: 'rgba(255,255,255,0.06)' }, horzLines: { color: 'rgba(255,255,255,0.06)' } },
+          timeScale: { borderColor: 'rgba(34,245,58,0.35)', timeVisible: true, secondsVisible: false },
+          rightPriceScale: { borderColor: 'rgba(34,245,58,0.35)', scaleMargins: { top: 0.1, bottom: 0.15 } }
+        });
+        var series = chart.addCandlestickSeries({
+          priceFormat: { type: 'custom', minMove: 1e-15, formatter: chartPriceFormat },
+          upColor: '#22f53a',
+          downColor: '#f87171',
+          borderUpColor: '#22f53a',
+          borderDownColor: '#f87171',
+          wickUpColor: '#22f53a',
+          wickDownColor: '#f87171'
+        });
+        series.setData(candles);
+        chart.timeScale().fitContent();
+        if (window.ResizeObserver) {
+          new ResizeObserver(function () {
+            chart.applyOptions({ width: canvas.clientWidth, height: canvas.clientHeight });
+          }).observe(canvas);
+        }
+      })
+      .catch(function (err) {
+        chartLoaded = false;
+        canvas.innerHTML = '<p class="p2-muted p2-chart__empty">' + esc(err.message || 'Chart unavailable') + '</p>';
+      });
+  };
 })();

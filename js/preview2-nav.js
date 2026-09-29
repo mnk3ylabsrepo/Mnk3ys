@@ -99,15 +99,43 @@
     });
   }
 
-  function pollLive() {
-    if (document.hidden) return;
-    fetch('/api/collection-live')
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .catch(function () { return null; })
-      .then(renderLive);
+  var priceBlocks = Array.prototype.slice.call(document.querySelectorAll('[data-live-price]'));
+
+  // Tiny token prices: keep 4 significant digits without exponent notation
+  function tokenPrice(n) {
+    if (typeof n !== 'number' || !isFinite(n) || n <= 0) return '—';
+    if (n >= 1) return n.toFixed(2);
+    return n.toFixed(Math.min(14, 3 - Math.floor(Math.log10(n))));
   }
 
-  if (liveBlocks.length && window.fetch) {
+  function renderPrices(p) {
+    priceBlocks.forEach(function (block) {
+      var ok = !!p && typeof p.blunanaUsd === 'number';
+      block.classList.toggle('is-offline', !ok);
+      block.querySelector('.p2-live__label').textContent = ok ? 'Live price' : 'Price offline';
+      if (!ok) return;
+      block.querySelector('[data-price="usd"]').textContent = '$' + tokenPrice(p.blunanaUsd);
+      block.querySelector('[data-price="sol"]').textContent = tokenPrice(p.blunanaPerSol);
+    });
+  }
+
+  function pollLive() {
+    if (document.hidden) return;
+    if (liveBlocks.length) {
+      fetch('/api/collection-live')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; })
+        .then(renderLive);
+    }
+    if (priceBlocks.length) {
+      fetch('/api/prices')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; })
+        .then(renderPrices);
+    }
+  }
+
+  if ((liveBlocks.length || priceBlocks.length) && window.fetch) {
     pollLive();
     setInterval(pollLive, LIVE_POLL_MS);
     document.addEventListener('visibilitychange', function () { if (!document.hidden) pollLive(); });

@@ -397,9 +397,13 @@ function parseJupiterPrices(data) {
 }
 
 app.get('/api/prices', async function (req, res) {
+  res.json(await getPrices());
+});
+
+async function getPrices() {
   const now = Date.now();
   if (pricesCache.data && now - pricesCache.ts < PRICES_CACHE_MS) {
-    return res.json(pricesCache.data);
+    return pricesCache.data;
   }
   const out = { solUsd: null, blunanaUsd: null, blunanaPerSol: null };
   const ids = [SOL_MINT, BLUNANA_TOKEN_MINT].join(',');
@@ -474,8 +478,8 @@ app.get('/api/prices', async function (req, res) {
     console.warn('DexScreener enrichment failed', e.message);
   }
   pricesCache = { data: out, ts: now };
-  res.json(out);
-});
+  return out;
+}
 
 // ——— OHLC chart: Birdeye (optional key) → GeckoTerminal pool candles (no key) ———
 const BIRDEYE_API_KEY = process.env.BIRDEYE_API_KEY;
@@ -576,7 +580,7 @@ app.get('/api/blunana-ohlc', async function (req, res) {
         }
       );
       if (r.status === 200 && r.data?.data?.items && r.data.data.items.length > 0) {
-        const payload = { success: true, data: { items: r.data.data.items }, message: '' };
+        const payload = { success: true, source: 'birdeye', data: { items: r.data.data.items }, message: '' };
         ohlcCache = { data: payload, ts: Date.now(), type: cacheKey };
         return res.json(payload);
       }
@@ -604,7 +608,7 @@ app.get('/api/blunana-ohlc', async function (req, res) {
         message: 'GeckoTerminal returned no candles for this pool.',
       });
     }
-    const payload = { success: true, data: { items }, message: '' };
+    const payload = { success: true, source: 'geckoterminal', data: { items }, message: '' };
     ohlcCache = { data: payload, ts: Date.now(), type: cacheKey };
     res.json(payload);
   } catch (e) {
@@ -1139,12 +1143,8 @@ async function fetchMeFloorSol(slug) {
   return fp >= 1000 ? fp / LAMPORTS_PER_SOL : Number(fp);
 }
 
-async function buildCollectionHolders(slug) {
-  const mint = COLLECTIONS.find((c) => c.slug === slug)?.collectionMint;
-  const [owners, floorSol] = await Promise.all([
-    fetchCollectionOwnerCounts(mint, slug),
-    fetchMeFloorSol(slug).catch(() => null),
-  ]);
+/** Merges wallet → amount into one row per linked Discord account (unlinked wallets stay separate), largest first. */
+async function mergeHoldersByDiscord(owners, label) {
   let walletToDiscord = new Map();
   let discordNames = new Map();
   if (db.getPool()) {
@@ -1152,13 +1152,13 @@ async function buildCollectionHolders(slug) {
       walletToDiscord = await db.getAllWalletToDiscord();
       discordNames = await db.getDiscordUsernames([...new Set(walletToDiscord.values())]);
     } catch (e) {
-      console.warn(`${slug} holders: Discord lookup failed`, e.message);
+      console.warn(`${label} holders: Discord lookup failed`, e.message);
     }
   }
   const rows = new Map();
-  let supply = 0;
+  let total = 0;
   for (const [wallet, count] of owners) {
-    supply += count;
+    total += count;
     const discordId = walletToDiscord.get(wallet.toLowerCase()) || null;
     const key = discordId || wallet;
     let row = rows.get(key);
@@ -1169,16 +1169,78 @@ async function buildCollectionHolders(slug) {
     row.count += count;
     row.walletCount += 1;
   }
-  const holders = [...rows.values()].sort((a, b) => b.count - a.count);
-  return { holders, supply, floorSol, updatedAt: new Date().toISOString() };
+  return { holders: [...rows.values()].sort((a, b) => b.count - a.count), total };
 }
+
+async function buildCollectionHolders(slug) {
+  const mint = COLLECTIONS.find((c) => c.slug === slug)?.collectionMint;
+  const [owners, floorSol] = await Promise.all([
+    fetchCollectionOwnerCounts(mint, slug),
+    fetchMeFloorSol(slug).catch(() => null),
+  ]);
+  const { holders, total } = await mergeHoldersByDiscord(owners, slug);
+  return { holders, supply: total, floorSol, updatedAt: new Date().toISOString() };
+}
+
+/** Blunana balance per owner wallet, from every SPL token account for the mint. */
+async function fetchBlunanaTokenBalances() {
+  const gpaRes = await axios.post(
+    `${HELIUS_RPC}/?api-key=${HELIUS_API_KEY}`,
+    {
+      jsonrpc: '2.0',
+      id: '1',
+      method: 'getProgramAccounts',
+      params: [
+        TOKEN_PROGRAM_ID,
+        {
+          encoding: 'base64',
+          commitment: 'confirmed',
+          filters: [
+            { dataSize: 165 },
+            { memcmp: { offset: 0, bytes: BLUNANA_TOKEN_MINT } },
+          ],
+          dataSlice: { offset: 32, length: 40 },
+        },
+      ],
+    },
+    { timeout: 30000, validateStatus: () => true }
+  );
+  const balances = new Map();
+  for (const item of gpaRes.data?.result || []) {
+    const data = item.account?.data;
+    if (!data) continue;
+    const decoded = decodeTokenAccountOwnerAndAmount(Array.isArray(data) ? data[0] : data);
+    if (!decoded || decoded.amount === 0) continue;
+    balances.set(decoded.owner, (balances.get(decoded.owner) || 0) + decoded.amount / Math.pow(10, BLUNANA_DECIMALS));
+  }
+  return balances;
+}
+
+async function buildBlunanaHolders() {
+  const [balances, prices] = await Promise.all([fetchBlunanaTokenBalances(), getPrices().catch(() => ({}))]);
+  if (!balances.size) throw new Error('No token accounts returned');
+  const { holders, total } = await mergeHoldersByDiscord(balances, 'blunana');
+  return {
+    holders,
+    totalHeld: total,
+    priceUsd: prices.blunanaUsd ?? null,
+    priceSol: prices.blunanaPerSol ?? null,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+const HOLDER_BUILDERS = {
+  mnk3ys: () => buildCollectionHolders('mnk3ys'),
+  zmb3ys: () => buildCollectionHolders('zmb3ys'),
+  blunana: buildBlunanaHolders,
+};
 
 const holdersHandler = (slug) => async function (req, res) {
   if (!HELIUS_API_KEY) return res.status(503).json({ error: 'Holders unavailable' });
   try {
     const cached = holdersCache[slug];
     if (!cached || Date.now() - cached.at > HOLDERS_TTL_MS) {
-      holdersCache[slug] = { at: Date.now(), data: await buildCollectionHolders(slug) };
+      holdersCache[slug] = { at: Date.now(), data: await HOLDER_BUILDERS[slug]() };
     }
     res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
     res.json(holdersCache[slug].data);
@@ -1268,6 +1330,7 @@ for (const slug of Object.keys(TOOL_COLLECTIONS)) {
   app.get(`/api/${slug}-holders`, holdersHandler(slug));
   app.get(`/api/${slug}-rarity`, rarityHandler(slug));
 }
+app.get('/api/blunana-holders', holdersHandler('blunana'));
 
 app.get('/api/holders', async function (req, res) {
   const sortBy = (req.query.sort || 'total').toLowerCase();

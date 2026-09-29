@@ -676,6 +676,28 @@ body.p2 {
 
 .p2-table .num { text-align: right; }
 
+.p2-modal--chart { width: min(920px, calc(100vw - 32px)); }
+
+.p2-chart {
+  width: 100%;
+  height: min(420px, 52vh);
+}
+
+.p2-chart__empty {
+  padding: 60px 0;
+  text-align: center;
+}
+
+.p2-chart__note {
+  margin: 14px 0 0;
+  color: var(--p2-grey);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.p2-chart__note a { color: var(--p2-green); }
+.p2-neg { color: #f87171; }
+
 .p2-rarity__form {
   display: flex;
   flex-direction: column;
