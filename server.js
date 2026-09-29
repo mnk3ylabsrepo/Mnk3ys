@@ -1113,7 +1113,7 @@ async function buildMnk3ysHolders() {
   return { holders, supply, floorSol, updatedAt: new Date().toISOString() };
 }
 
-app.get('/api/mnk3ys/holders', async function (req, res) {
+app.get('/api/mnk3ys-holders', async function (req, res) {
   if (!HELIUS_API_KEY) return res.status(503).json({ error: 'Holders unavailable' });
   try {
     if (!mnk3ysHoldersCache || Date.now() - mnk3ysHoldersCache.at > MNK3YS_HOLDERS_TTL_MS) {
@@ -1127,7 +1127,7 @@ app.get('/api/mnk3ys/holders', async function (req, res) {
   }
 });
 
-app.get('/api/mnk3ys/rarity', async function (req, res) {
+app.get('/api/mnk3ys-rarity', async function (req, res) {
   if (!mnk3ysRarity) mnk3ysRarity = require('./lib/mnk3ys-rarity.json');
   const rank = parseInt(req.query.rank, 10) || 1;
   const mint = mnk3ysRarity.ranks[rank];

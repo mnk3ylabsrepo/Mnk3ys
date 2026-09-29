@@ -26,8 +26,8 @@
 
   function getJson(url) {
     return fetch(url).then(function (r) {
-      return r.json().then(function (body) {
-        if (!r.ok) throw new Error(body && body.error ? body.error : 'Request failed');
+      return r.json().catch(function () { return null; }).then(function (body) {
+        if (!r.ok || !body) throw new Error(body && body.error ? body.error : 'Data unavailable — try again shortly');
         return body;
       });
     });
@@ -67,7 +67,7 @@
     holdersLoaded = true;
     var meta = document.getElementById('p2-holders-meta');
     var tbody = document.getElementById('p2-holders-rows');
-    Promise.all([getJson('/api/mnk3ys/holders'), solUsd()])
+    Promise.all([getJson('/api/mnk3ys-holders'), solUsd()])
       .then(function (res) {
         var data = res[0];
         var usd = res[1];
@@ -101,7 +101,7 @@
     rankInput.value = rank;
     var seq = ++lookupSeq;
     result.innerHTML = '<p class="p2-muted">Loading rank ' + rank + '…</p>';
-    getJson('/api/mnk3ys/rarity?rank=' + rank)
+    getJson('/api/mnk3ys-rarity?rank=' + rank)
       .then(function (d) {
         if (seq !== lookupSeq) return;
         var owner = d.ownerDiscord
