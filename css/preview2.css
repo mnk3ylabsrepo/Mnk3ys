@@ -343,46 +343,18 @@ body.p2 {
   margin: 1.2em 0 1.4em;
 }
 
-.p2-split .p2-socials { margin: 1em 0 1.1em; }
-
 /* ——— Live collection stats ——— */
-.p2-live {
-  font-family: var(--p2-mono);
-  text-transform: uppercase;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
-}
-
-.p2-live__grid {
-  display: grid;
-  grid-template-columns: repeat(2, auto);
-  justify-content: start;
-  gap: 0.35em max(28px, calc(3.4 * var(--u)));
-  margin: 0;
-}
-
-.p2-live__grid div { display: flex; flex-direction: column; }
-
-.p2-live__grid dt {
-  color: var(--p2-grey);
-  font-size: max(0.62rem, calc(0.95 * var(--u)));
-  letter-spacing: 0.06em;
-}
-
-.p2-live__grid dd {
-  margin: 0;
-  font-family: var(--p2-display);
-  font-weight: 700;
-  font-size: max(1.05rem, calc(1.75 * var(--u)));
-  line-height: 1.05;
-  color: #fff;
-}
+.p2-live .p2-stats { margin-bottom: 0; }
 
 .p2-live__status {
   display: flex;
   align-items: center;
   gap: 0.55em;
-  margin: 0.7em 0 0;
+  margin: 0.45em 0 0.6em;
   color: var(--p2-grey);
+  font-family: var(--p2-mono);
+  text-transform: uppercase;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
   font-size: max(0.6rem, calc(0.85 * var(--u)));
   letter-spacing: 0.08em;
 }
@@ -590,8 +562,9 @@ body.p2 {
 .p2-tool {
   display: grid;
   place-items: center;
-  width: max(36px, calc(3.2 * var(--u-pill)));
-  height: max(36px, calc(3.2 * var(--u-pill)));
+  flex-shrink: 0;
+  width: max(26px, calc(3 * var(--u)));
+  height: max(26px, calc(3 * var(--u)));
   padding: 0;
   border: 2px solid var(--p2-green);
   border-radius: 50%;
@@ -601,7 +574,7 @@ body.p2 {
   transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.p2-tool svg { width: 50%; height: 50%; }
+.p2-tool svg { width: 56%; height: 56%; }
 
 .p2-tool:hover,
 .p2-tool:focus-visible {
@@ -963,10 +936,9 @@ body.p2 {
 
   .p2-tagline { font-size: clamp(0.9rem, 4.2vw, 1.3rem); }
 
-  .p2-socials,
-  .p2-split .p2-socials { margin: 0.9em 0 0.6em; }
-  .p2-socials a { width: 34px; height: 34px; }
-  .p2-live__grid { justify-content: center; }
+  .p2-socials { margin: 0.9em 0 0.6em; }
+  .p2-socials a,
+  .p2-socials .p2-tool { width: 34px; height: 34px; }
   .p2-live__status { justify-content: center; }
 
   .p2-pills {
