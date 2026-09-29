@@ -171,10 +171,16 @@ body.p2 {
 }
 
 @media (orientation: landscape) {
+  .p2-page--blunana {
+    justify-content: flex-start;
+    align-items: flex-end;
+    background-position: calc(50% + 20vw) center;
+  }
+
   .p2-page--blunana .p2-center {
-    position: relative;
-    left: -6vw;
-    top: 6vh;
+    align-items: flex-start;
+    text-align: left;
+    margin: 0 0 8vh max(24px, 14vw);
   }
 }
 
