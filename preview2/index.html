@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/preview2.css?v=46" />
+  <link rel="stylesheet" href="/css/preview2.css?v=47" />
 </head>
 <body class="p2">
   <header class="p2-nav" id="p2-nav">
@@ -307,9 +307,108 @@
     </div>
   </dialog>
 
+  <button type="button" class="p2-portal-btn is-locked" id="p2-portal-btn" aria-label="Holder portal (locked)" title="Holder portal">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2.5"/><path d="M5.5 16.5a3.5 3.5 0 0 1 7 0"/><path d="M15 9h3"/><path d="M15 13h3"/></svg>
+    <span class="p2-portal-btn__badge" aria-hidden="true">
+      <svg class="p2-portal-btn__lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      <svg class="p2-portal-btn__check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>
+    </span>
+  </button>
+
+  <dialog class="p2-modal p2-modal--portal" id="p2-portal" aria-labelledby="p2-portal-title">
+    <div class="p2-modal__head">
+      <h3 class="p2-modal__title" id="p2-portal-title">Holder <span class="g">portal</span></h3>
+      <button type="button" class="p2-modal__close" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="p2-tabs" role="tablist">
+      <button type="button" class="p2-tab is-active" role="tab" aria-selected="true" data-tab="mine">My holdings</button>
+      <button type="button" class="p2-tab" role="tab" aria-selected="false" data-tab="holders">Holders</button>
+    </div>
+
+    <div class="p2-tabpanel" data-panel="mine">
+      <div class="p2-modal__body">
+        <div class="p2-verify" id="p2-verify">
+          <p class="p2-verify__intro">Verify links your wallet to your Discord profile so your <span class="g">Discord username</span> shows instead of your wallet address in the holder tables. It only reads public balances &mdash; no transaction or signature is requested and nothing can move from your wallet.</p>
+          <ol class="p2-steps">
+            <li class="p2-step" data-stage="discord">
+              <span class="p2-step__num">1</span>
+              <div class="p2-step__text"><strong>Link Discord</strong><span class="p2-step__state" id="p2-step-discord">Sign in with Discord</span></div>
+              <button type="button" class="p2-pill p2-step__btn" id="p2-btn-discord">Link Discord</button>
+            </li>
+            <li class="p2-step" data-stage="wallet">
+              <span class="p2-step__num">2</span>
+              <div class="p2-step__text"><strong>Connect wallet</strong><span class="p2-step__state" id="p2-step-wallet">Phantom, Solflare or any Solana wallet</span></div>
+              <button type="button" class="p2-pill p2-step__btn" id="p2-btn-wallet" disabled>Connect wallet</button>
+            </li>
+            <li class="p2-step" data-stage="verify">
+              <span class="p2-step__num">3</span>
+              <div class="p2-step__text"><strong>Verify</strong><span class="p2-step__state" id="p2-step-verify">Link the wallet to your Discord</span></div>
+              <button type="button" class="p2-pill p2-step__btn" id="p2-btn-verify" disabled>Verify</button>
+            </li>
+          </ol>
+          <div class="p2-wallet-pick" id="p2-wallet-pick" hidden></div>
+        </div>
+
+        <div class="p2-mine" id="p2-mine" hidden>
+          <div class="p2-mine__who">
+            <img class="p2-mine__avatar" id="p2-mine-avatar" alt="" />
+            <div>
+              <p class="p2-mine__name" id="p2-mine-name"></p>
+              <p class="p2-muted p2-mine__wallets" id="p2-mine-wallets"></p>
+            </div>
+            <div class="p2-mine__actions">
+              <button type="button" class="p2-link" id="p2-btn-add-wallet">Link another wallet</button>
+              <button type="button" class="p2-link" id="p2-btn-logout">Sign out</button>
+            </div>
+          </div>
+          <p class="p2-modal__meta p2-mine__meta" id="p2-mine-meta"></p>
+          <table class="p2-table p2-mine__table">
+            <thead><tr><th>Holding</th><th class="num">Amount</th><th class="num">SOL</th><th class="num">USDC</th></tr></thead>
+            <tbody id="p2-mine-rows"></tbody>
+            <tfoot id="p2-mine-total"></tfoot>
+          </table>
+          <p class="p2-chart__note">NFTs are valued at the Magic Eden floor and $BLUNANA at the live price. Blunanas have no market floor so aren't valued. Staked NFTs held by a staking program's vault may not appear.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="p2-tabpanel" data-panel="holders" hidden>
+      <div class="p2-portal__controls">
+        <label>Filter
+          <select id="p2-portal-filter">
+            <option value="all">All holdings</option>
+            <option value="mnk3ys">MNK3YS</option>
+            <option value="zmb3ys">ZMB3YS</option>
+            <option value="blunanas">Blunanas</option>
+            <option value="blunana">$BLUNANA</option>
+          </select>
+        </label>
+        <label>Sort by
+          <select id="p2-portal-sort">
+            <option value="valueSol">Total value</option>
+            <option value="mnk3ys">MNK3YS</option>
+            <option value="zmb3ys">ZMB3YS</option>
+            <option value="blunanas">Blunanas</option>
+            <option value="blunana">$BLUNANA</option>
+          </select>
+        </label>
+        <p class="p2-modal__meta" id="p2-portal-meta">Loading…</p>
+      </div>
+      <div class="p2-modal__body">
+        <table class="p2-table p2-portal__table">
+          <thead>
+            <tr><th>#</th><th>Holder</th><th class="num" data-col="mnk3ys">MNK3YS</th><th class="num" data-col="zmb3ys">ZMB3YS</th><th class="num" data-col="blunanas">Blunanas</th><th class="num" data-col="blunana">$BLUNANA</th><th class="num">SOL</th><th class="num">USDC</th></tr>
+          </thead>
+          <tbody id="p2-portal-rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </dialog>
+
   <div class="p2-toast" id="p2-toast" role="status" aria-live="polite"></div>
 
   <script src="/js/preview2-nav.js?v=6"></script>
   <script src="/js/preview2-tools.js?v=7"></script>
+  <script src="/js/preview2-portal.js?v=1"></script>
 </body>
 </html>

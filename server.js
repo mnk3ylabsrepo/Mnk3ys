@@ -1173,9 +1173,8 @@ async function mergeHoldersByDiscord(owners, label) {
 }
 
 async function buildCollectionHolders(slug) {
-  const mint = COLLECTIONS.find((c) => c.slug === slug)?.collectionMint;
   const [owners, floorSol] = await Promise.all([
-    fetchCollectionOwnerCounts(mint, slug),
+    getOwners(slug),
     fetchMeFloorSol(slug).catch(() => null),
   ]);
   const { holders, total } = await mergeHoldersByDiscord(owners, slug);
@@ -1217,7 +1216,7 @@ async function fetchBlunanaTokenBalances() {
 }
 
 async function buildBlunanaHolders() {
-  const [balances, prices] = await Promise.all([fetchBlunanaTokenBalances(), getPrices().catch(() => ({}))]);
+  const [balances, prices] = await Promise.all([getOwners('blunana'), getPrices().catch(() => ({}))]);
   if (!balances.size) throw new Error('No token accounts returned');
   const { holders, total } = await mergeHoldersByDiscord(balances, 'blunana');
   return {
@@ -1227,6 +1226,27 @@ async function buildBlunanaHolders() {
     priceSol: prices.blunanaPerSol ?? null,
     updatedAt: new Date().toISOString(),
   };
+}
+
+/** Raw wallet → amount per holding, shared by the per-collection tables and the holder portal. */
+const ownersCache = {};
+const OWNER_FETCHERS = {
+  mnk3ys: () => fetchCollectionOwnerCounts(COLLECTIONS.find((c) => c.slug === 'mnk3ys')?.collectionMint, 'mnk3ys'),
+  zmb3ys: () => fetchCollectionOwnerCounts(COLLECTIONS.find((c) => c.slug === 'zmb3ys')?.collectionMint, 'zmb3ys'),
+  blunanas: () => {
+    const mint = COLLECTIONS.find((c) => c.slug === 'blunanas')?.collectionMint;
+    return mint ? fetchCollectionOwnerCounts(mint, 'blunanas') : new Map();
+  },
+  blunana: fetchBlunanaTokenBalances,
+};
+
+async function getOwners(key) {
+  const cached = ownersCache[key];
+  if (cached && Date.now() - cached.at < HOLDERS_TTL_MS) return cached.promise;
+  const promise = OWNER_FETCHERS[key]();
+  ownersCache[key] = { at: Date.now(), promise };
+  promise.catch(() => { if (ownersCache[key]?.promise === promise) delete ownersCache[key]; });
+  return promise;
 }
 
 const HOLDER_BUILDERS = {
@@ -1331,6 +1351,134 @@ for (const slug of Object.keys(TOOL_COLLECTIONS)) {
   app.get(`/api/${slug}-rarity`, rarityHandler(slug));
 }
 app.get('/api/blunana-holders', holdersHandler('blunana'));
+
+// ——— Preview 2 holder portal: combined holders table and the signed-in user's holdings ———
+const PORTAL_KEYS = ['mnk3ys', 'zmb3ys', 'blunanas', 'blunana'];
+let portalCache = null;
+
+async function getPortalMarket() {
+  const [mnk3ysFloor, zmb3ysFloor, prices] = await Promise.all([
+    fetchMeFloorSol('mnk3ys').catch(() => null),
+    fetchMeFloorSol('zmb3ys').catch(() => null),
+    getPrices().catch(() => ({})),
+  ]);
+  return {
+    solUsd: prices.solUsd ?? null,
+    unitSol: { mnk3ys: mnk3ysFloor, zmb3ys: zmb3ysFloor, blunanas: null, blunana: prices.blunanaPerSol ?? null },
+  };
+}
+
+function portalValue(amounts, market) {
+  let sol = 0;
+  for (const key of PORTAL_KEYS) sol += (amounts[key] || 0) * (market.unitSol[key] || 0);
+  return { valueSol: sol, valueUsd: market.solUsd != null ? sol * market.solUsd : null };
+}
+
+async function buildPortalData() {
+  const [maps, market] = await Promise.all([
+    Promise.all(PORTAL_KEYS.map((k) => getOwners(k).catch(() => new Map()))),
+    getPortalMarket(),
+  ]);
+  const byWallet = new Map();
+  PORTAL_KEYS.forEach((key, i) => {
+    for (const [wallet, amount] of maps[i]) {
+      let w = byWallet.get(wallet);
+      if (!w) byWallet.set(wallet, (w = {}));
+      w[key] = (w[key] || 0) + amount;
+    }
+  });
+
+  let walletToDiscord = new Map();
+  let discordNames = new Map();
+  if (db.getPool()) {
+    try {
+      walletToDiscord = await db.getAllWalletToDiscord();
+      discordNames = await db.getDiscordUsernames([...new Set(walletToDiscord.values())]);
+    } catch (e) {
+      console.warn('portal holders: Discord lookup failed', e.message);
+    }
+  }
+
+  const rows = new Map();
+  for (const [wallet, amounts] of byWallet) {
+    const discordId = walletToDiscord.get(wallet.toLowerCase()) || null;
+    const key = discordId || wallet;
+    let row = rows.get(key);
+    if (!row) {
+      row = { discordName: discordId ? discordNames.get(discordId) || null : null, wallet: discordId ? null : wallet, walletCount: 0 };
+      PORTAL_KEYS.forEach((k) => { row[k] = 0; });
+      rows.set(key, row);
+    }
+    row.walletCount += 1;
+    PORTAL_KEYS.forEach((k) => { row[k] += amounts[k] || 0; });
+  }
+  const holders = [...rows.values()].map((row) => Object.assign(row, portalValue(row, market)));
+  holders.sort((a, b) => b.valueSol - a.valueSol);
+  return { holders, byWallet, market, updatedAt: new Date().toISOString() };
+}
+
+async function getPortalData() {
+  if (!portalCache || Date.now() - portalCache.at > HOLDERS_TTL_MS) {
+    const promise = buildPortalData();
+    portalCache = { at: Date.now(), promise };
+    promise.catch(() => { if (portalCache?.promise === promise) portalCache = null; });
+  }
+  return portalCache.promise;
+}
+
+app.get('/api/portal-holders', async function (req, res) {
+  if (!HELIUS_API_KEY) return res.status(503).json({ error: 'Holders unavailable' });
+  try {
+    const { holders, market, updatedAt } = await getPortalData();
+    res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
+    res.json({ holders, market, updatedAt });
+  } catch (e) {
+    console.warn('portal holders failed', e.message);
+    res.status(500).json({ error: 'Holders unavailable' });
+  }
+});
+
+app.get('/api/portal-me', async function (req, res) {
+  res.setHeader('Cache-Control', 'private, no-store');
+  const user = req.session?.discord;
+  if (!user) return res.status(401).json({ error: 'Not signed in' });
+  if (!HELIUS_API_KEY) return res.status(503).json({ error: 'Holdings unavailable' });
+  try {
+    const linked = db.getPool() ? await db.getWalletsByDiscord(user.id).catch(() => []) : [];
+    const wanted = new Set(linked.map((w) => w.toLowerCase()));
+
+    const { byWallet, market, updatedAt } = await getPortalData();
+    // Linked wallets are stored lowercased; recover the real address from the holder data
+    const found = new Map();
+    for (const [wallet, amounts] of byWallet) {
+      if (wanted.has(wallet.toLowerCase())) found.set(wallet.toLowerCase(), { wallet, amounts });
+    }
+    const totals = {};
+    PORTAL_KEYS.forEach((k) => { totals[k] = 0; });
+    const wallets = [...wanted].map((lower) => {
+      const hit = found.get(lower);
+      if (hit) PORTAL_KEYS.forEach((k) => { totals[k] += hit.amounts[k] || 0; });
+      return { wallet: hit?.wallet || lower, linked: true };
+    });
+    const holdings = PORTAL_KEYS.map((key) => {
+      const amount = totals[key];
+      const unitSol = market.unitSol[key];
+      const valueSol = unitSol != null ? amount * unitSol : null;
+      return { key, amount, unitSol, valueSol, valueUsd: valueSol != null && market.solUsd != null ? valueSol * market.solUsd : null };
+    });
+    res.json({
+      user: { id: user.id, name: user.global_name || user.username, avatar: user.avatar || null },
+      wallets,
+      holdings,
+      total: portalValue(totals, market),
+      solUsd: market.solUsd,
+      updatedAt,
+    });
+  } catch (e) {
+    console.warn('portal me failed', e.message);
+    res.status(500).json({ error: 'Holdings unavailable' });
+  }
+});
 
 app.get('/api/holders', async function (req, res) {
   const sortBy = (req.query.sort || 'total').toLowerCase();
