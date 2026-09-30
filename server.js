@@ -22,6 +22,12 @@ const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const SESSION_SECRET = process.env.SESSION_SECRET || 'mnk3ys-session-secret-change-in-production';
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:' + PORT).replace(/\/$/, '');
 const REDIRECT_URI = BASE_URL + '/api/discord/callback';
+// Send Discord back to the domain the user started on, so the session cookie is readable there
+const OAUTH_HOSTS = /^(www\.mnk3ylabs\.com|mnk3ylabs\.com|mnk3ys\.vercel\.app)$/;
+function discordRedirectUri(req) {
+  const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim().toLowerCase();
+  return OAUTH_HOSTS.test(host) ? 'https://' + host + '/api/discord/callback' : REDIRECT_URI;
+}
 
 const DISCORD_AUTH_URL = 'https://discord.com/api/oauth2/authorize';
 const DISCORD_TOKEN_URL = 'https://discord.com/api/oauth2/token';
@@ -134,7 +140,7 @@ app.get('/api/discord/auth', function (req, res) {
   req.session.discordState = state;
   const qs = new URLSearchParams({
     client_id: DISCORD_CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
+    redirect_uri: discordRedirectUri(req),
     response_type: 'code',
     scope: SCOPES,
     state: state,
@@ -165,7 +171,7 @@ app.get('/api/discord/callback', async function (req, res) {
         client_secret: DISCORD_CLIENT_SECRET,
         code: code,
         grant_type: 'authorization_code',
-        redirect_uri: REDIRECT_URI,
+        redirect_uri: discordRedirectUri(req),
       }).toString(),
       {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
