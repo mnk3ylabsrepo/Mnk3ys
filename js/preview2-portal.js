@@ -320,6 +320,7 @@
     pfp.hidden = !pfpSrc;
     btn.classList.toggle('has-pfp', !!pfpSrc);
 
+    document.body.classList.toggle('p2-verified', verified);
     var showMine = verified && !managing;
     mineBox.hidden = !showMine;
     verifyBox.hidden = showMine;
@@ -422,11 +423,19 @@
 
   function openPortal(tab) {
     if (!dialog.open) dialog.showModal();
-    showTab(tab || 'mine');
+    showTab(tab || 'holders');
     render();
   }
 
-  btn.addEventListener('click', function () { openPortal('mine'); });
+  btn.addEventListener('click', function () { openPortal('holders'); });
+
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest('[data-portal-open]');
+    if (!link) return;
+    var from = link.closest('dialog');
+    if (from && from !== dialog) from.close();
+    openPortal(link.getAttribute('data-portal-open'));
+  });
 
   el('p2-btn-discord').addEventListener('click', function () {
     window.location.href = '/api/discord/auth?next=' + encodeURIComponent('/preview2');

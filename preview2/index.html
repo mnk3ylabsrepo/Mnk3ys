@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/preview2.css?v=52" />
+  <link rel="stylesheet" href="/css/preview2.css?v=53" />
 </head>
 <body class="p2">
   <header class="p2-nav" id="p2-nav">
@@ -255,6 +255,7 @@
       <button type="button" class="p2-modal__close" data-close aria-label="Close">&times;</button>
     </div>
     <p class="p2-modal__meta" id="p2-holders-meta">Loading…</p>
+    <p class="p2-login-note">Seeing a wallet address instead of your name? <button type="button" class="p2-link" data-portal-open="mine">Sign in to the holder portal</button> and link your Discord so your username appears in holder tables.</p>
     <div class="p2-modal__body">
       <table class="p2-table">
         <thead>
@@ -322,11 +323,11 @@
       <button type="button" class="p2-modal__close" data-close aria-label="Close">&times;</button>
     </div>
     <div class="p2-tabs" role="tablist">
-      <button type="button" class="p2-tab is-active" role="tab" aria-selected="true" data-tab="mine">My holdings</button>
-      <button type="button" class="p2-tab" role="tab" aria-selected="false" data-tab="holders">Holders</button>
+      <button type="button" class="p2-tab is-active" role="tab" aria-selected="true" data-tab="holders">Holders</button>
+      <button type="button" class="p2-tab" role="tab" aria-selected="false" data-tab="mine">My holdings</button>
     </div>
 
-    <div class="p2-tabpanel" data-panel="mine">
+    <div class="p2-tabpanel" data-panel="mine" hidden>
       <div class="p2-modal__body">
         <div class="p2-verify" id="p2-verify">
           <p class="p2-verify__intro">Verify links your wallet to your Discord profile so your <span class="g">Discord username</span> shows instead of your wallet address in the holder tables. It only reads public balances &mdash; no transaction or signature is requested and nothing can move from your wallet.</p>
@@ -375,7 +376,7 @@
       </div>
     </div>
 
-    <div class="p2-tabpanel" data-panel="holders" hidden>
+    <div class="p2-tabpanel" data-panel="holders">
       <div class="p2-portal__controls">
         <label>Filter
           <select id="p2-portal-filter">
@@ -387,6 +388,7 @@
         </label>
         <p class="p2-modal__meta" id="p2-portal-meta">Loading…</p>
       </div>
+      <p class="p2-login-note">Seeing a wallet address instead of your name? <button type="button" class="p2-link" data-portal-open="mine">Sign in under My holdings</button> and link your Discord so your username appears in holder tables.</p>
       <div class="p2-modal__body">
         <table class="p2-table p2-portal__table">
           <thead id="p2-portal-head"></thead>
@@ -400,6 +402,6 @@
 
   <script src="/js/preview2-nav.js?v=6"></script>
   <script src="/js/preview2-tools.js?v=7"></script>
-  <script src="/js/preview2-portal.js?v=6"></script>
+  <script src="/js/preview2-portal.js?v=7"></script>
 </body>
 </html>

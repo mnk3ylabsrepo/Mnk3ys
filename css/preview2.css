@@ -1177,6 +1177,17 @@ body.p2 {
   .p2-portal__controls .p2-modal__meta { margin-left: 0; }
 }
 
+.p2-login-note {
+  margin: 0;
+  padding: 0 22px 12px;
+  color: var(--p2-grey);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.p2-login-note .p2-link { color: var(--p2-green); font-size: inherit; }
+.p2-verified .p2-login-note { display: none; }
+
 /* ——— Toast ——— */
 .p2-toast {
   position: fixed;
