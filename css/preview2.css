@@ -135,10 +135,10 @@ body.p2 {
 .p2-page--blunana   { background-image: url('/assets/preview2/blunana-landscape.jpg'); }
 .p2-page--lp        { background-image: url('/assets/preview2/lp-landscape.jpg'); }
 .p2-page--utility   { background-image: url('/assets/preview2/utility-landscape.jpg'); }
-.p2-page--juice     { background-image: url('/assets/preview2/juice-landscape.jpg'); }
-.p2-page--juicebags { background-image: url('/assets/preview2/juicebags-landscape.jpg'); }
-.p2-page--b3bs      { background-image: url('/assets/preview2/b3bs-landscape.jpg'); }
-.p2-page--mnk1sh    { background-image: url('/assets/preview2/mnk1sh-landscape.jpg'); }
+.p2-page--juice     { background-image: url('/assets/preview2/juice-landscape.jpg?v=2'); }
+.p2-page--juicebags { background-image: url('/assets/preview2/juicebags-landscape.jpg?v=2'); }
+.p2-page--b3bs      { background-image: url('/assets/preview2/b3bs-landscape.jpg?v=2'); }
+.p2-page--mnk1sh    { background-image: url('/assets/preview2/mnk1sh-landscape.jpg?v=2'); }
 .p2-page--partners  { background-image: none; }
 
 .p2-page__content {
