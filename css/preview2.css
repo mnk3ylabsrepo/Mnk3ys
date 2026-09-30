@@ -491,6 +491,32 @@ body.p2 {
 .p2-chart-links a:hover img { transform: scale(1.1); }
 .p2-chart-links a:hover span { color: var(--p2-green); }
 
+/* Same sequential pulse as the partner logos: each icon lights up in its own 2s slot, label only while lit (or on hover) */
+.p2-chart-links a:nth-child(1) { --i: 0; }
+.p2-chart-links a:nth-child(2) { --i: 1; }
+.p2-chart-links a:nth-child(3) { --i: 2; }
+.p2-chart-links a:nth-child(4) { --i: 3; }
+.p2-chart-links a:nth-child(5) { --i: 4; }
+
+.p2-chart-links img {
+  opacity: 0.8;
+  animation: p2-logo-pulse 10s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 2s);
+}
+
+.p2-chart-links span {
+  color: #fff;
+  opacity: 0;
+  animation: p2-label-show 10s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 2s);
+}
+
+.p2-chart-links a:hover span,
+.p2-chart-links a:focus-visible span {
+  opacity: 1;
+  animation: none;
+}
+
 /* ——— Partners: logos positioned in artwork units (--x/--y/--w landscape, --px/--py/--pw portrait) ——— */
 .p2-partners {
   position: absolute;
@@ -573,8 +599,10 @@ body.p2 {
 
 @media (prefers-reduced-motion: reduce) {
   .p2-partners__title .p2-fade,
-  .p2-partner-logo { animation: none; }
-  .p2-partner-label { animation: none; opacity: 1; }
+  .p2-partner-logo,
+  .p2-chart-links img { animation: none; }
+  .p2-partner-label,
+  .p2-chart-links span { animation: none; opacity: 1; }
 }
 
 /* ——— Collection tools: icon buttons + modals ——— */
