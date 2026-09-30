@@ -1233,10 +1233,10 @@ const ownersCache = {};
 const OWNER_FETCHERS = {
   mnk3ys: () => fetchCollectionOwnerCounts(COLLECTIONS.find((c) => c.slug === 'mnk3ys')?.collectionMint, 'mnk3ys'),
   zmb3ys: () => fetchCollectionOwnerCounts(COLLECTIONS.find((c) => c.slug === 'zmb3ys')?.collectionMint, 'zmb3ys'),
-  blunanas: () => {
-    const mint = COLLECTIONS.find((c) => c.slug === 'blunanas')?.collectionMint;
-    return mint ? fetchCollectionOwnerCounts(mint, 'blunanas') : new Map();
-  },
+  blunanas: () => fetchCollectionOwnerCounts(
+    COLLECTIONS.find((c) => c.slug === 'blunanas')?.collectionMint || '9KRbzF8b4T9c3TVxpkfajgcJTxmoXaPCtJDv4Pp9wtwX',
+    'blunanas'
+  ),
   blunana: fetchBlunanaTokenBalances,
 };
 
