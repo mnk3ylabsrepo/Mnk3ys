@@ -232,6 +232,14 @@
     var verified = isVerified();
     btn.classList.toggle('is-locked', !verified);
     btn.setAttribute('aria-label', verified ? 'Holder portal' : 'Holder portal (locked)');
+    var pfp = el('p2-portal-pfp');
+    var pfpSrc = discordUser ? discordAvatar(discordUser) : '';
+    if (pfp.getAttribute('src') !== pfpSrc) {
+      if (pfpSrc) pfp.src = pfpSrc;
+      else pfp.removeAttribute('src');
+    }
+    pfp.hidden = !pfpSrc;
+    btn.classList.toggle('has-pfp', !!pfpSrc);
 
     var showMine = verified && !addingWallet;
     mineBox.hidden = !showMine;
