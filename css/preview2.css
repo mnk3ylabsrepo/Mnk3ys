@@ -1177,16 +1177,55 @@ body.p2 {
   .p2-portal__controls .p2-modal__meta { margin-left: 0; }
 }
 
-.p2-login-note {
-  margin: 0;
-  padding: 0 22px 12px;
-  color: var(--p2-grey);
+.p2-verify-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% - 44px);
+  margin: 0 22px 12px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 59, 59, 0.45);
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(255, 59, 59, 0.22), rgba(255, 59, 59, 0) 75%);
+  color: var(--p2-white);
+  font-family: var(--p2-mono);
   font-size: 0.8rem;
-  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.p2-login-note .p2-link { color: var(--p2-green); font-size: inherit; }
-.p2-verified .p2-login-note { display: none; }
+.p2-verify-badge:hover,
+.p2-verify-badge:focus-visible { border-color: #ff3b3b; outline: none; }
+
+.p2-verify-badge__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ff3b3b;
+  color: #fff;
+}
+
+.p2-verify-badge__icon svg { width: 12px; height: 12px; }
+.p2-verify-badge u { color: #fff; text-underline-offset: 2px; }
+.p2-verify-badge__tick,
+.p2-verify-badge__on { display: none; }
+
+.p2-verified .p2-verify-badge {
+  border-color: rgba(34, 245, 58, 0.45);
+  background: linear-gradient(90deg, rgba(34, 245, 58, 0.2), rgba(34, 245, 58, 0) 75%);
+  cursor: default;
+}
+
+.p2-verified .p2-verify-badge__icon { background: var(--p2-green); color: #000; }
+.p2-verified .p2-verify-badge__tick,
+.p2-verified .p2-verify-badge__on { display: block; }
+.p2-verified .p2-verify-badge__on { display: inline; }
+.p2-verified .p2-verify-badge__cross,
+.p2-verified .p2-verify-badge__off { display: none; }
 
 /* ——— Toast ——— */
 .p2-toast {

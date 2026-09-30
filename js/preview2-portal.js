@@ -321,6 +321,9 @@
     btn.classList.toggle('has-pfp', !!pfpSrc);
 
     document.body.classList.toggle('p2-verified', verified);
+    document.querySelectorAll('[data-verified-name]').forEach(function (n) {
+      n.textContent = verified ? me.user.name : '';
+    });
     var showMine = verified && !managing;
     mineBox.hidden = !showMine;
     verifyBox.hidden = showMine;
@@ -431,7 +434,7 @@
 
   document.addEventListener('click', function (e) {
     var link = e.target.closest('[data-portal-open]');
-    if (!link) return;
+    if (!link || (link.classList.contains('p2-verify-badge') && isVerified())) return;
     var from = link.closest('dialog');
     if (from && from !== dialog) from.close();
     openPortal(link.getAttribute('data-portal-open'));

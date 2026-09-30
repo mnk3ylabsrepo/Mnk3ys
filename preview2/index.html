@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/preview2.css?v=53" />
+  <link rel="stylesheet" href="/css/preview2.css?v=54" />
 </head>
 <body class="p2">
   <header class="p2-nav" id="p2-nav">
@@ -255,7 +255,7 @@
       <button type="button" class="p2-modal__close" data-close aria-label="Close">&times;</button>
     </div>
     <p class="p2-modal__meta" id="p2-holders-meta">Loading…</p>
-    <p class="p2-login-note">Seeing a wallet address instead of your name? <button type="button" class="p2-link" data-portal-open="mine">Sign in to the holder portal</button> and link your Discord so your username appears in holder tables.</p>
+    <button type="button" class="p2-verify-badge" data-portal-open="mine"><span class="p2-verify-badge__icon" aria-hidden="true"><svg class="p2-verify-badge__tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><svg class="p2-verify-badge__cross" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span class="p2-verify-badge__off">Not verified &middot; <u>link your Discord</u> to show your username here</span><span class="p2-verify-badge__on">Verified as <span class="p2-discord" data-verified-name></span> &middot; your username shows in holder tables</span></button>
     <div class="p2-modal__body">
       <table class="p2-table">
         <thead>
@@ -388,7 +388,7 @@
         </label>
         <p class="p2-modal__meta" id="p2-portal-meta">Loading…</p>
       </div>
-      <p class="p2-login-note">Seeing a wallet address instead of your name? <button type="button" class="p2-link" data-portal-open="mine">Sign in under My holdings</button> and link your Discord so your username appears in holder tables.</p>
+      <button type="button" class="p2-verify-badge" data-portal-open="mine"><span class="p2-verify-badge__icon" aria-hidden="true"><svg class="p2-verify-badge__tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><svg class="p2-verify-badge__cross" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span class="p2-verify-badge__off">Not verified &middot; <u>link your Discord</u> to show your username here</span><span class="p2-verify-badge__on">Verified as <span class="p2-discord" data-verified-name></span> &middot; your username shows in holder tables</span></button>
       <div class="p2-modal__body">
         <table class="p2-table p2-portal__table">
           <thead id="p2-portal-head"></thead>
@@ -402,6 +402,6 @@
 
   <script src="/js/preview2-nav.js?v=6"></script>
   <script src="/js/preview2-tools.js?v=7"></script>
-  <script src="/js/preview2-portal.js?v=7"></script>
+  <script src="/js/preview2-portal.js?v=8"></script>
 </body>
 </html>
