@@ -8,7 +8,6 @@
   var HOLDINGS = [
     { key: 'mnk3ys', html: 'MNK<span class="g">3</span>YS' },
     { key: 'zmb3ys', html: 'ZMB<span class="g">3</span>YS' },
-    { key: 'blunanas', html: 'Blunanas', hideMine: true },
     { key: 'blunana', html: '<span class="g">$</span>BLUNANA', token: true }
   ];
 
@@ -301,7 +300,7 @@
       (flash ? esc(flash) + ' &middot; ' : '') + 'SOL ' + usd(me.solUsd) + ' &middot; updated ' + new Date(me.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     var byKey = {};
     me.holdings.forEach(function (h) { byKey[h.key] = h; });
-    el('p2-mine-rows').innerHTML = HOLDINGS.filter(function (h) { return !h.hideMine; }).map(function (h) {
+    el('p2-mine-rows').innerHTML = HOLDINGS.map(function (h) {
       var d = byKey[h.key] || {};
       return '<tr' + (d.amount ? '' : ' class="p2-muted"') + '><td>' + h.html + '</td><td class="num">' + amount(h, d.amount) + '</td><td class="num">' + sol(d.valueSol) + '</td><td class="num">' + usd(d.valueUsd) + '</td></tr>';
     }).join('');
@@ -364,7 +363,7 @@
 
     // With a filter, value only that holding (NFTs at floor, $BLUNANA at live price)
     var rows = holdersData.holders
-      .filter(function (h) { return !col || h[col.key] > 0; })
+      .filter(function (h) { return cols.some(function (x) { return h[x.key] > 0; }); })
       .map(function (h) {
         if (!col) return { h: h, valueSol: h.valueSol, valueUsd: h.valueUsd };
         var vs = unit[col.key] != null ? h[col.key] * unit[col.key] : null;
