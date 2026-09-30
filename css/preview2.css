@@ -998,26 +998,90 @@ body.p2 {
   border-radius: 12px;
 }
 
-.p2-step.is-done { border-color: rgba(34, 245, 58, 0.5); }
+.p2-step.is-done { border-color: rgba(34, 245, 58, 0.35); }
 
-.p2-step__num {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 2px solid var(--p2-green);
-  border-radius: 50%;
-  font-weight: 500;
+.p2-step.is-current {
+  border-color: var(--p2-green);
+  background: rgba(34, 245, 58, 0.06);
+  box-shadow: 0 0 18px rgba(34, 245, 58, 0.18);
 }
 
-.p2-step.is-done .p2-step__num { background: var(--p2-green); color: #000; }
+.p2-step__status {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid #ff3b3b;
+  border-radius: 50%;
+  color: #ff3b3b;
+}
+
+.p2-step__status svg { width: 15px; height: 15px; }
+.p2-step__tick { display: none; }
+.p2-step.is-done .p2-step__status { border-color: var(--p2-green); background: var(--p2-green); color: #000; }
+.p2-step.is-done .p2-step__tick { display: block; }
+.p2-step.is-done .p2-step__cross { display: none; }
+
+.p2-discord-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #5865f2;
+  color: #fff;
+  font-family: var(--p2-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.p2-discord-btn svg { width: 20px; height: 20px; }
+
+.p2-discord-btn:hover,
+.p2-discord-btn:focus-visible {
+  background: #4752c4;
+  box-shadow: 0 0 18px rgba(88, 101, 242, 0.55);
+  outline: none;
+}
+
+.p2-wallets {
+  grid-column: 2 / -1;
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.p2-wallets[hidden] { display: none; }
+
+.p2-wallets li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.p2-wallets li .p2-link { margin-left: auto; }
+.p2-wallets__tag { color: var(--p2-grey); font-size: 0.7rem; text-transform: uppercase; }
+
+.p2-step .p2-wallet-pick { grid-column: 2 / -1; margin-top: 0; }
+.p2-verify__back { margin-top: 14px; }
+.p2-mine__meta.is-flash { color: var(--p2-green); }
 
 .p2-step__text { display: grid; gap: 2px; }
 .p2-step__text strong { font-weight: 500; text-transform: uppercase; }
 .p2-step__state { color: var(--p2-grey); font-size: 0.85rem; }
 
 .p2-step__btn,
-.p2-wallet-pick .p2-pill { width: auto; min-width: 150px; height: 36px; font-size: 0.8rem; }
+.p2-wallet-pick .p2-pill { width: auto; min-width: 190px; height: 38px; font-size: 0.8rem; }
 .p2-step__btn[hidden] { display: none; }
 .p2-step__btn[disabled] { opacity: 0.35; cursor: not-allowed; }
 .p2-step__btn[disabled]:hover { background: rgba(0, 0, 0, 0.55); color: #fff; box-shadow: none; }
@@ -1107,6 +1171,7 @@ body.p2 {
 @media (max-width: 600px) {
   .p2-portal-btn { width: 46px; height: 46px; }
   .p2-step { grid-template-columns: 30px 1fr; }
+  .p2-step > .p2-link { grid-column: 2; justify-self: start; }
   .p2-step__btn { grid-column: 1 / -1; }
   .p2-mine__who { flex-wrap: wrap; }
   .p2-mine__actions { margin-left: 0; width: 100%; }

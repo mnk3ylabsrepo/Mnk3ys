@@ -1380,7 +1380,7 @@ function portalValue(amounts, market) {
   return { valueSol: sol, valueUsd: market.solUsd != null ? sol * market.solUsd : null };
 }
 
-async function buildPortalData() {
+async function buildPortalRaw() {
   const [maps, market] = await Promise.all([
     Promise.all(PORTAL_KEYS.map((k) => getOwners(k).catch(() => new Map()))),
     getPortalMarket(),
@@ -1393,7 +1393,20 @@ async function buildPortalData() {
       w[key] = (w[key] || 0) + amount;
     }
   });
+  return { byWallet, market, updatedAt: new Date().toISOString() };
+}
 
+async function getPortalRaw() {
+  if (!portalCache || Date.now() - portalCache.at > HOLDERS_TTL_MS) {
+    const promise = buildPortalRaw();
+    portalCache = { at: Date.now(), promise };
+    promise.catch(() => { if (portalCache?.promise === promise) portalCache = null; });
+  }
+  return portalCache.promise;
+}
+
+/** One row per linked Discord account (unlinked wallets stay separate); read per request so new links show straight away. */
+async function mergePortalRows(byWallet, market) {
   let walletToDiscord = new Map();
   let discordNames = new Map();
   if (db.getPool()) {
@@ -1404,7 +1417,6 @@ async function buildPortalData() {
       console.warn('portal holders: Discord lookup failed', e.message);
     }
   }
-
   const rows = new Map();
   for (const [wallet, amounts] of byWallet) {
     const discordId = walletToDiscord.get(wallet.toLowerCase()) || null;
@@ -1420,23 +1432,47 @@ async function buildPortalData() {
   }
   const holders = [...rows.values()].map((row) => Object.assign(row, portalValue(row, market)));
   holders.sort((a, b) => b.valueSol - a.valueSol);
-  return { holders, byWallet, market, updatedAt: new Date().toISOString() };
+  return holders;
 }
 
-async function getPortalData() {
-  if (!portalCache || Date.now() - portalCache.at > HOLDERS_TTL_MS) {
-    const promise = buildPortalData();
-    portalCache = { at: Date.now(), promise };
-    promise.catch(() => { if (portalCache?.promise === promise) portalCache = null; });
+/** Live balances for one wallet, straight from Helius (bypasses the 10-minute holder cache). */
+async function fetchWalletAmounts(wallet) {
+  const rpc = `${HELIUS_RPC}/?api-key=${HELIUS_API_KEY}`;
+  const mints = {
+    mnk3ys: COLLECTIONS.find((c) => c.slug === 'mnk3ys')?.collectionMint,
+    zmb3ys: COLLECTIONS.find((c) => c.slug === 'zmb3ys')?.collectionMint,
+    blunanas: COLLECTIONS.find((c) => c.slug === 'blunanas')?.collectionMint || '9KRbzF8b4T9c3TVxpkfajgcJTxmoXaPCtJDv4Pp9wtwX',
+  };
+  const out = { mnk3ys: 0, zmb3ys: 0, blunanas: 0, blunana: 0 };
+  const tokenRes = await axios.post(
+    rpc,
+    { jsonrpc: '2.0', id: '1', method: 'getTokenAccounts', params: { owner: wallet, mint: BLUNANA_TOKEN_MINT, limit: 10 } },
+    { timeout: 10000 }
+  );
+  for (const acc of tokenRes.data?.result?.token_accounts || []) out.blunana += Number(acc.amount || 0) / Math.pow(10, BLUNANA_DECIMALS);
+  for (let page = 1; page <= 20; page++) {
+    const r = await axios.post(
+      rpc,
+      { jsonrpc: '2.0', id: '1', method: 'getAssetsByOwner', params: { ownerAddress: wallet, page, limit: 1000, options: { showUnverifiedCollections: true } } },
+      { timeout: 15000 }
+    );
+    const items = r.data?.result?.items || [];
+    for (const item of items) {
+      if (item.burnt) continue;
+      const col = item.grouping?.find((g) => g.group_key === 'collection')?.group_value;
+      for (const key of ['mnk3ys', 'zmb3ys', 'blunanas']) if (col && col === mints[key]) out[key]++;
+    }
+    if (items.length < 1000) break;
   }
-  return portalCache.promise;
+  return out;
 }
 
 app.get('/api/portal-holders', async function (req, res) {
   if (!HELIUS_API_KEY) return res.status(503).json({ error: 'Holders unavailable' });
   try {
-    const { holders, market, updatedAt } = await getPortalData();
-    res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=86400');
+    const { byWallet, market, updatedAt } = await getPortalRaw();
+    const holders = await mergePortalRows(byWallet, market);
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=600');
     res.json({ holders, market, updatedAt });
   } catch (e) {
     console.warn('portal holders failed', e.message);
@@ -1452,20 +1488,34 @@ app.get('/api/portal-me', async function (req, res) {
   try {
     const linked = db.getPool() ? await db.getWalletsByDiscord(user.id).catch(() => []) : [];
     const wanted = new Set(linked.map((w) => w.toLowerCase()));
+    const connected = String(req.query.wallet || '').trim();
+    const fresh = req.query.fresh === '1';
 
-    const { byWallet, market, updatedAt } = await getPortalData();
-    // Linked wallets are stored lowercased; recover the real address from the holder data
-    const found = new Map();
-    for (const [wallet, amounts] of byWallet) {
-      if (wanted.has(wallet.toLowerCase())) found.set(wallet.toLowerCase(), { wallet, amounts });
+    const { byWallet, market, updatedAt } = await getPortalRaw();
+    // Linked wallets are stored lowercased; recover the real address from the holder data or the connected wallet
+    const real = new Map();
+    for (const wallet of byWallet.keys()) {
+      if (wanted.has(wallet.toLowerCase())) real.set(wallet.toLowerCase(), wallet);
     }
+    if (connected && wanted.has(connected.toLowerCase())) real.set(connected.toLowerCase(), connected);
+
     const totals = {};
     PORTAL_KEYS.forEach((k) => { totals[k] = 0; });
-    const wallets = [...wanted].map((lower) => {
-      const hit = found.get(lower);
-      if (hit) PORTAL_KEYS.forEach((k) => { totals[k] += hit.amounts[k] || 0; });
-      return { wallet: hit?.wallet || lower, linked: true };
-    });
+    const wallets = await Promise.all([...wanted].map(async (lower) => {
+      const address = real.get(lower) || null;
+      let amounts = address ? byWallet.get(address) || {} : {};
+      if (fresh && address) {
+        try {
+          amounts = await fetchWalletAmounts(address);
+          if (PORTAL_KEYS.some((k) => amounts[k] > 0)) byWallet.set(address, amounts);
+          else byWallet.delete(address);
+        } catch (e) {
+          console.warn('portal me: live lookup failed', e.message);
+        }
+      }
+      PORTAL_KEYS.forEach((k) => { totals[k] += amounts[k] || 0; });
+      return { wallet: address || lower, linked: true };
+    }));
     const holdings = PORTAL_KEYS.map((key) => {
       const amount = totals[key];
       const unitSol = market.unitSol[key];
@@ -1478,11 +1528,26 @@ app.get('/api/portal-me', async function (req, res) {
       holdings,
       total: portalValue(totals, market),
       solUsd: market.solUsd,
-      updatedAt,
+      updatedAt: fresh ? new Date().toISOString() : updatedAt,
     });
   } catch (e) {
     console.warn('portal me failed', e.message);
     res.status(500).json({ error: 'Holdings unavailable' });
+  }
+});
+
+app.post('/api/wallets-unlink', express.json(), async function (req, res) {
+  const user = req.session?.discord;
+  if (!user) return res.status(401).json({ error: 'Not signed in' });
+  const wallet = String(req.body?.wallet || '').trim();
+  if (!wallet) return res.status(400).json({ error: 'Missing wallet' });
+  if (!db.getPool()) return res.status(503).json({ error: 'Database unavailable' });
+  try {
+    const removed = await db.unlinkWallet(user.id, wallet);
+    res.json({ ok: true, removed });
+  } catch (e) {
+    console.warn('wallet unlink failed', e.message);
+    res.status(500).json({ error: 'Unlink failed' });
   }
 });
 

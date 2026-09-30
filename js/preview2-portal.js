@@ -24,7 +24,8 @@
   var discordUser = null;
   var me = null;
   var walletAddr = null;
-  var addingWallet = false;
+  var managing = false;
+  var flash = '';
   var meLoading = false;
   var meError = '';
 
@@ -101,6 +102,7 @@
       if (!pk) throw new Error('Wallet did not return an address');
       walletAddr = pk.toString();
       walletPick.hidden = true;
+      flash = pendingWallet() ? '' : 'That wallet is already linked';
       render();
     });
   }
@@ -134,12 +136,15 @@
   }
 
   // ——— Session + holdings ———
-  function loadMe() {
+  function loadMe(fresh) {
     if (!discordUser) return Promise.resolve();
     meLoading = true;
     meError = '';
     render();
-    return getJson('/api/portal-me')
+    var q = [];
+    if (fresh) q.push('fresh=1');
+    if (walletAddr) q.push('wallet=' + encodeURIComponent(walletAddr));
+    return getJson('/api/portal-me' + (q.length ? '?' + q.join('&') : ''))
       .then(function (data) { me = data; })
       .catch(function (err) {
         if (err.status === 401) { discordUser = null; me = null; }
@@ -148,29 +153,72 @@
       .then(function () { meLoading = false; render(); });
   }
 
-  function isVerified() {
-    return !!(discordUser && me && me.wallets.some(function (w) { return w.linked; }));
+  function linkedWallets() {
+    return me ? me.wallets.filter(function (w) { return w.linked; }) : [];
   }
 
-  function linkWallet() {
+  function isVerified() {
+    return !!discordUser && linkedWallets().length > 0;
+  }
+
+  // Connected in this browser but not linked to the Discord account yet
+  function pendingWallet() {
+    if (!walletAddr) return null;
+    var lower = walletAddr.toLowerCase();
+    return linkedWallets().some(function (w) { return w.wallet.toLowerCase() === lower; }) ? null : walletAddr;
+  }
+
+  function holdingsKey() {
+    return me ? me.holdings.map(function (h) { return h.key + ':' + h.amount; }).join('|') : '';
+  }
+
+  function verify() {
+    var before = holdingsKey();
+    var pending = pendingWallet();
     var b = el('p2-btn-verify');
     b.disabled = true;
-    b.textContent = 'Verifying…';
-    getJson('/api/wallets/link', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ wallet: walletAddr })
-    })
+    b.textContent = pending ? 'Linking…' : 'Checking…';
+    flash = '';
+    var step = pending
+      ? getJson('/api/wallets/link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet: pending })
+      })
+      : Promise.resolve();
+    step
+      .then(function () { return loadMe(true); })
       .then(function () {
-        addingWallet = false;
-        return loadMe();
+        if (meError) throw new Error(meError);
+        if (pending) flash = 'Wallet linked · holdings updated';
+        else flash = holdingsKey() !== before ? 'Holdings updated' : 'Nothing to update · holdings are current';
+        managing = false;
       })
       .catch(function (err) {
-        el('p2-step-verify').textContent = err.status === 401 ? 'Discord session expired — link Discord again' : err.message;
         if (err.status === 401) discordUser = null;
+        flash = err.status === 401 ? 'Discord session expired — link Discord again' : (err.message || 'Verify failed');
       })
       .then(function () {
         b.textContent = 'Verify';
+        render();
+      });
+  }
+
+  function unlink(wallet, button) {
+    button.disabled = true;
+    button.textContent = 'Unlinking…';
+    getJson('/api/wallets-unlink', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wallet: wallet })
+    })
+      .then(function () {
+        if (walletAddr && walletAddr.toLowerCase() === wallet.toLowerCase()) walletAddr = null;
+        flash = 'Unlinked ' + shortWallet(wallet);
+        return loadMe();
+      })
+      .catch(function (err) {
+        flash = err.message || 'Unlink failed';
         render();
       });
   }
@@ -181,44 +229,76 @@
       .then(function () {
         discordUser = null;
         me = null;
-        addingWallet = false;
+        managing = false;
+        flash = '';
         render();
       });
   }
 
   // ——— Render ———
-  function setStep(stage, done, stateHtml) {
+  function setStep(stage, done, current, stateHtml) {
     var li = verifyBox.querySelector('[data-stage="' + stage + '"]');
     li.classList.toggle('is-done', !!done);
+    li.classList.toggle('is-current', !!current);
     el('p2-step-' + stage).innerHTML = stateHtml;
   }
 
   function renderVerify() {
     var hasDiscord = !!discordUser;
-    setStep('discord', hasDiscord, hasDiscord
-      ? 'Signed in as <span class="p2-discord">' + esc(discordUser.global_name || discordUser.username) + '</span>'
-      : 'Sign in with Discord');
-    el('p2-btn-discord').hidden = hasDiscord;
+    var linked = linkedWallets();
+    var pending = pendingWallet();
+    var current = !hasDiscord ? 'discord' : pending ? 'verify' : 'wallet';
 
-    setStep('wallet', !!walletAddr, walletAddr ? 'Connected ' + esc(shortWallet(walletAddr)) : 'Phantom, Solflare or any Solana wallet');
+    setStep('discord', hasDiscord, current === 'discord', hasDiscord
+      ? 'Signed in as <span class="p2-discord">' + esc(discordUser.global_name || discordUser.username) + '</span>'
+      : 'Sign in with Discord to start');
+    el('p2-btn-discord').hidden = hasDiscord;
+    el('p2-btn-signout-step').hidden = !hasDiscord;
+
+    var walletState = !hasDiscord ? 'Link Discord first'
+      : linked.length ? linked.length + ' linked wallet' + (linked.length === 1 ? '' : 's')
+      : pending ? 'Wallet connected — verify to link it'
+      : 'Phantom, Solflare or any Solana wallet';
+    setStep('wallet', linked.length > 0 || !!pending, current === 'wallet', walletState);
     var wb = el('p2-btn-wallet');
     wb.disabled = !hasDiscord;
-    wb.textContent = walletAddr ? 'Change' : 'Connect wallet';
+    wb.textContent = linked.length || walletAddr ? 'Connect another wallet' : 'Connect wallet';
+
+    var list = el('p2-wallet-list');
+    var items = linked.map(function (w) {
+      return '<li><a href="https://solscan.io/account/' + esc(w.wallet) + '" target="_blank" rel="noopener">' + esc(shortWallet(w.wallet)) + '</a>' +
+        '<span class="p2-wallets__tag g">Linked</span>' +
+        '<button type="button" class="p2-link" data-unlink="' + esc(w.wallet) + '">Unlink</button></li>';
+    });
+    if (pending) {
+      items.push('<li><span>' + esc(shortWallet(pending)) + '</span><span class="p2-wallets__tag">Not linked yet</span></li>');
+    }
+    list.innerHTML = items.join('');
+    list.hidden = !hasDiscord || !items.length;
 
     var vb = el('p2-btn-verify');
-    vb.disabled = !hasDiscord || !walletAddr || meLoading;
-    if (!meLoading) setStep('verify', false, 'Link the wallet to your Discord');
-    else setStep('verify', false, 'Loading holdings…');
+    vb.disabled = !hasDiscord || (!pending && !linked.length) || meLoading;
+    var verifyState = meLoading ? 'Loading holdings…'
+      : flash ? esc(flash)
+      : !hasDiscord ? 'Link Discord first'
+      : pending ? 'Link ' + esc(shortWallet(pending)) + ' to your Discord'
+      : linked.length ? 'Re-check your linked wallets to update holdings'
+      : 'Connect a wallet first';
+    setStep('verify', !!hasDiscord && linked.length > 0 && !pending, current === 'verify', verifyState);
+
+    el('p2-btn-back').hidden = !isVerified();
   }
 
   function renderMine() {
     el('p2-mine-avatar').src = discordAvatar(me.user);
     el('p2-mine-name').textContent = me.user.name;
-    var linked = me.wallets.filter(function (w) { return w.linked; });
+    var linked = linkedWallets();
     el('p2-mine-wallets').textContent = linked.length + ' linked wallet' + (linked.length === 1 ? '' : 's') + ': ' +
       linked.map(function (w) { return shortWallet(w.wallet); }).join(', ');
-    el('p2-mine-meta').innerHTML = meLoading ? 'Refreshing…' : meError ? esc(meError) :
-      'SOL ' + usd(me.solUsd) + ' &middot; updated ' + new Date(me.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    var meta = el('p2-mine-meta');
+    meta.classList.toggle('is-flash', !!flash && !meLoading && !meError);
+    meta.innerHTML = meLoading ? 'Refreshing…' : meError ? esc(meError) :
+      (flash ? esc(flash) + ' &middot; ' : '') + 'SOL ' + usd(me.solUsd) + ' &middot; updated ' + new Date(me.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     var byKey = {};
     me.holdings.forEach(function (h) { byKey[h.key] = h; });
     el('p2-mine-rows').innerHTML = HOLDINGS.map(function (h) {
@@ -241,7 +321,7 @@
     pfp.hidden = !pfpSrc;
     btn.classList.toggle('has-pfp', !!pfpSrc);
 
-    var showMine = verified && !addingWallet;
+    var showMine = verified && !managing;
     mineBox.hidden = !showMine;
     verifyBox.hidden = showMine;
     if (showMine) renderMine();
@@ -343,12 +423,22 @@
     window.location.href = '/api/discord/auth?next=' + encodeURIComponent('/preview2');
   });
   el('p2-btn-wallet').addEventListener('click', showWalletPicker);
-  el('p2-btn-verify').addEventListener('click', linkWallet);
-  el('p2-btn-add-wallet').addEventListener('click', function () {
-    addingWallet = true;
-    walletAddr = null;
+  el('p2-btn-verify').addEventListener('click', verify);
+  el('p2-btn-manage').addEventListener('click', function () {
+    managing = true;
+    flash = '';
     render();
   });
+  el('p2-btn-back').addEventListener('click', function () {
+    managing = false;
+    flash = '';
+    render();
+  });
+  el('p2-wallet-list').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-unlink]');
+    if (b) unlink(b.getAttribute('data-unlink'), b);
+  });
+  el('p2-btn-signout-step').addEventListener('click', logout);
   el('p2-btn-logout').addEventListener('click', logout);
 
   // ——— Boot ———

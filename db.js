@@ -57,6 +57,16 @@ async function getWalletsByDiscord(discordId) {
   return (res.rows || []).map((r) => r.wallet_address);
 }
 
+async function unlinkWallet(discordId, walletAddress) {
+  const p = getPool();
+  if (!p) return 0;
+  const res = await p.query(
+    'DELETE FROM wallets WHERE wallet_address = $1 AND discord_id = $2',
+    [walletAddress.toLowerCase(), discordId]
+  );
+  return res.rowCount || 0;
+}
+
 async function getDiscordByWallet(walletAddress) {
   const p = getPool();
   if (!p) return null;
@@ -258,6 +268,7 @@ module.exports = {
   getPool,
   upsertUser,
   linkWallet,
+  unlinkWallet,
   getWalletsByDiscord,
   getDiscordByWallet,
   getAllWalletToDiscord,
