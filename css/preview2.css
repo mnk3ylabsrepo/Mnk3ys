@@ -1165,7 +1165,6 @@ body.p2 {
 
 .p2-portal__controls .p2-modal__meta { padding: 0; margin-left: auto; }
 
-.p2-portal__table .is-sorted { color: var(--p2-green); }
 .p2-table tr.is-me td { background: rgba(34, 245, 58, 0.12); }
 
 @media (max-width: 600px) {
@@ -1176,8 +1175,8 @@ body.p2 {
   .p2-mine__who { flex-wrap: wrap; }
   .p2-mine__actions { margin-left: 0; width: 100%; }
   .p2-portal__controls .p2-modal__meta { margin-left: 0; }
-  .p2-portal__table th:nth-child(5),
-  .p2-portal__table td:nth-child(5) { display: none; }
+  .p2-portal__table:not(.is-filtered) th:nth-child(5),
+  .p2-portal__table:not(.is-filtered) td:nth-child(5) { display: none; }
 }
 
 /* ——— Toast ——— */

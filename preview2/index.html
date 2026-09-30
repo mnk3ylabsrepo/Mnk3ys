@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/preview2.css?v=50" />
+  <link rel="stylesheet" href="/css/preview2.css?v=51" />
 </head>
 <body class="p2">
   <header class="p2-nav" id="p2-nav">
@@ -386,22 +386,11 @@
             <option value="blunana">$BLUNANA</option>
           </select>
         </label>
-        <label>Sort by
-          <select id="p2-portal-sort">
-            <option value="valueSol">Total value</option>
-            <option value="mnk3ys">MNK3YS</option>
-            <option value="zmb3ys">ZMB3YS</option>
-            <option value="blunanas">Blunanas</option>
-            <option value="blunana">$BLUNANA</option>
-          </select>
-        </label>
         <p class="p2-modal__meta" id="p2-portal-meta">Loading…</p>
       </div>
       <div class="p2-modal__body">
         <table class="p2-table p2-portal__table">
-          <thead>
-            <tr><th>#</th><th>Holder</th><th class="num" data-col="mnk3ys">MNK3YS</th><th class="num" data-col="zmb3ys">ZMB3YS</th><th class="num" data-col="blunanas">Blunanas</th><th class="num" data-col="blunana">$BLUNANA</th><th class="num">SOL</th><th class="num">USDC</th></tr>
-          </thead>
+          <thead id="p2-portal-head"></thead>
           <tbody id="p2-portal-rows"></tbody>
         </table>
       </div>
@@ -412,6 +401,6 @@
 
   <script src="/js/preview2-nav.js?v=6"></script>
   <script src="/js/preview2-tools.js?v=7"></script>
-  <script src="/js/preview2-portal.js?v=4"></script>
+  <script src="/js/preview2-portal.js?v=5"></script>
 </body>
 </html>

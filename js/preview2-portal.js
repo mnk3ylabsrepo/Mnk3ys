@@ -333,7 +333,6 @@
   var holdersPromise = null;
   var holdersData = null;
   var filterSel = el('p2-portal-filter');
-  var sortSel = el('p2-portal-sort');
 
   function loadHolders() {
     if (!holdersPromise) {
@@ -348,34 +347,49 @@
     return holdersPromise;
   }
 
+  function holderCell(h) {
+    if (h.discordName) return '<span class="p2-discord">' + esc(h.discordName) + '</span>' + (h.walletCount > 1 ? ' <span class="p2-muted">(' + h.walletCount + ')</span>' : '');
+    if (h.wallet === MAGIC_EDEN_WALLET) return '<span class="p2-muted">Magic Eden</span>';
+    if (h.wallet) return '<a href="https://solscan.io/account/' + esc(h.wallet) + '" target="_blank" rel="noopener">' + esc(shortWallet(h.wallet)) + '</a>';
+    return '<span class="p2-muted">Discord user</span>';
+  }
+
   function renderHolders() {
     if (!holdersData) return;
     var filter = filterSel.value;
-    var sort = sortSel.value;
-    var rows = holdersData.holders.filter(function (h) {
-      return filter === 'all' || h[filter] > 0;
-    });
-    rows.sort(function (a, b) { return (b[sort] - a[sort]) || (b.valueSol - a.valueSol); });
-
-    dialog.querySelectorAll('.p2-portal__table [data-col]').forEach(function (th) {
-      th.classList.toggle('is-sorted', th.getAttribute('data-col') === sort);
-    });
-
     var m = holdersData.market || {};
     var unit = m.unitSol || {};
-    el('p2-portal-meta').innerHTML = fmt(rows.length, 0) + ' holders &middot; MNK3YS floor ' + sol(unit.mnk3ys) + ' &middot; ZMB3YS floor ' + sol(unit.zmb3ys) + ' SOL';
+    var col = HOLDINGS.filter(function (c) { return c.key === filter; })[0];
+    var cols = col ? [col] : HOLDINGS;
 
-    el('p2-portal-rows').innerHTML = rows.map(function (h, i) {
-      var who;
-      if (h.discordName) who = '<span class="p2-discord">' + esc(h.discordName) + '</span>' + (h.walletCount > 1 ? ' <span class="p2-muted">(' + h.walletCount + ')</span>' : '');
-      else if (h.wallet === MAGIC_EDEN_WALLET) who = '<span class="p2-muted">Magic Eden</span>';
-      else if (h.wallet) who = '<a href="https://solscan.io/account/' + esc(h.wallet) + '" target="_blank" rel="noopener">' + esc(shortWallet(h.wallet)) + '</a>';
-      else who = '<span class="p2-muted">Discord user</span>';
-      return '<tr data-name="' + esc(h.discordName || '') + '"><td>' + (i + 1) + '</td><td>' + who + '</td>' +
-        HOLDINGS.map(function (c) {
-          return '<td class="num' + (c.key === sort ? ' is-sorted' : '') + '">' + amount(c, h[c.key]) + '</td>';
-        }).join('') +
-        '<td class="num">' + sol(h.valueSol) + '</td><td class="num">' + usd(h.valueUsd) + '</td></tr>';
+    // With a filter, value only that holding (NFTs at floor, $BLUNANA at live price)
+    var rows = holdersData.holders
+      .filter(function (h) { return !col || h[col.key] > 0; })
+      .map(function (h) {
+        if (!col) return { h: h, valueSol: h.valueSol, valueUsd: h.valueUsd };
+        var vs = unit[col.key] != null ? h[col.key] * unit[col.key] : null;
+        return { h: h, valueSol: vs, valueUsd: vs != null && m.solUsd != null ? vs * m.solUsd : null };
+      });
+    rows.sort(function (a, b) {
+      return ((b.valueSol || 0) - (a.valueSol || 0)) || (col ? b.h[col.key] - a.h[col.key] : 0);
+    });
+
+    dialog.querySelector('.p2-portal__table').classList.toggle('is-filtered', !!col);
+    el('p2-portal-head').innerHTML = '<tr><th>#</th><th>Holder</th>' +
+      cols.map(function (c) { return '<th class="num">' + c.html + '</th>'; }).join('') +
+      '<th class="num">SOL</th><th class="num">USDC</th></tr>';
+
+    var meta = fmt(rows.length, 0) + ' holders';
+    if (!col) meta += ' &middot; MNK3YS floor ' + sol(unit.mnk3ys) + ' &middot; ZMB3YS floor ' + sol(unit.zmb3ys) + ' SOL';
+    else if (col.token) meta += ' &middot; valued at the live price';
+    else if (unit[col.key] != null) meta += ' &middot; floor ' + sol(unit[col.key]) + ' SOL';
+    else meta += ' &middot; no market floor';
+    el('p2-portal-meta').innerHTML = meta;
+
+    el('p2-portal-rows').innerHTML = rows.map(function (r, i) {
+      return '<tr data-name="' + esc(r.h.discordName || '') + '"><td>' + (i + 1) + '</td><td>' + holderCell(r.h) + '</td>' +
+        cols.map(function (c) { return '<td class="num">' + amount(c, r.h[c.key]) + '</td>'; }).join('') +
+        '<td class="num">' + sol(r.valueSol) + '</td><td class="num">' + usd(r.valueUsd) + '</td></tr>';
     }).join('');
     markMyRow();
   }
@@ -387,11 +401,7 @@
     });
   }
 
-  filterSel.addEventListener('change', function () {
-    if (filterSel.value !== 'all') sortSel.value = filterSel.value;
-    renderHolders();
-  });
-  sortSel.addEventListener('change', renderHolders);
+  filterSel.addEventListener('change', renderHolders);
 
   // ——— Tabs + open ———
   function showTab(name) {
