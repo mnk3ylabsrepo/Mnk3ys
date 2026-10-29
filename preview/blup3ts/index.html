@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<base href="/preview/blup3ts/">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://img-cdn.magiceden.dev https://firebasestorage.googleapis.com https://na-assets.pinit.io https://gateway.pinit.io https://gateway.irys.xyz https://*.datasprite-cdn.com https://arweave.net https://*.arweave.net https://ipfs.io https://nftstorage.link https://*.ipfs.nftstorage.link https://cdn.helius-rpc.com; media-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#05070d">
+<title>BLUP3TS · MNK3YLabs</title>
+<meta name="description" content="Play BLUP3TS: a pet game for MNK3YS, ZMB3YS and LP Dollz. Feed your pet pretend $BLUNANA bananas, jam to 8-bit music and check its Orbis traits. Free to play with pretend $BLUNANA. Every $BLUNANA spent goes back into building the $BLUNANA and MNK3YLabs ecosystems.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MNK3YLabs">
+<meta property="og:title" content="BLUP3TS · MNK3YLabs">
+<meta property="og:description" content="Feed your MNK3Y pretend $BLUNANA bananas, jam to 8-bit music and check its traits. Beta. Free to play with pretend $BLUNANA. Every $BLUNANA spent goes back into building the $BLUNANA and MNK3YLabs ecosystems.">
+<meta property="og:url" content="https://www.mnk3ylabs.com/preview/blup3ts/">
+<meta property="og:image" content="https://www.mnk3ylabs.com/preview/blup3ts/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="BLUP3TS: MNK3Y #1579 on an Apple Watch screen">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@azgog">
+<meta name="twitter:title" content="BLUP3TS · MNK3YLabs">
+<meta name="twitter:description" content="Feed your MNK3Y pretend $BLUNANA bananas, jam to 8-bit music and check its traits. Free to play.">
+<meta name="twitter:image" content="https://www.mnk3ylabs.com/preview/blup3ts/og.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section class="view homeview on" id="homeView" role="main" aria-label="BLUP3TS home">
+  <button class="spk spkhome" id="spkHome" aria-label="Sound is off. Turn sound on" aria-pressed="false">🔇</button>
+  <div class="bgfx" aria-hidden="true"><i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="stars"></i></div>
+  <header class="hhead">
+    <img class="hlabs" src="assets/mnk3ylabs_logo.png" alt="MNK3YLabs logo" width="64" height="64">
+    <h1 class="hword"><span class="wmark">BLU<b>P3TS</b></span><em class="beta-tag">BETA</em></h1>
+    <p class="htag">Feed your pet bananas, jam to 8-bit tunes and watch it grow. Starring MNK3YS and ZMB3YS. BABI3S coming soon.</p>
+  </header>
+  <div class="carwrap">
+    <button class="carnav prev" id="carPrev" aria-label="Previous pet">‹</button>
+    <div class="carousel" id="carousel" tabindex="-1" role="listbox" aria-label="Pick your pet"></div>
+    <button class="carnav next" id="carNext" aria-label="Next pet">›</button>
+  </div>
+  <div class="carstatus" id="carStatus" aria-live="polite"></div>
+  <button class="playbtn" id="playBtn">▶ Play</button>
+  <button class="hb nftsbtn" id="nftsBtn">🖼️ My NFTs</button>
+  <div class="hbtns">
+    <button class="hb" id="connectBtn" hidden>👛 Connect wallet</button>
+    <div class="modeseg" role="group" aria-label="Mode" hidden>
+      <button id="modePretend" aria-pressed="true">Pretend</button><button id="modeWallet" aria-pressed="false">Wallet</button>
+    </div>
+    <button class="hb" id="howBtn">❓ How to play</button>
+    <button class="hb" id="faqBtn">💬 FAQ</button>
+    <button class="hb" id="settingsBtn">⚙️ Settings</button>
+  </div>
+  <p class="modenote" id="modeNote"></p>
+  <button class="hb boostbtn" id="boostBtn" hidden disabled aria-disabled="true">✨ Burn cNFT for a boost · Coming soon</button>
+  <button class="looksrow" id="looksBtn"><span class="lk">🎨</span><span><b>Looks</b><br><small id="looksSub">Watch cases · unlock at Level 3</small></span><span class="soonpill">⌚ Cases</span></button>
+  <a class="wm2 wmlink" id="homeWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
+</section>
+
+<section class="view nftsview" id="nftsView" aria-label="My NFTs">
+  <div class="nftbar"><button class="homebtn" id="nftsHome">🏠 Home</button><h2 class="nfth">My NFTs</h2></div>
+  <p class="nftnote" id="nftNote"></p>
+  <div class="chips" id="nftChips" role="group" aria-label="Filter by collection"></div>
+  <div class="nftgrid" id="nftGrid"></div>
+  <a class="wm2 wmlink" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
+</section>
+
+<div class="htoast" id="hToast" role="status"></div><!-- M13: page level, so wallet messages show on every screen -->
+<div class="sheetbg" id="sheetBg"></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheethead"><h2 id="sheetTitle"></h2><button class="sheetx" id="sheetClose" aria-label="Close">✕</button></div>
+  <div class="sheetbody" id="sheetBody"></div>
+</section>
+
+<div class="view gameview" id="gameView">
+
+<div class="gamebar"><span class="fullpet" id="fullPet"></span>
+  <div class="volctl" id="volCtl"><button class="volbtn" id="spkWatch" aria-label="Volume muted. Tap to change" aria-expanded="false" aria-controls="volSlider"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9h4l5-4v14l-5-4H4z M16 9l5 6 M21 9l-5 6"/></svg></button><input type="range" class="volslider" id="volSlider" min="0" max="100" step="1" value="0" aria-label="Volume" hidden></div>
+  <div class="viewswitch" id="layoutBtn" role="group" aria-label="View"><button class="homebtn" data-view="watch" aria-pressed="true">⌚ Watch</button><button class="homebtn" data-view="phone" aria-pressed="false">📱 Duo</button></div>
+  <button class="homebtn foldbtn" id="foldPick" aria-label="Duo layout: Auto. Tap to change" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 12a8 8 0 1 1-2.6-5.9 M20 4v4.5h-4.5"/></svg><span id="foldTxt">Auto</span></button>
+</div>
+<header class="hero">
+  <img class="labs" src="assets/mnk3ylabs_logo.png" alt="MNK3YLabs logo" width="56" height="56">
+  <div>
+    <h1><b class="logo">BLU<span>P3TS</span></b> <em class="demo-tag">BETA</em></h1>
+  </div>
+</header>
+
+<main>
+  <div class="stagewrap" id="stagewrap">
+  <div class="stage" id="stage">
+    <div class="band top"></div><div class="band bottom"></div>
+    <img class="caselogo" id="caseLogo" src="assets/mnk3ylabs_logo.png" alt="" hidden>
+    <div class="case">
+      <div class="caseglow" aria-hidden="true"></div><div class="casesheen" aria-hidden="true"><i></i></div>
+      <button class="crown" id="crown" aria-label="Digital Crown: next screen"></button>
+      <div class="sidebtn"></div>
+      <div class="screen" id="screen">
+        <div class="topbar"><span class="ttl" id="ttl">BLUP3TS</span><span class="clock" id="clock">10:09</span></div>
+        <div class="concept">BETA</div>
+        <div class="dots" id="dots"></div>
+
+        <!-- LAUNCH -->
+        <section class="page" data-page="launch" id="pg-launch">
+          <div class="glow g-launch"></div>
+          <img class="launchpet" id="launchPet" src="assets/mnk3y_1579.png" alt="">
+          <img class="launchbanana" src="assets/banana.png" alt="">
+          <div class="launchtitle">BLU<span>P3TS</span></div>
+          <div class="cap center">Feed your MNK3Y. Watch it grow.</div>
+          <div class="launchbtns">
+            <button class="btn b-gold" id="startBtn"><img class="ico" src="assets/banana.png" alt="">Start playing</button>
+            <button class="btn b-ghost small" id="walletSoon" hidden>👛 Wallet mode</button>
+          </div>
+        </section>
+
+        <!-- HOME -->
+        <section class="page" data-page="home" id="pg-home">
+          <div class="moodpill" id="moodPill">😊 Happy</div>
+          <div class="glow g-home"></div>
+          <div class="shadow"></div>
+          <div class="petwrap" id="petWrap"><div class="petchomp" id="petChomp"><img class="petimg" id="petImg" src="assets/mnk3y_1579.png" alt="Your pet"></div></div>
+          <div class="verified" id="verified">✔ MNK3YS · sandbox pet</div>
+          <div class="fx" id="fx"></div>
+          <div class="eatlayer" id="eatLayer" aria-hidden="true"></div>
+          <div class="toast" id="toast"></div>
+          <div class="statgrid">
+            <div class="sc"><div class="sl c-cyan">HUNGER</div><div class="sv"><span id="hFull">80%</span><small> full</small></div><div class="bar"><i class="f-cyan" id="hFullBar"></i></div></div>
+            <div class="sc"><div class="sl c-pink">STRENGTH</div><div class="sv" id="hStr">0</div><div class="bar"><i class="f-pink" id="hStrBar"></i></div></div>
+            <div class="sc"><div class="sl c-gold">LEVEL</div><div class="sv" id="hLvl">1</div><div class="bar"><i class="f-gold" id="hLvlBar"></i></div></div>
+          </div>
+          <div class="fullinfo" id="fullInfo" aria-live="polite"></div>
+          <div class="homebtns">
+            <button class="btn b-cyan" id="feedBtn"><img class="ico" src="assets/banana.png" alt="">Feed</button>
+            <button class="btn b-pink" id="jamBtn">🎸 Jam</button>
+          </div>
+        </section>
+
+        <!-- STATS -->
+        <section class="page scroll" data-page="stats" id="pg-stats">
+          <div class="statsbars">
+            <div><div class="row sb"><span><img class="inl" src="assets/banana.png" alt=""> Hunger</span><span class="c-cyan" id="sFull"></span></div><div class="bar big"><i class="f-cyan" id="sFullBar"></i></div></div>
+            <div><div class="row sb"><span>💖 Happy</span><span class="c-pink" id="sJoy"></span></div><div class="bar big"><i class="f-pink" id="sJoyBar"></i></div></div>
+            <div><div class="row sb"><span id="sLvlL">⭐ Level 1</span><span class="c-gold" id="sLvl"></span></div><div class="bar big"><i class="f-gold" id="sLvlBar"></i></div></div>
+          </div>
+          <div class="card rarbox" id="rarityBox"></div>
+          <a class="adoptlink extlink" id="adoptLink" href="https://magiceden.io/" target="_blank" rel="noopener noreferrer" hidden>🐾 Adopt this pet on Magic Eden ↗</a>
+          <div class="card">
+            <div class="cardh">Traits <span class="dim small">rarity from Orbis</span></div>
+            <div id="traitList"></div>
+            <button class="btn b-tcyan look" id="lookBtn">🎵 Choose look</button>
+            <div class="fine" id="familyNote">Some traits are hidden or swapped to keep BLUP3TS family friendly.</div>
+          </div>
+          <div class="card facts">
+            <div class="row sb"><span class="cap">Bananas eaten</span><span id="sEaten">0</span></div>
+            <div class="row sb"><span class="cap">Hungry again</span><span id="sHungry">in 3 hr</span></div>
+            <div class="row sb"><span class="cap">Jam sessions</span><span id="sJams">0</span></div>
+          </div>
+        </section>
+
+        <!-- PETS -->
+        <section class="page scroll" data-page="pets" id="pg-pets">
+          <button class="btn b-ghost small nftsrow" id="gameNfts">🖼️ My NFTs · big view</button>
+          <div id="petList"></div>
+        </section>
+
+        <!-- BALANCE -->
+        <section class="page" data-page="balance" id="pg-balance">
+          <div class="balbig"><img src="assets/blunana_badge.png" alt=""><span id="bal">100,000</span></div>
+          <div class="cap center">Pretend $BLUNANA</div>
+          <button class="btn b-tcyan refill" id="refillBtn">Refill to 100,000</button>
+          <div class="fine center pad">Play money for Pretend mode. Nothing here touches real tokens.</div>
+          <button class="btn b-ghost small soon2" id="walletSoon2" hidden>👛 Wallet mode</button>
+        </section>
+
+        <!-- OVERLAYS -->
+        <div class="overlay" id="ov-feed">
+          <div class="ovhdr"><button class="close" data-close aria-label="Close">✕</button><span class="baltag"><img class="coin" src="assets/blunana_badge.png" alt=""><span id="feedBal"></span> pretend</span></div>
+          <div id="foods"></div>
+          <div class="fine center">Pretend $BLUNANA · play money · no real tokens</div>
+        </div>
+
+        <div class="overlay" id="ov-look">
+          <div class="ovhdr"><button class="close" data-close aria-label="Close">✕</button><span class="ovt">Family friendly · free</span></div>
+          <div class="scrollbox" id="lookList"></div>
+        </div>
+
+        <div class="overlay jam" id="ov-jam">
+          <span class="groove" id="jamGroove">🎸 8-bit groove</span>
+          <div class="jamstage">
+            <div class="notes" id="notes"></div>
+            <button class="jampet" id="jamPet" aria-label="Tap along"><img id="jamImg" src="assets/mnk3y_1579.png" alt=""></button>
+          </div>
+          <div class="jamfb">
+            <div class="jampop" id="jamPop" role="status" aria-live="polite" hidden></div>
+            <div class="jamtap" id="jamTap" role="status" aria-live="polite" hidden><span class="jamtap-hand" aria-hidden="true">👆</span> Tap your pet to jam! 🎵</div>
+          </div>
+          <div class="beatbar" id="beatBar" aria-hidden="true"><b></b><b></b><b></b><b></b></div>
+          <div class="eq" id="eq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="card jammood"><div class="row sb"><span>💖 Mood</span><span class="c-pink">+ boost</span></div><div class="bar big"><i class="f-pink" id="jamJoy"></i></div></div>
+          <div class="fine center" id="jamTxt">Tap your pet along to the beat · 8s left · free</div>
+          <div class="fine center longhint" id="longHint" hidden>Long Jam unlocks at Level 6</div>
+        </div>
+
+        <div class="overlay" id="ov-jamch">
+          <div class="ovhdr"><button class="close" data-close aria-label="Close">✕</button><span class="ovt">Jam · free</span></div>
+          <div class="jamch">
+            <button class="btn b-pink" id="jamQuick">🎸 Quick Jam · 8s</button>
+            <button class="btn b-tcyan" id="jamLongBtn">🎶 Long Jam · 16s</button>
+            <div class="fine center" id="jamChNote"></div>
+          </div>
+        </div>
+
+        <div class="overlay levelup" id="ov-level">
+          <div class="rays"></div>
+          <div class="lvhdr">LEVEL UP</div>
+          <div class="lvbadge" id="lvNum">2</div>
+          <img class="lvpet" id="lvPet" src="assets/mnk3y_1579.png" alt="">
+          <div class="lvtxt" id="lvTxt">MNK3Y got stronger!</div>
+          <div class="lvunlock" id="lvUnlock" hidden></div>
+          <button class="btn b-gold" data-close>Nice!</button>
+        </div>
+
+        <div class="overlay soonov" id="ov-soon">
+          <div class="soonicon">👛</div>
+          <div class="soont">Wallet mode</div>
+          <div class="fine center pad">Go to Home and pick Wallet mode to play with your own MNK3YS and ZMB3YS. Pretend mode needs no wallet.</div>
+          <button class="btn b-cyan" data-close>Got it</button>
+        </div>
+
+        <div class="foldside" aria-hidden="true"><img id="foldPet" src="assets/mnk3y_1579.png" alt=""></div>
+        <div class="foldhinge" aria-hidden="true"><i></i></div>
+      </div>
+      <!-- M13: the one watermark, drawn on the bottom of the screen; lives in the case so its 44px tap area can reach into the bezel -->
+      <a class="wm wmlink" id="gameWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
+    </div>
+    <svg class="casefx" viewBox="0 0 452 660" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="cxMkDrip" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8af0ff"/><stop offset=".55" stop-color="#48D8FC"/><stop offset="1" stop-color="#1E6FD9"/></linearGradient>
+        <linearGradient id="cxZbSlime" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d4ff7a"/><stop offset=".5" stop-color="#7CFF3A"/><stop offset="1" stop-color="#2e9e0c"/></linearGradient>
+        <linearGradient id="cxBlu" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B9F3FF"/><stop offset=".45" stop-color="#48D8FC"/><stop offset="1" stop-color="#1E6FD9"/></linearGradient>
+        <linearGradient id="cxGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1a8"/><stop offset=".5" stop-color="#F2C94C"/><stop offset="1" stop-color="#c8901a"/></linearGradient>
+      </defs>
+      <g class="fx-drip">
+      <g class="fxtop">
+        <g class="tw"><g transform="translate(158,44) rotate(-8) scale(1.05)"><path fill="url(#cxBlu)" stroke="#0B3E7A" stroke-width="1.2" d="M-14,-6 C-8,8 10,10 16,-2 C10,4 -4,2 -10,-8 Z"/><path fill="#0B2E5C" d="M-15,-7 l-3,-2 l2,4 z"/></g></g>
+        <g class="tw"><g transform="translate(294,44) rotate(188) scale(1.05)"><path fill="url(#cxBlu)" stroke="#0B3E7A" stroke-width="1.2" d="M-14,-6 C-8,8 10,10 16,-2 C10,4 -4,2 -10,-8 Z"/><path fill="#0B2E5C" d="M-15,-7 l-3,-2 l2,4 z"/></g></g>
+        <path d="M150,24 H302" stroke="url(#cxGold)" stroke-width="2" stroke-dasharray="2 7" stroke-linecap="round" opacity=".9"/>
+        <circle class="tw" cx="122" cy="44" r="3" fill="#F2C94C"/>
+        <circle class="tw" cx="330" cy="44" r="3" fill="#F2C94C"/>
+      </g>
+      <g class="fxbot">
+        <path fill="url(#cxMkDrip)" d="M110,582 H342 Q348,582 348,588 Q348,594 342,594 H110 Q104,594 104,588 Q104,582 110,582 Z"/>
+        <path class="dr" fill="url(#cxMkDrip)" d="M117.0,590.0 L117.0,607.0 A5.0,5.0 0 0 0 127.0,607.0 L127.0,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(255,255,255,.55)" cx="120.2" cy="606.0" rx="1.4" ry="2.5"/>
+        <path class="dr" fill="url(#cxMkDrip)" d="M142.0,590.0 L142.0,600.0 A4.0,4.0 0 0 0 150.0,600.0 L150.0,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(255,255,255,.55)" cx="144.6" cy="599.2" rx="1.1" ry="2.0"/>
+        <path class="dr" fill="url(#cxMkDrip)" d="M169.5,590.0 L169.5,621.5 A6.5,6.5 0 0 0 182.5,621.5 L182.5,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(255,255,255,.55)" cx="173.7" cy="620.2" rx="1.8" ry="3.2"/>
+        <path class="dr" fill="url(#cxMkDrip)" d="M207.5,590.0 L207.5,605.5 A4.5,4.5 0 0 0 216.5,605.5 L216.5,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(255,255,255,.55)" cx="210.4" cy="604.6" rx="1.3" ry="2.2"/>
+        <path class="dr" fill="url(#cxMkDrip)" d="M238.5,590.0 L238.5,628.5 A7.5,7.5 0 0 0 253.5,628.5 L253.5,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(255,255,255,.55)" cx="243.4" cy="627.0" rx="2.1" ry="3.8"/>
+        <path class="dr" fill="url(#cxMkDrip)" d="M275.5,590.0 L275.5,603.5 A4.5,4.5 0 0 0 284.5,603.5 L284.5,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(255,255,255,.55)" cx="278.4" cy="602.6" rx="1.3" ry="2.2"/>
+        <path class="dr" fill="url(#cxMkDrip)" d="M302.0,590.0 L302.0,616.0 A6.0,6.0 0 0 0 314.0,616.0 L314.0,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(255,255,255,.55)" cx="305.9" cy="614.8" rx="1.7" ry="3.0"/>
+        <path class="dr" fill="url(#cxMkDrip)" d="M329.5,590.0 L329.5,605.5 A4.5,4.5 0 0 0 338.5,605.5 L338.5,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(255,255,255,.55)" cx="332.4" cy="604.6" rx="1.3" ry="2.2"/>
+        <circle class="drop" cx="176" cy="628" r="3.4" fill="url(#cxMkDrip)"/>
+        <circle class="drop d2" cx="246" cy="636" r="3.8" fill="url(#cxMkDrip)"/>
+        <circle class="drop d3" cx="308" cy="622" r="3" fill="url(#cxMkDrip)"/>
+      </g>
+      </g>
+      <g class="fx-slime">
+      <g class="fxtop">
+        <path d="M100,8 l8,6 M108,8 l-8,6" stroke="#c9ff9a" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+        <path d="M100,21 l8,6 M108,21 l-8,6" stroke="#c9ff9a" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+        <path d="M100,34 l8,6 M108,34 l-8,6" stroke="#c9ff9a" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+        <path d="M100,47 l8,6 M108,47 l-8,6" stroke="#c9ff9a" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+        <path d="M100,60 l8,6 M108,60 l-8,6" stroke="#c9ff9a" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+        <path d="M344,8 l8,6 M352,8 l-8,6" stroke="#c9ff9a" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+        <path d="M344,21 l8,6 M352,21 l-8,6" stroke="#c9ff9a" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+        <path d="M344,34 l8,6 M352,34 l-8,6" stroke="#c9ff9a" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+        <path d="M344,47 l8,6 M352,47 l-8,6" stroke="#c9ff9a" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+        <path d="M344,60 l8,6 M352,60 l-8,6" stroke="#c9ff9a" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+        <path d="M300,10 l10,14 l-8,10 l12,12" fill="none" stroke="#050805" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
+        <path d="M300,10 l10,14 l-8,10 l12,12" fill="none" stroke="#7CFF3A" stroke-width=".8" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
+      </g>
+      <g class="fxbot">
+        <path fill="url(#cxZbSlime)" d="M110,582 H342 Q348,582 348,588 Q348,594 342,594 H110 Q104,594 104,588 Q104,582 110,582 Z"/>
+        <path class="dr" fill="url(#cxZbSlime)" d="M113.5,590.0 L113.5,603.5 A4.5,4.5 0 0 0 122.5,603.5 L122.5,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(230,255,200,.55)" cx="116.4" cy="602.6" rx="1.3" ry="2.2"/>
+        <path class="dr" fill="url(#cxZbSlime)" d="M133.0,590.0 L133.0,625.0 A7.0,7.0 0 0 0 147.0,625.0 L147.0,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(230,255,200,.55)" cx="137.6" cy="623.6" rx="2.0" ry="3.5"/>
+        <path class="dr" fill="url(#cxZbSlime)" d="M166.0,590.0 L166.0,610.0 A4.0,4.0 0 0 0 174.0,610.0 L174.0,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(230,255,200,.55)" cx="168.6" cy="609.2" rx="1.1" ry="2.0"/>
+        <path class="dr" fill="url(#cxZbSlime)" d="M192.0,590.0 L192.0,618.0 A6.0,6.0 0 0 0 204.0,618.0 L204.0,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(230,255,200,.55)" cx="195.9" cy="616.8" rx="1.7" ry="3.0"/>
+        <path class="dr" fill="url(#cxZbSlime)" d="M225.5,590.0 L225.5,633.5 A8.5,8.5 0 0 0 242.5,633.5 L242.5,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(230,255,200,.55)" cx="231.0" cy="631.8" rx="2.4" ry="4.2"/>
+        <path class="dr" fill="url(#cxZbSlime)" d="M263.5,590.0 L263.5,607.5 A4.5,4.5 0 0 0 272.5,607.5 L272.5,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(230,255,200,.55)" cx="266.4" cy="606.6" rx="1.3" ry="2.2"/>
+        <path class="dr" fill="url(#cxZbSlime)" d="M291.5,590.0 L291.5,621.5 A6.5,6.5 0 0 0 304.5,621.5 L304.5,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(230,255,200,.55)" cx="295.7" cy="620.2" rx="1.8" ry="3.2"/>
+        <path class="dr" fill="url(#cxZbSlime)" d="M323.0,590.0 L323.0,611.0 A5.0,5.0 0 0 0 333.0,611.0 L333.0,590.0 Z"/>
+        <ellipse class="sh" fill="rgba(230,255,200,.55)" cx="326.2" cy="610.0" rx="1.4" ry="2.5"/>
+        <circle class="bub" cx="150" cy="634" r="4" fill="#7CFF3A" opacity=".7"/>
+        <circle class="bub" cx="286" cy="644" r="3" fill="#b6ff5c" opacity=".7"/>
+        <circle class="bub" cx="252" cy="652" r="2" fill="#b6ff5c" opacity=".6"/>
+        <path d="M96,606 l14,10 l-4,12 l12,9 M356,604 l-12,12 l6,10 l-10,12" fill="none" stroke="#050805" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
+        <path d="M96,606 l14,10 l-4,12 l12,9 M356,604 l-12,12 l6,10 l-10,12" fill="none" stroke="#7CFF3A" stroke-width=".8" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
+        <circle class="bub b2" cx="200" cy="626" r="2.6" fill="#b6ff5c" opacity=".7"/>
+        <circle class="bub b3" cx="314" cy="618" r="3.2" fill="#7CFF3A" opacity=".65"/>
+      </g>
+      </g>
+    </svg>
+  </div>
+  </div>
+
+  <nav class="tabs" id="tabs" aria-label="Watch screens">
+    <button id="homeBtn" class="hometab"><span>🏠</span>Home</button>
+    <button data-go="home"><span>⌚</span>Watch</button>
+    <button data-go="stats"><span>📊</span>Stats</button>
+    <button data-go="pets"><span>🐵</span>Pets</button>
+    <button data-go="balance"><span><img class="blu" src="assets/banana.png" alt="Blunana" role="img" aria-label="Blunana" draggable="false"></span>Balance</button>
+  </nav>
+
+  <div class="controls">
+    <button id="speedBtn">⏩ Speed: 1s = 10 min</button>
+    <button id="hungryBtn">😋 Make hungry</button>
+    <button id="resetBtn">↺ Reset progress</button>
+  </div>
+
+</main>
+</div>
+
+<footer class="foot">
+  <div class="footline">Beta. Pretend $BLUNANA play money. Nothing real is ever sent.</div>
+  <nav class="socials" aria-label="BLUP3TS socials">
+    <a class="soc" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M18.9 2H22l-6.8 7.8L23 22h-6.2l-4.9-6.4L6.3 22H3.2l7.3-8.3L1 2h6.3l4.4 5.8L18.9 2Zm-1.1 18h1.7L6.3 3.9H4.5L17.8 20Z"/></svg>@BluP3ts</a>
+    <a class="soc" href="https://discord.gg/QM4ztAPSgf" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18 18 0 0 0-5.6 0L8.6 3a19.6 19.6 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1A19.8 19.8 0 0 0 6.1 21l1.3-2.1c-.7-.3-1.4-.6-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.7 19.7 0 0 0 6-3c.5-5.2-.8-9.7-3.6-13.6ZM8.3 15.3c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm7.4 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>Discord</a>
+  </nav>
+  <div class="muted">BLUP3TS by MNK3YLabs · Just a game: Pretend mode uses no real tokens.</div>
+</footer>
+
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script src="starters.js"></script>
+<script src="art.js"></script>
+<script src="filter.js"></script>
+<script src="rarity.js"></script>
+<script src="tiers.js"></script>
+<script src="eat.js"></script>
+<script src="app.js"></script>
+<script src="faq.js"></script>
+<script src="home.js"></script>
+<script src="vendor/blup3ts-sol.js"></script>
+<script src="boost.js"></script>
+<script src="wallet.js"></script>
+</body>
+</html>
