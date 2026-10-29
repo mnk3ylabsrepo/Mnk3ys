@@ -9,14 +9,14 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   // players use the starter pets. Static hosting (mnk3ylabs.com/play/) ships null. The Netlify staging deploy sets it
   // to its own function (netlify/functions/nft-check.js) at deploy time. If you point it at another server, add that
   // server to connect-src in the CSP (index.html meta, _headers, .htaccess). NEVER put an API key in this URL.
-  NFT_CHECK_ENDPOINT: '/.netlify/functions/nft-check',
+  NFT_CHECK_ENDPOINT: '/api/blup3ts-nfts',
   // NEXT BATCH: pet row flags. LP Dollz code and data stay in place; true brings them back.
   LPDOLLZ_ENABLED: false,
   LEGENDARY_STARTER_ENABLED: false, // MNK3Y #4182 (rank 16) starter, kept for later
   // Starter pets with no wallet: one random 'floor' MNK3Y + one random 'floor' ZMB3Y. The list comes from
   // netlify/functions/floor-pets.js (server-side, cached, sends only mint + name). Static hosting or no answer = bundled common pets.
   FLOOR_STARTERS: true,
-  FLOOR_ENDPOINT: '/.netlify/functions/floor-pets',
+  FLOOR_ENDPOINT: '/api/blup3ts-floor',
   // Read-only RPC for the (OFF) real-payment code paths only. null while real payments are off.
   RPC_URL: null,
 

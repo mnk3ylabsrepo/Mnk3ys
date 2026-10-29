@@ -127,6 +127,40 @@ app.get('/preview2/', function (req, res) {
   res.redirect(301, '/preview2');
 });
 
+// BLUP3TS preview: Azgog's read-only NFT check and floor-starter list. Real $BLUNANA payments stay off.
+const blup3tsNft = require('./lib/blup3ts/nft-check');
+const blup3tsFloor = require('./lib/blup3ts/floor-pets');
+function blup3tsEvent(req) {
+  return {
+    httpMethod: req.method,
+    queryStringParameters: req.query || {},
+    headers: {
+      origin: req.headers.origin || '',
+      'x-forwarded-for': req.headers['x-forwarded-for'] || (req.socket && req.socket.remoteAddress) || ''
+    },
+    body: ''
+  };
+}
+function sendBlup3ts(res, result) {
+  res.status(result.statusCode || 200);
+  Object.keys(result.headers || {}).forEach(function (k) { res.setHeader(k, result.headers[k]); });
+  res.send(result.body || '');
+}
+app.get('/api/blup3ts-nfts', async function (req, res) {
+  try {
+    await sendBlup3ts(res, await blup3tsNft.handler(blup3tsEvent(req)));
+  } catch (e) {
+    res.status(502).json({ ok: false, code: 'rpc', message: 'Could not check NFTs right now.' });
+  }
+});
+app.get('/api/blup3ts-floor', async function (req, res) {
+  try {
+    await sendBlup3ts(res, await blup3tsFloor.handler());
+  } catch (e) {
+    res.status(200).json({ live: false });
+  }
+});
+
 // ——— Discord OAuth: start ———
 app.get('/api/discord/auth', function (req, res) {
   if (!DISCORD_CLIENT_ID) {
