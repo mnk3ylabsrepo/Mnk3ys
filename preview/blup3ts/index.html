@@ -26,7 +26,13 @@
 <meta name="twitter:image" content="https://www.mnk3ylabs.com/preview/blup3ts/og.png">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
-<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BLUP3TS">
+<meta name="application-name" content="BLUP3TS">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 
@@ -34,8 +40,8 @@
   <button class="spk spkhome" id="spkHome" aria-label="Sound is off. Turn sound on" aria-pressed="false">🔇</button>
   <div class="bgfx" aria-hidden="true"><i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="stars"></i></div>
   <header class="hhead">
-    <img class="hlabs" src="assets/mnk3ylabs_logo.png" alt="MNK3YLabs logo" width="64" height="64">
-    <h1 class="hword"><span class="wmark">BLU<b>P3TS</b></span><em class="beta-tag">BETA</em></h1>
+    <img class="hlabs" id="homeLogo" src="assets/mnk3ylabs_logo.png" alt="MNK3YLabs logo" role="button" tabindex="0" width="64" height="64">
+    <h1 class="hword"><span class="wmark">BLU<b>P3TS</b></span><em class="beta-tag betatap" role="button" tabindex="0" aria-label="Beta: what is coming">BETA</em></h1>
     <p class="htag">Feed your pet bananas, jam to 8-bit tunes and watch it grow. Starring MNK3YS and ZMB3YS. BABI3S coming soon.</p>
   </header>
   <div class="carwrap">
@@ -58,7 +64,7 @@
   <p class="modenote" id="modeNote"></p>
   <button class="hb boostbtn" id="boostBtn" hidden disabled aria-disabled="true">✨ Burn cNFT for a boost · Coming soon</button>
   <button class="looksrow" id="looksBtn"><span class="lk">🎨</span><span><b>Looks</b><br><small id="looksSub">Watch cases · unlock at Level 3</small></span><span class="soonpill">⌚ Cases</span></button>
-  <a class="wm2 wmlink" id="homeWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
+  <a class="wm2 wmlink" id="homeWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Made by Azgog (@azgog): Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
 </section>
 
 <section class="view nftsview" id="nftsView" aria-label="My NFTs">
@@ -66,7 +72,7 @@
   <p class="nftnote" id="nftNote"></p>
   <div class="chips" id="nftChips" role="group" aria-label="Filter by collection"></div>
   <div class="nftgrid" id="nftGrid"></div>
-  <a class="wm2 wmlink" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
+  <a class="wm2 wmlink" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Made by Azgog (@azgog): Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
 </section>
 
 <div class="htoast" id="hToast" role="status"></div><!-- M13: page level, so wallet messages show on every screen -->
@@ -78,15 +84,16 @@
 
 <div class="view gameview" id="gameView">
 
-<div class="gamebar"><span class="fullpet" id="fullPet"></span>
+<div class="gamebar" role="region" aria-label="Game controls"><span class="fullpet" id="fullPet"></span>
   <div class="volctl" id="volCtl"><button class="volbtn" id="spkWatch" aria-label="Volume muted. Tap to change" aria-expanded="false" aria-controls="volSlider"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9h4l5-4v14l-5-4H4z M16 9l5 6 M21 9l-5 6"/></svg></button><input type="range" class="volslider" id="volSlider" min="0" max="100" step="1" value="0" aria-label="Volume" hidden></div>
   <div class="viewswitch" id="layoutBtn" role="group" aria-label="View"><button class="homebtn" data-view="watch" aria-pressed="true">⌚ Watch</button><button class="homebtn" data-view="phone" aria-pressed="false">📱 Duo</button></div>
   <button class="homebtn foldbtn" id="foldPick" aria-label="Duo layout: Auto. Tap to change" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 12a8 8 0 1 1-2.6-5.9 M20 4v4.5h-4.5"/></svg><span id="foldTxt">Auto</span></button>
+  <button class="homebtn fsbtn" id="fsBtn" aria-label="Full screen" aria-pressed="false" title="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="fs-in" d="M4 9V4h5 M15 4h5v5 M20 15v5h-5 M9 20H4v-5"/><path class="fs-out" d="M9 4v5H4 M20 9h-5V4 M15 20v-5h5 M4 15h5v5"/></svg></button>
 </div>
 <header class="hero">
-  <img class="labs" src="assets/mnk3ylabs_logo.png" alt="MNK3YLabs logo" width="56" height="56">
+  <img class="labs" id="heroLogo" src="assets/mnk3ylabs_logo.png" alt="MNK3YLabs logo: go Home" role="button" tabindex="0" width="56" height="56">
   <div>
-    <h1><b class="logo">BLU<span>P3TS</span></b> <em class="demo-tag">BETA</em></h1>
+    <h1><b class="logo">BLU<span>P3TS</span></b> <em class="demo-tag betatap" role="button" tabindex="0" aria-label="Beta: what is coming">BETA</em></h1>
   </div>
 </header>
 
@@ -98,10 +105,10 @@
     <div class="case">
       <div class="caseglow" aria-hidden="true"></div><div class="casesheen" aria-hidden="true"><i></i></div>
       <button class="crown" id="crown" aria-label="Digital Crown: next screen"></button>
-      <div class="sidebtn"></div>
+      <button class="sidebtn" id="sideBtn" aria-label="Side button: watch Home"></button>
       <div class="screen" id="screen">
         <div class="topbar"><span class="ttl" id="ttl">BLUP3TS</span><span class="clock" id="clock">10:09</span></div>
-        <div class="concept">BETA</div>
+        <div class="concept betatap" role="button" tabindex="0" aria-label="Beta: what is coming">BETA</div>
         <div class="dots" id="dots"></div>
 
         <!-- LAUNCH -->
@@ -119,7 +126,7 @@
 
         <!-- HOME -->
         <section class="page" data-page="home" id="pg-home">
-          <div class="moodpill" id="moodPill">😊 Happy</div>
+          <div class="moodpill" id="moodPill" role="button" tabindex="0" aria-label="Happy: tip" data-al="tip">😊 Happy</div>
           <div class="glow g-home"></div>
           <div class="shadow"></div>
           <div class="petwrap" id="petWrap"><div class="petchomp" id="petChomp"><img class="petimg" id="petImg" src="assets/mnk3y_1579.png" alt="Your pet"></div></div>
@@ -128,9 +135,9 @@
           <div class="eatlayer" id="eatLayer" aria-hidden="true"></div>
           <div class="toast" id="toast"></div>
           <div class="statgrid">
-            <div class="sc"><div class="sl c-cyan">HUNGER</div><div class="sv"><span id="hFull">80%</span><small> full</small></div><div class="bar"><i class="f-cyan" id="hFullBar"></i></div></div>
-            <div class="sc"><div class="sl c-pink">STRENGTH</div><div class="sv" id="hStr">0</div><div class="bar"><i class="f-pink" id="hStrBar"></i></div></div>
-            <div class="sc"><div class="sl c-gold">LEVEL</div><div class="sv" id="hLvl">1</div><div class="bar"><i class="f-gold" id="hLvlBar"></i></div></div>
+            <div class="sc" id="tileHunger" role="button" tabindex="0"><div class="sl c-cyan">HUNGER</div><div class="sv"><span id="hFull">80%</span><small> full</small></div><div class="bar"><i class="f-cyan" id="hFullBar"></i></div><span class="srtxt">, tip</span></div>
+            <div class="sc" id="tileStr" role="button" tabindex="0"><div class="sl c-pink">STRENGTH</div><div class="sv" id="hStr">0</div><div class="bar"><i class="f-pink" id="hStrBar"></i></div><span class="srtxt">, open Stats</span></div>
+            <div class="sc" id="tileLvl" role="button" tabindex="0"><div class="sl c-gold">LEVEL</div><div class="sv" id="hLvl">1</div><div class="bar"><i class="f-gold" id="hLvlBar"></i></div><span class="srtxt">, open Stats</span></div>
           </div>
           <div class="fullinfo" id="fullInfo" aria-live="polite"></div>
           <div class="homebtns">
@@ -147,7 +154,7 @@
             <div><div class="row sb"><span id="sLvlL">⭐ Level 1</span><span class="c-gold" id="sLvl"></span></div><div class="bar big"><i class="f-gold" id="sLvlBar"></i></div></div>
           </div>
           <div class="card rarbox" id="rarityBox"></div>
-          <a class="adoptlink extlink" id="adoptLink" href="https://magiceden.io/" target="_blank" rel="noopener noreferrer" hidden>🐾 Adopt this pet on Magic Eden ↗</a>
+          <a class="adoptlink extlink" id="adoptLink" href="https://www.orbisonsol.io/marketplace/mnk3ys" target="_blank" rel="noopener noreferrer" hidden>🐾 Adopt on Orbis ↗</a>
           <div class="card">
             <div class="cardh">Traits <span class="dim small">rarity from Orbis</span></div>
             <div id="traitList"></div>
@@ -169,7 +176,7 @@
 
         <!-- BALANCE -->
         <section class="page" data-page="balance" id="pg-balance">
-          <div class="balbig"><img src="assets/blunana_badge.png" alt=""><span id="bal">100,000</span></div>
+          <div class="balbig"><img id="balCoin" class="balcoin" src="assets/blunana_badge.png" alt="Pretend $BLUNANA coin" role="button" tabindex="0"><span id="bal">100,000</span></div>
           <div class="cap center">Pretend $BLUNANA</div>
           <button class="btn b-tcyan refill" id="refillBtn">Refill to 100,000</button>
           <div class="fine center pad">Play money for Pretend mode. Nothing here touches real tokens.</div>
@@ -235,7 +242,7 @@
         <div class="foldhinge" aria-hidden="true"><i></i></div>
       </div>
       <!-- M13: the one watermark, drawn on the bottom of the screen; lives in the case so its 44px tap area can reach into the bezel -->
-      <a class="wm wmlink" id="gameWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
+      <a class="wm wmlink" id="gameWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Made by Azgog (@azgog): Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
     </div>
     <svg class="casefx" viewBox="0 0 452 660" aria-hidden="true" focusable="false">
       <defs>
@@ -323,7 +330,6 @@
 
   <nav class="tabs" id="tabs" aria-label="Watch screens">
     <button id="homeBtn" class="hometab"><span>🏠</span>Home</button>
-    <button data-go="home"><span>⌚</span>Watch</button>
     <button data-go="stats"><span>📊</span>Stats</button>
     <button data-go="pets"><span>🐵</span>Pets</button>
     <button data-go="balance"><span><img class="blu" src="assets/banana.png" alt="Blunana" role="img" aria-label="Blunana" draggable="false"></span>Balance</button>
@@ -349,15 +355,16 @@
 
 <script src="config.js?v=3"></script>
 <script src="data.js"></script>
-<script src="starters.js"></script>
+<script src="starters.js?v=2"></script>
 <script src="art.js"></script>
 <script src="filter.js"></script>
 <script src="rarity.js"></script>
 <script src="tiers.js"></script>
 <script src="eat.js"></script>
-<script src="app.js"></script>
+<script src="app.js?v=2"></script>
 <script src="faq.js?v=2"></script>
-<script src="home.js"></script>
+<script src="home.js?v=2"></script>
+<script src="fullscreen.js?v=1"></script>
 <script src="vendor/blup3ts-sol.js"></script>
 <script src="boost.js"></script>
 <script src="wallet.js?v=2"></script>

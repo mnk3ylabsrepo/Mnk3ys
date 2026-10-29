@@ -39,7 +39,8 @@
     [].forEach.call(document.querySelectorAll('#layoutBtn [data-view]'), function (b) { var on = b.dataset.view === A.layout(); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
     var fp = $('foldPick'); if (fp) { var nm = FOLD_NAME[A.fold()] || 'Auto'; fp.hidden = !ph; fp.dataset.fold = A.fold(); $('foldTxt').textContent = nm; fp.setAttribute('aria-label', 'Duo layout: ' + nm + '. Tap to change'); }
   }
-  [].forEach.call(document.querySelectorAll('#layoutBtn [data-view]'), function (b) { b.onclick = function () { if (A.layout() === b.dataset.view) return; A.play('tap'); A.setLayout(b.dataset.view); renderLayoutBtn(); window.scrollTo(0, 0); }; });
+  [].forEach.call(document.querySelectorAll('#layoutBtn [data-view]'), function (b) { b.onclick = function () { if (A.layout() === b.dataset.view) { if (view === 'game') { A.play('tap'); A.hideOverlays(); A.showPage('home'); } return; } A.play('tap'); // no Watch tab any more: tapping the view you are in goes back to the pet screen
+       A.setLayout(b.dataset.view); renderLayoutBtn(); window.scrollTo(0, 0); }; });
   if ($('foldPick')) $('foldPick').onclick = function () { A.play('tap'); A.setFold(FOLD_NEXT[A.fold()] || 'auto'); renderLayoutBtn(); }; // rotate button: Auto -> Stacked -> Side by side
 
   // ---------- My NFTs: grid of your pets (owned in Wallet mode, starters in Pretend), filter by collection ----------
@@ -77,6 +78,12 @@
     });
   }
   $('homeBtn').onclick = goHome; // Home lives in the bottom nav (one nav bar)
+  // Quick tap fixes: header logos wiggle (the game header one also goes Home); BETA badges say what is coming
+  function wig(n) { n.classList.remove('wig'); void n.offsetWidth; n.classList.add('wig'); setTimeout(function () { n.classList.remove('wig'); }, 700); }
+  if ($('heroLogo')) $('heroLogo').onclick = function () { wig(this); wig($('homeLogo')); goHome(); };
+  if ($('homeLogo')) $('homeLogo').onclick = function () { A.play('tap'); wig(this); };
+  [].forEach.call(document.querySelectorAll('.hhead .betatap'), function (n) { n.onclick = function () { A.play('tap'); htoast('New stuff on the way, share ideas on Discord'); }; });
+  [].forEach.call(document.querySelectorAll('.hero .betatap'), function (n) { n.onclick = function () { A.play('tap'); A.toast('New stuff on the way, share ideas on Discord'); }; });
 
   // ---------- toast ----------
   var tt;
@@ -236,6 +243,7 @@
       };
       nodes.push(b, el('p', 'muted', 'Only changes trait names on your own connected NFTs in Wallet mode. Never on starter pets. Saved on this device only.'));
     }
+    if (window.BLUP3TS_FS) nodes = nodes.concat(BLUP3TS_FS.settingNodes()); // 'Start in full screen' switch
     openSheet('Settings', nodes);
   }
   $('settingsBtn').onclick = function () { A.play('tap'); settings(); };

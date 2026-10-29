@@ -38,7 +38,9 @@
   function newPet() { return { full: 80, joy: 70, str: 0, eaten: 0, jams: 0 }; }
   function fresh() { var s = { active: DATA.pets[0].id, bal: START, speed: 0, pets: {}, looks: {}, started: false, sound: false, mode: 'pretend', orig: false, adult: false, layout: 'watch', vol: 0, fold: 'auto' }; DATA.pets.forEach(function (p) { s.pets[p.id] = newPet(); }); var zs = DATA.pets.filter(function (p) { return p.collection === 'ZMB3YS'; })[0]; if (zs) { s.pets[zs.id].full = 26; s.pets[zs.id].joy = 55; } return s; } // NEXT BATCH: the ZMB3Y starter may be a live floor pick
   function get(k) { try { var v = store && store.getItem(P + k); return v == null ? undefined : JSON.parse(v); } catch (e) { return undefined; } }
-  function clearKeys() { try { if (!store) return; KEYS.forEach(function (k) { store.removeItem(P + k); }); for (var i = store.length - 1; i >= 0; i--) { var k = store.key(i); if (k && k.indexOf(P) === 0) store.removeItem(k); } } catch (e) {} }
+  function clearKeys() { try { if (!store) return; KEYS.forEach(function (k) { store.removeItem(P + k); }); for (var i = store.length - 1; i >= 0; i--) { var k = store.key(i); if (k && k.indexOf(P) === 0 && k !== P + 'floorlast') store.removeItem(k); } } catch (e) {} } // keeps floorlast (starters.js 'never the same pet twice'; not progress) - the live list can land before app.js runs
+  // spoken name = the visible text first, then what a tap does (data-al), so voice control and screen readers match what you see
+  function syncAl() { requestAnimationFrame(function () { document.querySelectorAll('[data-al]').forEach(function (n) { var t = (n.innerText || n.textContent || '').replace(/\s+/g, ' ').trim(); var l = (t ? t + ': ' : '') + n.dataset.al; if (n.getAttribute('aria-label') !== l) n.setAttribute('aria-label', l); }); }); }
   function load() {
     var s = fresh(), v;
     if (typeof (v = get('balance')) === 'number' && v >= 0) s.bal = v;
@@ -58,7 +60,7 @@
     v = get('vol'); s.vol = typeof v === 'number' && isFinite(v) ? Math.round(Math.max(0, Math.min(100, v))) : (s.sound ? 70 : 0); // master volume 0..100 (older saves: sound on = 70)
     return s;
   }
-  if (/[?&]fresh=1/.test(location.search)) { var keepPick = null; try { keepPick = store && store.getItem(P + 'floorpick'); } catch (e) {} clearKeys(); try { if (keepPick) store.setItem(P + 'floorpick', keepPick); } catch (e) {} } // starters.js already cleared and may have re-saved the pick
+  if (/[?&]fresh=1/.test(location.search)) clearKeys(); // starts over (starters.js picks fresh floor pets on every Pretend load anyway)
   var S = load();
   function save() {
     try { if (!store) return;
@@ -161,7 +163,7 @@
     wmFit();
     $('moodPill').textContent = m[0] + ' ' + m[1];
     var shown = eating ? dispFull : p.full;
-    $('hFull').textContent = Math.round(eating ? dispText : p.full) + '%'; $('hFullBar').style.width = shown + '%';
+    syncAl(); $('hFull').textContent = Math.round(eating ? dispText : p.full) + '%'; $('hFullBar').style.width = shown + '%';
     $('feedBtn').disabled = eating; $('jamBtn').disabled = eating;
     var lo = strNeeded(lvl), hi = strNeeded(lvl + 1), lvlPct = (p.str - lo) / (hi - lo) * 100;
     $('hStr').textContent = fmt(p.str); $('hStrBar').style.width = Math.min(100, p.str / hi * 100) + '%';
@@ -197,9 +199,9 @@
   function renderRarity() {
     var box = $('rarityBox'); if (!box) return; box.textContent = '';
     var r = rarityInfo(), d = petDef();
-    // M13 batch: a live floor starter (never a wallet pet) gets a small 'Adopt on Magic Eden' link to its own item page
+    // M13 batch: a live floor starter (never a wallet pet) gets a small 'Adopt on Orbis' link to its own Orbis item page
     var ad = $('adoptLink'); if (ad) { var okm = d && d.floor && !d.owned && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(d.mint || '');
-      ad.hidden = !okm; if (okm) { ad.href = 'https://magiceden.io/item-details/' + d.mint; ad.setAttribute('aria-label', 'Adopt ' + d.name + ' on Magic Eden (opens a new tab)'); } }
+      ad.hidden = !okm; if (okm) { ad.href = 'https://www.orbisonsol.io/marketplace/item/' + d.mint; ad.setAttribute('aria-label', 'Adopt ' + d.name + ' on Orbis (opens a new tab)'); } }
     var h = el('div', 'cardh'); h.appendChild(document.createTextNode('Rarity ')); h.appendChild(el('span', 'dim small', 'preview')); box.appendChild(h);
     var row = el('div', 'trow'); row.appendChild(el('span', 'tk', 'Tier'));
     var tv = el('span', 'tv'); tv.appendChild(document.createTextNode(r && r.tier ? r.tier.name : 'Coming soon'));
@@ -364,6 +366,9 @@
     var lk = el('div', 'lock'); lk.innerHTML = '<svg width="28" height="32" viewBox="0 0 30 34" aria-hidden="true"><path d="M8 15V10a7 7 0 0 1 14 0v5" fill="none" stroke="#F2C94C" stroke-width="3.5" stroke-linecap="round"/><rect x="3" y="14" width="24" height="18" rx="5" fill="#F2C94C"/><circle cx="15" cy="22" r="2.6" fill="#3a2c00"/><rect x="13.8" y="23" width="2.4" height="5" rx="1.2" fill="#3a2c00"/></svg>';
     lav.appendChild(lk); lb.appendChild(lav);
     var lt = el('div', 'ptext'); lt.appendChild(el('div', 'pn', 'BABI3S')); lt.appendChild(el('div', 'ps', 'Coming soon')); lb.appendChild(lt); list.appendChild(lb);
+    lk.classList.add('pclock'); lb.id = 'babiRow'; lb.setAttribute('role', 'button'); lb.tabIndex = 0; lb.setAttribute('aria-label', 'BABI3S: coming soon');
+    lb.onclick = function () { play('tap'); var s = lk.querySelector('svg'); lk.classList.remove('jig'); void lk.offsetWidth; lk.classList.add('jig'); if (s) s.addEventListener('animationend', function () { lk.classList.remove('jig'); }, { once: true }); setTimeout(function () { lk.classList.remove('jig'); }, 900); toast('BABI3S are coming soon! 🔒', false, lb); };
+    lb.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); lb.click(); } };
     // M13 'Add my own': the easy way to bring in your own MNK3YS / ZMB3YS, right here (no trip to Home).
     // Not connected -> the connect step (Open in Solflare on a phone). Connected -> check the wallet again, with a spinner.
     var Wm = window.BLUP3TS_WALLET, ao = walletOn() && Wm && Wm.addOwnInfo ? Wm.addOwnInfo() : null;
@@ -384,10 +389,13 @@
   function hideOverlays() { ovOpen = null; OVS.forEach(function (o) { $(o).classList.remove('show'); }); endJam(true); render(); }
   document.querySelectorAll('[data-close]').forEach(function (b) { b.onclick = function () { play('tap'); hideOverlays(); }; });
   var tt;
-  function toast(text, withCoin) {
+  function toast(text, withCoin, near) { // near: optional element; the toast then sits just above it (seen even when the page is scrolled)
     var t = $('toast'); t.__blu = null; bluText(t, text);
+    var pe = $('pg-' + page); if (pe && t.parentNode !== pe) pe.appendChild(t); // tap fixes: toasts show on every watch page, not only Home
+    t.style.top = ''; if (pe && near) { var f = wmScale || 1, nr = near.getBoundingClientRect(), pr = pe.getBoundingClientRect(); t.style.top = Math.max(4, (nr.top - 40 * f >= 0 ? (nr.top - pr.top) / f - 40 : (nr.bottom - pr.top) / f + 8) + pe.scrollTop) + 'px'; } // above it, or below when there is no room on screen
+    else if (pe && pe.scrollTop) t.style.top = (parseFloat(getComputedStyle(t).top) + pe.scrollTop) + 'px';
     if (withCoin) { var c = el('img'); c.src = 'assets/blunana_badge.png'; c.alt = ''; t.appendChild(c); }
-    t.classList.add('show'); clearTimeout(tt); tt = setTimeout(function () { t.classList.remove('show'); }, 1900);
+    t.classList.add('show'); clearTimeout(tt); tt = setTimeout(function () { t.classList.remove('show'); }, 3000); // toasts stay up about 3 s (Azgog, Oct 29)
   }
   function trick(cls, ms) { var w = $('petWrap'); w.classList.remove('chomp', 'hop', 'shake'); void w.offsetWidth; w.classList.add(cls); setTimeout(function () { w.classList.remove(cls); }, ms); }
   function burst(kind, n) {
@@ -584,6 +592,27 @@
   $('walletSoon').onclick = $('walletSoon2').onclick = function () { play('tap'); var Wm = window.BLUP3TS_WALLET; if (walletOn() && Wm && Wm.addOwnTap) Wm.addOwnTap(); else show('ov-soon'); };
   if (!walletOn()) { var sn = document.querySelector('#ov-soon .fine'); if (sn) sn.textContent = 'Wallet connect is coming soon. Then you can play with your own MNK3YS and ZMB3YS. Pretend mode works now and needs no wallet.'; }
   $('refillBtn').onclick = function () { play('tap'); S.bal = START; save(); render(); };
+
+  // ---------- Quick tap fixes (Azgog, Oct 29): little reactions so taps never feel dead ----------
+  function keyTap(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }
+  [].forEach.call(document.querySelectorAll('#moodPill, #tileHunger, #tileStr, #tileLvl, #balCoin, .betatap, #heroLogo, #homeLogo'), function (n) { n.addEventListener('keydown', keyTap); });
+  function bump(n, cls, ms) { if (!n) return; n.classList.remove(cls); void n.offsetWidth; n.classList.add(cls); setTimeout(function () { n.classList.remove(cls); }, ms); }
+  var patAt = 0;
+  $('petImg').addEventListener('click', function () { // pat the pet: bounce + a heart + a toast
+    if (eating || jamTimer || page !== 'home') return; var now = Date.now(); if (now - patAt < 450) return; patAt = now;
+    play('tap'); trick('hop', 900); toast(petDef().name + ' loves pats! 💛');
+    var fx = $('fx'), pw = $('petWrap'), h = el('span', 'patheart', '💛');
+    h.style.left = (pw.offsetLeft + pw.offsetWidth / 2) + 'px'; h.style.top = (pw.offsetTop + pw.offsetHeight * .2) + 'px';
+    fx.appendChild(h); setTimeout(function () { if (h.parentNode) h.parentNode.removeChild(h); }, 1100);
+  });
+  var MOOD_TIP = { Starving: 'Starving! Tap Feed for a big snack.', Hungry: 'Hungry! Tap Feed to share a banana.', Sad: 'Feeling sad. A Jam together will cheer it up.',
+    Ecstatic: 'Best day ever: full tummy and lots of fun!', Happy: 'Happy! Keep the bananas and tunes coming.', Okay: 'Doing okay. A snack or a Jam makes it happier.' };
+  $('moodPill').onclick = function () { play('tap'); var m = mood(pet()); toast(m[0] + ' ' + (MOOD_TIP[m[1]] || 'Tap Feed or Jam to play together.')); };
+  $('tileHunger').onclick = function () { play('tap'); toast('Hunger shows how full your pet is. Tap Feed to fill it up.'); };
+  $('tileStr').onclick = $('tileLvl').onclick = function () { play('tap'); showPage('stats'); };
+  $('balCoin').onclick = function () { play('tap'); bump(this, 'spin', 900); toast('Pretend $BLUNANA, play money'); };
+  $('sideBtn').onclick = function () { play('tap'); hideOverlays(); if (!S.started) start(); showPage('home'); };
+  [].forEach.call(document.querySelectorAll('#screen .betatap'), function (n) { n.onclick = function () { play('tap'); toast('New stuff on the way, share ideas on Discord'); }; });
   if ($('soundBtn')) $('soundBtn').onclick = function () { setSound(!soundOn); };
   if ($('spkHome')) $('spkHome').onclick = function (e) { e.stopPropagation(); setSound(!soundOn); }; // Home corner: quick mute / unmute
   (function () { // M13: in-game speaker icon opens a 0..100 volume slider (top bar, same spot in Watch and Phone)
@@ -594,7 +623,7 @@
     r.addEventListener('input', function () { setVolume(r.value); });
     r.addEventListener('change', function () { setVolume(r.value); });
     r.addEventListener('keydown', function (e) { if (e.key === 'Escape') { open(false); b.focus(); } });
-    document.addEventListener('pointerdown', function (e) { if (!r.hidden && !box.contains(e.target)) open(false); }, true);
+    document.addEventListener('click', function (e) { if (!r.hidden && !box.contains(e.target)) open(false); }, true); // close on the click (not pointerdown): the bar re-lays out after the tap has found its button
   })();
   function speedLabel() { $('speedBtn').textContent = '⏩ Speed: ' + SPEEDS[S.speed][1]; }
   $('speedBtn').onclick = function () { S.speed = (S.speed + 1) % SPEEDS.length; speedLabel(); save(); };
@@ -620,6 +649,53 @@
     [].forEach.call(fx.querySelectorAll('.fxbot'), function (g) { if (full) g.setAttribute('transform', 'translate(0 ' + dy + ')'); else g.removeAttribute('transform'); });
     [].forEach.call(fx.querySelectorAll('.fxtop'), function (g) { if (full) g.setAttribute('transform', 'translate(0 -14)'); else g.removeAttribute('transform'); });
   }
+
+  // Quick tap fixes: in portrait, the crown, the screen dots and the side button each get >= 44 real pixels to tap,
+  // without covering the pet or the stat tiles: crown grows out to the window edge, dots sit just left of it, side button under it.
+  function sideFit() {
+    var cr = $('crown'), dt = $('dots'), sb = $('sideBtn'), st = $('stage'); if (!cr || !dt || !sb || !st) return;
+    [cr, sb].forEach(function (n) { n.style.height = ''; n.style.borderTop = ''; n.style.borderBottom = ''; n.style.width = ''; n.style.right = ''; n.style.borderRight = ''; n.style.borderLeft = ''; n.style.top = ''; });
+    dt.style.top = ''; dt.style.right = ''; [].forEach.call(dt.children, function (b) { b.style.transform = ''; b.style.removeProperty('--dx'); }); st.classList.remove('t44'); var pw = $('petWrap'); if (pw) { pw.style.left = ''; pw.style.width = ''; pw.style.height = ''; }
+    var f = wmScale || 1, sr = st.getBoundingClientRect(), gv = $('gameView'); if (!sr.width) return;
+    if (window.innerHeight <= window.innerWidth || (gv && gv.classList.contains('fold-h'))) { // landscape + Duo side by side: layout unchanged; the side button's tap area only grows outward
+      var r0 = sb.getBoundingClientRect(), cs0 = getComputedStyle(sb), er0 = Math.max(0, Math.min(44.5 - r0.width, window.innerWidth - r0.right - 2));
+      if (er0 > 0) { if (cs0.boxSizing === 'border-box') sb.style.width = (sb.offsetWidth + er0 / f) + 'px'; sb.style.right = (parseFloat(cs0.right) - er0 / f) + 'px'; sb.style.borderRight = (er0 / f) + 'px solid transparent'; }
+      return;
+    }
+    var L = 44 / f + 0.5; st.style.setProperty('--t44', L + 'px'); st.classList.add('t44');
+    function widen(n) {
+      var r = n.getBoundingClientRect(), cs = getComputedStyle(n), need = 44.5 - r.width; if (need <= 0) return;
+      var er = Math.max(0, Math.min(need, window.innerWidth - r.right)), el_ = need - er;
+      if (cs.boxSizing === 'border-box') n.style.width = (n.offsetWidth + need / f) + 'px'; // borders below are transparent tap area; the drawn part keeps its size
+      if (er) { n.style.right = (parseFloat(cs.right) - er / f) + 'px'; n.style.borderRight = (er / f) + 'px solid transparent'; }
+      if (el_) n.style.borderLeft = (parseFloat(cs.borderLeftStyle === 'none' ? 0 : cs.borderLeftWidth) + el_ / f) + 'px solid transparent';
+    }
+    function tall(n) { // small screens: grow the tap area up and down with transparent borders (the drawn part keeps its size and place)
+      var r = n.getBoundingClientRect(), cs = getComputedStyle(n), need = 44.5 - r.height; if (need <= 0) return; var h = need / 2 / f;
+      if (cs.boxSizing === 'border-box') n.style.height = (n.offsetHeight + need / f) + 'px';
+      n.style.top = (parseFloat(cs.top) - h) + 'px';
+      n.style.borderTop = (parseFloat(cs.borderTopStyle === 'none' ? 0 : cs.borderTopWidth) + h) + 'px solid transparent';
+      n.style.borderBottom = (parseFloat(cs.borderBottomStyle === 'none' ? 0 : cs.borderBottomWidth) + h) + 'px solid transparent';
+    }
+    widen(cr); widen(sb); tall(cr); tall(sb);
+    var c = cr.getBoundingClientRect(), s = sb.getBoundingClientRect();
+    if (s.top < c.bottom + 2) sb.style.top = (sb.offsetTop + (c.bottom + 2 - s.top) / f) + 'px';
+    var d = dt.getBoundingClientRect(), cs = getComputedStyle(dt);
+    if (d.right > c.left) dt.style.right = (parseFloat(cs.right) + (d.right - c.left) / f) + 'px';
+    var sc = $('screen').getBoundingClientRect(), top = Math.max(sc.top + 82 * f, c.top - 16); // under the mood badge row
+    dt.style.top = (dt.offsetTop + (top - d.top) / f) + 'px';
+    // small watches (320px): a dot's 44px tap area must not lie over a stat tile; slide just that tap area right (toward the screen edge), the dot stays drawn where it was
+    var tiles = ['tileHunger', 'tileStr', 'tileLvl'].map(function (id) { var e = $(id); return e && e.offsetParent ? e.getBoundingClientRect() : null; }).filter(Boolean);
+    [].forEach.call(dt.children, function (b) { var r = b.getBoundingClientRect(), dx = 0;
+      tiles.forEach(function (t) { if (r.left < t.right && r.right > t.left && r.top < t.bottom && r.bottom > t.top) dx = Math.max(dx, t.right + 1 - r.left); });
+      dx = Math.min(dx, window.innerWidth - r.right); if (dx > 0) { b.style.transform = 'translateX(' + (dx / f) + 'px)'; b.style.setProperty('--dx', (-dx / f) + 'px'); } });
+    // Duo portrait: the pet picture moves left into the space beside the dots rail (shrinks only if that is not enough), so the dots never cover it
+    if (pw && gv && gv.classList.contains('full')) {
+      var pr = pw.getBoundingClientRect(), dl = Math.min.apply(null, [].map.call(dt.children, function (b) { return b.getBoundingClientRect().left; })), over = (pr.right - (dl - 4)) / f;
+      if (over > 0) { var l0 = pw.offsetLeft, w0 = pw.offsetWidth, right = l0 + w0 - over, nl = Math.max(16, right - w0), nw = right - nl;
+        pw.style.left = nl + 'px'; pw.style.width = nw + 'px'; pw.style.height = nw + 'px'; }
+    }
+  }
   function fit() {
     var gv = $('gameView'), full = isFull(), side = full && foldSide();
     if (gv) { gv.classList.toggle('full', full); gv.classList.toggle('fold-h', side); gv.classList.toggle('fold-v', full && !side); }
@@ -630,7 +706,7 @@
         fs = Math.min(((window.innerWidth < 600 ? window.innerWidth - 4 : avail - 12)) / FW, (window.innerHeight - top - 8) / FH);
       fs = Math.max(.3, Math.min(1.6, fs)); // Stacked on a landscape phone gets small but never clips
       $('stage').style.transform = 'scale(' + fs + ')'; $('stagewrap').style.width = (FW * fs) + 'px'; $('stagewrap').style.height = (FH * fs) + 'px';
-      wmScale = fs; $('stage').style.setProperty('--fs', fs); wmFit(); return;
+      wmScale = fs; $('stage').style.setProperty('--fs', fs); wmFit(); sideFit(); return;
     }
     var w = Math.min(window.innerWidth - 24, 560), s = Math.min(1, w / 452, (window.innerHeight * .9) / 660);
     if (window.innerWidth >= 900) s = Math.min(1, (window.innerHeight - 250) / 660);
@@ -639,7 +715,7 @@
     if (window.innerHeight < 520 && window.innerWidth > window.innerHeight) s = Math.max(s, Math.min(.8, (window.innerWidth - 24) / 452));
     $('stage').style.transform = 'scale(' + s + ')';
     $('stagewrap').style.width = (452 * s) + 'px'; $('stagewrap').style.height = (660 * s) + 'px';
-    wmScale = s; $('stage').style.setProperty('--fs', s); wmFit();
+    wmScale = s; $('stage').style.setProperty('--fs', s); wmFit(); sideFit();
   }
   // M13: the watermark link gets a tap area of about 44 real pixels whatever the device scale. Watch: grows down into the bezel / strap.
   // Phone: grows up into the empty space under Feed / Jam, only on the pet screen with no menu open (so it never covers other controls).
@@ -667,7 +743,8 @@
     setActive: function (id) { if (eating) return false; if (!DATA.pets.some(function (p) { return p.id === id; })) return false; S.active = id; save(); setPetArt(); render(); if (page === 'pets') renderPets(); if (page === 'stats') renderTraits(); return true; },
     addPets: function (list) { rarCache = {}; DATA.pets = DATA.pets.filter(function (p) { return !p.owned; }).concat(list); list.forEach(function (p) { if (!S.pets[p.id]) S.pets[p.id] = newPet(); }); setPetArt(); render(); save(); },
     removeOwnedPets: function () { DATA.pets = DATA.pets.filter(function (p) { return !p.owned; }); setPetArt(); render(); },
-    setMode: function (m) { S.mode = m === 'wallet' && walletOn() ? 'wallet' : 'pretend'; save(); }, walletOn: walletOn,
+    setMode: function (m) { var was = S.mode; S.mode = m === 'wallet' && walletOn() ? 'wallet' : 'pretend'; save(); if (was === 'wallet' && S.mode === 'pretend' && window.BLUP3TS_FLOOR) BLUP3TS_FLOOR.reroll(); }, /* back to Pretend: fresh random floor pets */
+    refreshStarters: function () { rarCache = {}; setPetArt(); render(); if (page === 'pets') renderPets(); }, /* starters.js put new floor pets in the starter slots (same ids, same progress) */ walletOn: walletOn,
     setSound: function (on) { setSound(on); }, soundOn: function () { return soundOn; }, setVolume: function (v) { setVolume(v); }, volume: function () { return S.vol; },
     audioLevels: function () { return { vol: S.vol, jam: sounds.jam_loop.volume, tap: sounds.tap.volume, sfx: window.BLUP3TS_EAT && BLUP3TS_EAT.volume ? BLUP3TS_EAT.volume() : null }; },
     start: function () { S.started = true; save(); showPage('home'); fit(); },
