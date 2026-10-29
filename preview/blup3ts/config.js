@@ -17,18 +17,24 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   // netlify/functions/floor-pets.js (server-side, cached, sends only mint + name). Static hosting or no answer = bundled common pets.
   FLOOR_STARTERS: true,
   FLOOR_ENDPOINT: '/api/blup3ts-floor',
-  // Read-only RPC for the (OFF) real-payment code paths only. null while real payments are off.
-  RPC_URL: null,
+  // Same-origin proxy. The Helius key stays on the server. Absolute, because the Solana client rejects a relative URL.
+  RPC_URL: (typeof location === 'undefined' ? 'https://www.mnk3ylabs.com' : location.origin) + '/api/blup3ts-rpc',
+  // Preview live play uses this test token, never the real $BLUNANA mint below, once TEST_PLAY is on.
+  TEST_PLAY: true,
+  TEST_TOKEN_SYMBOL: 'BLUTEST',
+  TEST_TOKEN_NAME: 'BLUP3TS Test',
 
   // 'mainnet-readonly' = look up pets only. Real feeding needs BOTH a reserve wallet below AND this
   // set to exactly 'mainnet-live'.
-  NETWORK: 'mainnet-readonly',
+  NETWORK: 'mainnet-live',
 
-  // The BLUP3TS community reserve (public address). Not decided yet, so real feeding is OFF.
-  RESERVE_WALLET: null,
+  // Preview test reserve. Live feeds of BLUTEST are sent here. Not the real $BLUNANA reserve.
+  RESERVE_WALLET: '5eZ3Qt1jKCGdXkCES791W68T87bGG62j9ZHcmBaMUtTP',
 
-  // $BLUNANA (pinned). Classic SPL token, 6 decimals.
-  BLUNANA_MINT: 'C9vfeaCLhJy7sykgKnfzi6RikawQNoGtRKwsaupKavmV',
+  // $BLUNANA (pinned). Classic SPL token, 6 decimals. REAL_BLUNANA_MINT stays the community token.
+  // BLUNANA_MINT is what a live feed sends. While TEST_PLAY is on, that is the preview test token, not $BLUNANA.
+  REAL_BLUNANA_MINT: 'C9vfeaCLhJy7sykgKnfzi6RikawQNoGtRKwsaupKavmV',
+  BLUNANA_MINT: '2arvp34u8Fzcq6UBRqq5dmWuMncwJ9pggMKUwZbRoGPv',
   BLUNANA_DECIMALS: 6,
 
   // Playable NFT collections. standard: 'core' (Metaplex Core: membership = update authority Collection(addr))
@@ -113,8 +119,8 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   // Optional 'sign a message' proof. OFF for launch: P1 never asks the wallet to sign anything.
   SIGN_IN_ENABLED: false,
 
-  // ===== Real money: ALL OFF. Owned by COS. Turn on only after the reserve multisig + lawyer check + Azgog's yes. =====
-  REAL_PAYMENTS_ENABLED: false,
+  // Preview only: on so Wallet mode can feed with the BLUTEST test token. This does not spend real $BLUNANA.
+  REAL_PAYMENTS_ENABLED: true,
   // Daily limits per wallet: total $BLUNANA (and $BLUNANA-equivalent) across feeds + Store, and feeds per day.
   DAILY_CAP: 25000,
   DAILY_FEEDS_MAX: 10,

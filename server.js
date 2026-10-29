@@ -161,6 +161,40 @@ app.get('/api/blup3ts-floor', async function (req, res) {
   }
 });
 
+// Preview live play. Forwards only the reads a feed transaction needs. The Helius key stays here.
+const BLUP3TS_RPC_METHODS = { getAccountInfo: 1, getLatestBlockhash: 1, getSignatureStatuses: 1 };
+app.post('/api/blup3ts-rpc', express.json({ limit: '16kb' }), async function (req, res) {
+  const body = req.body || {};
+  const id = body.id != null ? body.id : null;
+  if (!HELIUS_API_KEY) return res.status(503).json({ jsonrpc: '2.0', id: id, error: { code: -32000, message: 'RPC off' } });
+  if (body.jsonrpc !== '2.0' || !BLUP3TS_RPC_METHODS[body.method]) {
+    return res.status(403).json({ jsonrpc: '2.0', id: id, error: { code: -32601, message: 'Method not allowed' } });
+  }
+  try {
+    const r = await fetch(HELIUS_RPC + '/?api-key=' + encodeURIComponent(HELIUS_API_KEY), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: id, method: body.method, params: body.params || [] })
+    });
+    const j = await r.json();
+    res.setHeader('cache-control', 'no-store');
+    res.status(200).json(j);
+  } catch (e) {
+    res.status(502).json({ jsonrpc: '2.0', id: id, error: { code: -32000, message: 'RPC failed' } });
+  }
+});
+
+app.post('/api/blup3ts-claim', express.json({ limit: '1kb' }), async function (req, res) {
+  try {
+    const ip = String(req.headers['x-forwarded-for'] || (req.socket && req.socket.remoteAddress) || '').split(',')[0].trim();
+    const out = await require('./lib/blup3ts/claim').claim(req.body && req.body.wallet, process.env, ip);
+    res.setHeader('cache-control', 'no-store');
+    res.status(out.status).json(out.body);
+  } catch (e) {
+    res.status(502).json({ ok: false, message: 'Could not send test tokens right now.' });
+  }
+});
+
 // ——— Discord OAuth: start ———
 app.get('/api/discord/auth', function (req, res) {
   if (!DISCORD_CLIENT_ID) {

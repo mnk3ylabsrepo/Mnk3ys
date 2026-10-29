@@ -315,22 +315,34 @@
   }
 
   // ---------- real $BLUNANA feeding (OFF until config allows) ----------
+  function payWord() { return C.TEST_PLAY ? (C.TEST_TOKEN_SYMBOL || 'BLUTEST') : '$BLUNANA'; }
+  function claimTest() {
+    if (!W.pubkey) return H.toast('Connect your wallet first');
+    H.toast('Sending ' + payWord() + '…');
+    fetch('/api/blup3ts-claim', { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ wallet: W.pubkey }), cache: 'no-store' })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (x) { H.toast(x.ok ? (x.j.amount || '100,000') + ' ' + payWord() + ' is in your wallet' : (x.j && x.j.message || 'Could not send test tokens')); })
+      .catch(function () { H.toast('Could not send test tokens'); });
+  }
   function realFeedSection(pd, foods) {
     if (!payOn()) return document.createDocumentFragment(); // M13: real payments are fully hidden from players while REAL_PAYMENTS_ENABLED is false
-    var box = el('div', 'realfeed');
-    box.appendChild(el('div', 'rfhead', 'Real $BLUNANA'));
+    var box = el('div', 'realfeed'), word = payWord();
+    box.appendChild(el('div', 'rfhead', C.TEST_PLAY ? 'Test token · ' + word : 'Real $BLUNANA'));
+    if (C.TEST_PLAY && W.pubkey) { var claim = el('button', 'food', 'Get 100,000 ' + word); claim.onclick = function () { A.play('tap'); claimTest(); }; box.appendChild(claim); }
     if (!realOn()) { var b = el('button', 'food rfoff', '🍌 Real feeding coming soon'); b.disabled = true; box.appendChild(b); box.appendChild(el('p', 'rfnote', 'Pretend feeding works now.')); return box; }
-    if (!W.pubkey || !pd.owned) { box.appendChild(el('p', 'rfnote', W.pubkey ? 'Pick one of your own pets to feed it real $BLUNANA.' : 'Connect your wallet to feed real $BLUNANA.')); return box; }
-    box.appendChild(el('p', 'rfnote', 'Feeding goes back into building the $BLUNANA and MNK3YLabs ecosystems.'));
-    foods.forEach(function (f) { var b = el('button', 'food rf', f.tier + ' · ' + A.fmt(SOL.realTierCost(C, f.id)) + ' $BLUNANA'); if (f.trial) b.appendChild(el('i', 'tryit', 'Try it')); b.onclick = function () { confirmFeed(pd, f); }; box.appendChild(b); });
+    if (!W.pubkey || !pd.owned) { box.appendChild(el('p', 'rfnote', W.pubkey ? 'Pick one of your own pets to feed it ' + word + '.' : 'Connect your wallet to feed with ' + word + '.')); return box; }
+    box.appendChild(el('p', 'rfnote', C.TEST_PLAY ? word + ' is a test token. It is not $BLUNANA and has no value. A feed sends it to the test reserve.' : 'Feeding goes back into building the $BLUNANA and MNK3YLabs ecosystems.'));
+    foods.forEach(function (f) { var b = el('button', 'food rf', f.tier + ' · ' + A.fmt(SOL.realTierCost(C, f.id)) + ' ' + word); if (f.trial) b.appendChild(el('i', 'tryit', 'Try it')); b.onclick = function () { confirmFeed(pd, f); }; box.appendChild(b); });
     return box;
   }
   function confirmFeed(pd, f) {
     A.hideOverlays();
-    var go = el('button', 'sbtn primary', 'Continue in wallet'), no = el('button', 'sbtn', 'Cancel');
+    var go = el('button', 'sbtn primary', 'Continue in wallet'), no = el('button', 'sbtn', 'Cancel'), word = payWord(), amt = A.fmt(SOL.realTierCost(C, f.id));
     no.onclick = H.closeSheet; go.onclick = function () { go.disabled = true; H.closeSheet(); sendFeed(pd, f); };
-    H.openSheet(f.tier + ' for ' + pd.name, [H.p('Feeding costs ' + A.fmt(SOL.realTierCost(C, f.id)) + ' $BLUNANA. It goes to the MNK3YLabs community reserve.'), H.p('Every $BLUNANA spent in BLUP3TS goes back into building the $BLUNANA and MNK3YLabs ecosystems: new pets, styles, features and community events.'),
-      H.p('Your wallet will show the same amount before you approve. Solana also charges a tiny network fee in SOL.'), el('p', 'muted', 'This is a game, not an investment.'), go, no]);
+    var lines = C.TEST_PLAY
+      ? [H.p('This sends ' + amt + ' ' + word + ' to the test reserve. Your wallet will ask you to approve.'), H.p(word + ' is not $BLUNANA. It was made for this preview and has no value.'), H.p('Solana also charges a tiny network fee in SOL.'), go, no]
+      : [H.p('Feeding costs ' + amt + ' $BLUNANA. It goes to the MNK3YLabs community reserve.'), H.p('Every $BLUNANA spent in BLUP3TS goes back into building the $BLUNANA and MNK3YLabs ecosystems: new pets, styles, features and community events.'), H.p('Your wallet will show the same amount before you approve. Solana also charges a tiny network fee in SOL.'), el('p', 'muted', 'This is a game, not an investment.'), go, no];
+    H.openSheet(f.tier + ' for ' + pd.name, lines);
   }
   function sendFeed(pd, f) {
     var p = W.provider, payer = W.pubkey; if (!payOn() || !p || !payer || !realOn()) return Promise.resolve(false);
@@ -367,7 +379,7 @@
   // ---------- cNFT burn for a game boost (OFF) ----------
   function renderBoostBtn() {
     var b = $('boostBtn'); if (!b) return;
-    var on = A.state().mode === 'wallet' && payOn(); b.hidden = !on; if (!on) return; // M13: boost stays hidden while payments are off
+    var on = A.state().mode === 'wallet' && payOn() && C.TEST_PLAY !== true; b.hidden = !on; if (!on) return; // test-token play does not offer the cNFT burn
     var why = BOOST && payOn() ? BOOST.blockReason(A.petDef().id, null) : 'Coming soon';
     b.disabled = !!why || !W.pubkey; b.setAttribute('aria-disabled', b.disabled ? 'true' : 'false');
     b.textContent = '✨ Burn cNFT for a boost' + (why ? ' · ' + why : !W.pubkey ? ' · connect first' : '');
