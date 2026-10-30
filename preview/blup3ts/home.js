@@ -308,5 +308,16 @@
   A.onReset = function () { renderCarousel(true); renderMode(); if (view === 'nfts') renderNfts(); renderLayoutBtn(); };
   renderLayoutBtn();
   renderSound(A.soundOn()); renderMode(); renderCarousel(true);
+  (function paintReserve() {
+    var node = $('reserveBal');
+    if (!node) return;
+    fetch('/api/blup3ts-reserve', { headers: { accept: 'application/json' }, cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (!j || j.ok !== true || !isFinite(+j.balance)) return;
+        node.hidden = false;
+        node.textContent = 'Reserve: ' + Math.round(+j.balance).toLocaleString('en-US') + ' $BLUNANA';
+      }).catch(function () {});
+  })();
   setInterval(function () { if (view === 'home' && !document.hidden) { if (dragX === null) refreshStats(); } }, 4000);
 })();

@@ -173,5 +173,10 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
 
   // Sign-in message lifetime.
   SIGN_IN_MINUTES: 10,
-  MAX_PETS: 60
+  MAX_PETS: 60,
+
+  // Ranks screen. Scores come from saved pet progress on the server.
+  LEADERBOARD_ENABLED: true,
+  LEADERBOARD_ENDPOINT: '/api/blup3ts-leaderboard',
+  LEADERBOARD_DISCORD_LOGIN_URL: '/api/discord/auth?next=/preview/blup3ts/'
 });

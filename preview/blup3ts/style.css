@@ -147,6 +147,8 @@ main { display:flex; flex-direction:column; align-items:center; width:100%; }
 #ov-feed { overflow-y:auto; }
 #blutestClaim[hidden], .blutest-bal[hidden] { display:none; }
 .blutest-bal { margin:8px 16px 0; text-align:center; font-size:15px; font-weight:800; color:#b8ffe4; }
+.reservebal { margin:8px 16px 0; text-align:center; font-size:15px; font-weight:800; color:var(--gold); }
+.reservebal[hidden] { display:none; }
 .blutest-claim { margin:10px auto 0; max-width:440px; height:52px; font-size:18px; }
 #blutestClaim:disabled, .food[data-blutest-claim]:disabled { opacity:.55; cursor:default; }
 .blutest-mark { display:none; width:28px; height:28px; border-radius:50%; align-items:center; justify-content:center; font-size:18px; font-weight:900; flex:none; }

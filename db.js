@@ -291,6 +291,17 @@ function ensureBlup3tsPets() {
           updated_at TIMESTAMPTZ DEFAULT NOW()
         )`
       );
+    }).then(function () {
+      return p.query(
+        `ALTER TABLE blup3ts_pets
+           ADD COLUMN IF NOT EXISTS week_start DATE,
+           ADD COLUMN IF NOT EXISTS week_str INTEGER NOT NULL DEFAULT 0,
+           ADD COLUMN IF NOT EXISTS week_jams INTEGER NOT NULL DEFAULT 0,
+           ADD COLUMN IF NOT EXISTS pet_name TEXT,
+           ADD COLUMN IF NOT EXISTS collection TEXT,
+           ADD COLUMN IF NOT EXISTS pet_number INTEGER,
+           ADD COLUMN IF NOT EXISTS pet_image TEXT`
+      );
     }).catch(function (e) { blup3tsReady = null; throw e; });
   }
   return blup3tsReady.then(function () { return true; });
@@ -307,14 +318,62 @@ function zeroPet(id, wallet) {
 function petStats(r) {
   return { full: r.hunger, joy: r.joy, str: r.str, eaten: r.eaten, jams: r.jams };
 }
-async function writePet(client, wallet, id, stats) {
+function utcWeekStart(d) {
+  const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  x.setUTCDate(x.getUTCDate() - x.getUTCDay());
+  return x.toISOString().slice(0, 10);
+}
+function asDay(v) {
+  if (!v) return '';
+  if (v instanceof Date && !isNaN(v)) return v.toISOString().slice(0, 10);
+  return String(v).slice(0, 10);
+}
+function cleanPetText(v, max) {
+  return String(v == null ? '' : v).replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, max);
+}
+function cleanPetImage(v) {
+  const s = String(v || '');
+  if (!/^https:\/\//i.test(s)) return null;
+  try { const u = new URL(s); return u.protocol === 'https:' ? s.slice(0, 400) : null; } catch (e) { return null; }
+}
+async function writePet(client, wallet, id, stats, resetWeek) {
+  const prev = await client.query(
+    'SELECT str, jams, week_start, week_str, week_jams FROM blup3ts_pets WHERE wallet_address = $1 AND pet_id = $2',
+    [wallet, id]
+  );
+  const week = utcWeekStart(new Date());
+  const newStr = Math.round(clampPet(stats.str, 1000000));
+  const newJams = Math.round(clampPet(stats.jams, 1000000));
+  let weekStr = 0, weekJams = 0;
+  const old = prev.rows[0];
+  if (resetWeek) { weekStr = 0; weekJams = 0; }
+  else if (old && asDay(old.week_start) === week) {
+    weekStr = Math.max(0, Number(old.week_str) || 0) + Math.max(0, newStr - (Number(old.str) || 0));
+    weekJams = Math.max(0, Number(old.week_jams) || 0) + Math.max(0, newJams - (Number(old.jams) || 0));
+  } else if (old) {
+    weekStr = Math.max(0, newStr - (Number(old.str) || 0));
+    weekJams = Math.max(0, newJams - (Number(old.jams) || 0));
+  } else {
+    weekStr = newStr;
+    weekJams = newJams;
+  }
+  const name = cleanPetText(stats.name, 32) || null;
+  const collection = cleanPetText(stats.collection, 16) || null;
+  const rawNum = stats.number;
+  const number = rawNum == null || rawNum === '' || !Number.isFinite(Number(rawNum)) ? null : Math.max(0, Math.round(Number(rawNum)));
+  const image = cleanPetImage(stats.image);
   await client.query(
-    `INSERT INTO blup3ts_pets (wallet_address, pet_id, hunger, joy, str, eaten, jams, updated_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,NOW())
+    `INSERT INTO blup3ts_pets (wallet_address, pet_id, hunger, joy, str, eaten, jams, updated_at, week_start, week_str, week_jams, pet_name, collection, pet_number, pet_image)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,NOW(),$8,$9,$10,$11,$12,$13,$14)
      ON CONFLICT (wallet_address, pet_id) DO UPDATE SET
        hunger = EXCLUDED.hunger, joy = EXCLUDED.joy, str = EXCLUDED.str,
-       eaten = EXCLUDED.eaten, jams = EXCLUDED.jams, updated_at = NOW()`,
-    [wallet, id, clampPet(stats.full, 100), clampPet(stats.joy, 100), Math.round(clampPet(stats.str, 1000000)), Math.round(clampPet(stats.eaten, 1000000)), Math.round(clampPet(stats.jams, 1000000))]
+       eaten = EXCLUDED.eaten, jams = EXCLUDED.jams, updated_at = NOW(),
+       week_start = EXCLUDED.week_start, week_str = EXCLUDED.week_str, week_jams = EXCLUDED.week_jams,
+       pet_name = COALESCE(EXCLUDED.pet_name, blup3ts_pets.pet_name),
+       collection = COALESCE(EXCLUDED.collection, blup3ts_pets.collection),
+       pet_number = COALESCE(EXCLUDED.pet_number, blup3ts_pets.pet_number),
+       pet_image = COALESCE(EXCLUDED.pet_image, blup3ts_pets.pet_image)`,
+    [wallet, id, clampPet(stats.full, 100), clampPet(stats.joy, 100), newStr, Math.round(clampPet(stats.eaten, 1000000)), newJams, week, weekStr, weekJams, name, collection, number, image]
   );
 }
 async function claimHolder(client, id, wallet) {
@@ -332,7 +391,7 @@ async function settleHeldPet(client, wallet, id, incoming) {
   const holder = known ? h.rows[0].wallet_address : null;
   if (known && holder !== wallet) {
     await client.query('DELETE FROM blup3ts_pets WHERE pet_id = $1', [id]);
-    await writePet(client, wallet, id, { full: 0, joy: 0, str: 0, eaten: 0, jams: 0 });
+    await writePet(client, wallet, id, { full: 0, joy: 0, str: 0, eaten: 0, jams: 0 }, true);
     await claimHolder(client, id, wallet);
     return zeroPet(id, wallet);
   }
@@ -443,6 +502,20 @@ async function saveBlup3tsPets(wallet, pets, ownedIds) {
   return out || { saved: 0, pets: [] };
 }
 
+async function getBlup3tsLeaderboardRows() {
+  const p = getPool();
+  if (!p) return [];
+  await ensureBlup3tsPets();
+  const res = await p.query(
+    `SELECT wallet_address, pet_id, str, jams, eaten,
+            to_char(week_start, 'YYYY-MM-DD') AS week_start,
+            week_str, week_jams, pet_name, collection, pet_number, pet_image
+     FROM blup3ts_pets
+     WHERE str > 0 OR jams > 0 OR eaten > 0 OR week_str > 0 OR week_jams > 0`
+  );
+  return res.rows || [];
+}
+
 module.exports = {
   getPool,
   upsertUser,
@@ -465,4 +538,5 @@ module.exports = {
   getBlup3tsPets,
   saveBlup3tsPets,
   syncBlup3tsPets,
+  getBlup3tsLeaderboardRows,
 };

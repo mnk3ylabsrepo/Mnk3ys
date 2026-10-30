@@ -205,7 +205,7 @@ app.get('/api/blup3ts-pets', async function (req, res) {
     res.status(503).json({ ok: false, pets: [] });
   }
 });
-app.post('/api/blup3ts-pets', express.json({ limit: '32kb' }), async function (req, res) {
+app.post('/api/blup3ts-pets', express.json({ limit: '128kb' }), async function (req, res) {
   const wallet = String((req.body && req.body.wallet) || '').trim();
   if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(wallet)) return res.status(400).json({ ok: false });
   try {
@@ -215,6 +215,27 @@ app.post('/api/blup3ts-pets', express.json({ limit: '32kb' }), async function (r
     res.json({ ok: true, saved: saved.saved, pets: saved.pets });
   } catch (e) {
     res.status(503).json({ ok: false });
+  }
+});
+
+const blup3tsBoard = require('./lib/blup3ts/leaderboard');
+app.get('/api/blup3ts-leaderboard', async function (req, res) {
+  try {
+    const discord = req.session && req.session.discord;
+    const body = await blup3tsBoard.board(req.query || {}, discord);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.json(body);
+  } catch (e) {
+    res.status(503).json({ ok: false, entries: [], me: null });
+  }
+});
+app.get('/api/blup3ts-reserve', async function (req, res) {
+  try {
+    const body = await blup3tsBoard.reserve();
+    res.setHeader('Cache-Control', 'public, max-age=30');
+    res.json(body);
+  } catch (e) {
+    res.json({ ok: false, balance: null });
   }
 });
 

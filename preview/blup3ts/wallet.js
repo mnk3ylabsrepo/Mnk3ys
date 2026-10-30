@@ -210,8 +210,14 @@
   }
   function pushPets() {
     if (!W.progressReady || !W.pubkey || !A.state) return;
-    var pets = A.state().pets || {}, rows = [];
-    Object.keys(pets).forEach(function (id) { if (!OWN.test(id)) return; var q = pets[id]; rows.push({ id: id, full: q.full, joy: q.joy, str: q.str, eaten: q.eaten, jams: q.jams }); });
+    var pets = A.state().pets || {}, rows = [], defs = A.pets ? A.pets() : [];
+    Object.keys(pets).forEach(function (id) {
+      if (!OWN.test(id)) return;
+      var q = pets[id], d = null, row = { id: id, full: q.full, joy: q.joy, str: q.str, eaten: q.eaten, jams: q.jams };
+      for (var i = 0; i < defs.length; i++) if (defs[i].id === id) d = defs[i];
+      if (d) { row.name = d.name; row.collection = d.collection; if (d.number != null) row.number = d.number; row.image = d.img; }
+      rows.push(row);
+    });
     if (!rows.length) return;
     var owner = W.pubkey;
     fetch('/api/blup3ts-pets', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ wallet: owner, pets: rows }), keepalive: true, cache: 'no-store' })

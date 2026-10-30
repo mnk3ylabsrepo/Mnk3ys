@@ -61,6 +61,13 @@ CREATE TABLE IF NOT EXISTS blup3ts_pets (
   eaten INTEGER NOT NULL,
   jams INTEGER NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT NOW(),
+  week_start DATE,
+  week_str INTEGER NOT NULL DEFAULT 0,
+  week_jams INTEGER NOT NULL DEFAULT 0,
+  pet_name TEXT,
+  collection TEXT,
+  pet_number INTEGER,
+  pet_image TEXT,
   PRIMARY KEY (wallet_address, pet_id)
 );
 CREATE TABLE IF NOT EXISTS blup3ts_pet_holder (
@@ -68,6 +75,13 @@ CREATE TABLE IF NOT EXISTS blup3ts_pet_holder (
   wallet_address TEXT,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+ALTER TABLE blup3ts_pets ADD COLUMN IF NOT EXISTS week_start DATE;
+ALTER TABLE blup3ts_pets ADD COLUMN IF NOT EXISTS week_str INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE blup3ts_pets ADD COLUMN IF NOT EXISTS week_jams INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE blup3ts_pets ADD COLUMN IF NOT EXISTS pet_name TEXT;
+ALTER TABLE blup3ts_pets ADD COLUMN IF NOT EXISTS collection TEXT;
+ALTER TABLE blup3ts_pets ADD COLUMN IF NOT EXISTS pet_number INTEGER;
+ALTER TABLE blup3ts_pets ADD COLUMN IF NOT EXISTS pet_image TEXT;
 `;
 
 async function run() {

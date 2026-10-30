@@ -32,7 +32,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BLUP3TS">
 <meta name="application-name" content="BLUP3TS">
-<link rel="stylesheet" href="style.css?v=16">
+<link rel="stylesheet" href="style.css?v=17">
+<link rel="stylesheet" href="leaderboard.css?v=1">
 </head>
 <body>
 
@@ -59,12 +60,14 @@
       <button id="modePretend" aria-pressed="true">Pretend</button><button id="modeWallet" aria-pressed="false">Wallet</button>
     </div>
     <button class="hb" id="howBtn">❓ How to play</button>
+    <button class="hb" id="ranksBtn" data-open-leaderboard="str" hidden>🏆 Ranks</button>
     <button class="hb" id="faqBtn">💬 FAQ</button>
     <button class="hb" id="settingsBtn">⚙️ Settings</button>
   </div>
   <p class="modenote" id="modeNote"></p>
   <button type="button" class="btn b-cyan blutest-claim" id="blutestClaim" hidden><span class="blutest-mark" aria-hidden="true"></span><span class="blutest-label">Get 100,000 BLUTEST</span></button>
   <p class="blutest-bal" id="blutestBal" hidden></p>
+  <p class="reservebal" id="reserveBal" hidden></p>
   <button class="hb boostbtn" id="boostBtn" hidden disabled aria-disabled="true">✨ Burn cNFT for a boost · Coming soon</button>
   <button class="looksrow" id="looksBtn"><span class="lk">🎨</span><span><b>Looks</b><br><small id="looksSub">Watch cases · unlock at Level 3</small></span><span class="soonpill">⌚ Cases</span></button>
   <a class="wm2 wmlink" id="homeWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Made by Azgog (@azgog): Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
@@ -359,7 +362,7 @@
   <div class="muted">BLUP3TS by MNK3YLabs · Just a game: Pretend mode uses no real tokens.</div>
 </footer>
 
-<script src="config.js?v=3"></script>
+<script src="config.js?v=4"></script>
 <script src="data.js"></script>
 <script src="starters.js?v=2"></script>
 <script src="art.js"></script>
@@ -369,10 +372,11 @@
 <script src="eat.js"></script>
 <script src="app.js?v=10"></script>
 <script src="faq.js?v=3"></script>
-<script src="home.js?v=3"></script>
+<script src="home.js?v=4"></script>
 <script src="fullscreen.js?v=1"></script>
 <script src="vendor/blup3ts-sol.js"></script>
 <script src="boost.js"></script>
-<script src="wallet.js?v=8"></script>
+<script src="wallet.js?v=10"></script>
+<script src="leaderboard.js?v=3"></script>
 </body>
 </html>
