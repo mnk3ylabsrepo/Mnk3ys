@@ -315,9 +315,8 @@
     if (!W.connecting && lk && LOGO[lk]) withLogo(btn, lk, label); else btn.textContent = (W.pubkey || phone) && !W.connecting ? '👛 ' + label : label; btn.setAttribute('aria-label', W.pubkey ? 'Disconnect wallet ' + short(W.pubkey) : 'Connect wallet'); renderBoostBtn(); }
   function syncClaim() {
     var b = $('blutestClaim'); if (!b || !C.TEST_PLAY) return;
-    var wallet = A.state && A.state().mode === 'wallet';
-    b.hidden = !wallet;
-    b.textContent = (W.pubkey ? 'Get 100,000 ' : 'Connect wallet to get 100,000 ') + payWord();
+    b.hidden = !(A.state && A.state().mode === 'wallet');
+    paintClaim();
   }
   function onMode(m) { if (m === 'wallet') showOwned(); else { W.gen++; W.loading = false; dropOwned(); } syncClaim(); }
   // M11: phone, not connected: tapping Wallet goes straight to the connect step (one less tap). Desktop unchanged.
@@ -344,19 +343,55 @@
 
   // ---------- real $BLUNANA feeding (OFF until config allows) ----------
   function payWord() { return C.TEST_PLAY ? (C.TEST_TOKEN_SYMBOL || 'BLUTEST') : '$BLUNANA'; }
+  var claimState = 'idle', claimTimer = null, claimMsg = '';
+  function claimButtons() {
+    var list = [];
+    var home = $('blutestClaim'); if (home) list.push(home);
+    document.querySelectorAll('[data-blutest-claim]').forEach(function (b) { list.push(b); });
+    return list;
+  }
+  function claimLabel(b, text) {
+    var label = b.querySelector('.blutest-label');
+    if (label) label.textContent = text; else b.textContent = text;
+  }
+  function paintClaim() {
+    claimButtons().forEach(function (b) {
+      if (!b.querySelector('.blutest-label')) {
+        var text = b.textContent; b.textContent = '';
+        var m = el('span', 'blutest-mark'); m.setAttribute('aria-hidden', 'true');
+        var lab = el('span', 'blutest-label'); lab.textContent = text;
+        b.appendChild(m); b.appendChild(lab);
+      }
+      b.classList.toggle('is-busy', claimState === 'busy');
+      b.classList.toggle('is-ok', claimState === 'ok');
+      b.classList.toggle('is-bad', claimState === 'bad');
+      b.disabled = claimState === 'busy';
+      b.setAttribute('aria-busy', claimState === 'busy' ? 'true' : 'false');
+      if (claimState === 'busy') claimLabel(b, 'Sending ' + payWord() + '…');
+      else if (claimState === 'ok') claimLabel(b, '100,000 ' + payWord() + ' sent');
+      else if (claimState === 'bad') claimLabel(b, claimMsg || 'Claim failed');
+      else claimLabel(b, (W.pubkey ? 'Get 100,000 ' : 'Connect wallet to get 100,000 ') + payWord());
+    });
+  }
   function claimTest() {
     if (!W.pubkey) return H.toast('Connect your wallet first');
-    H.toast('Sending ' + payWord() + '…');
+    if (claimState === 'busy') return;
+    claimState = 'busy'; clearTimeout(claimTimer); paintClaim();
     fetch('/api/blup3ts-claim', { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ wallet: W.pubkey }), cache: 'no-store' })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, j: j }; }); })
-      .then(function (x) { H.toast(x.ok ? (x.j.amount || '100,000') + ' ' + payWord() + ' is in your wallet' : (x.j && x.j.message || 'Could not send test tokens')); })
-      .catch(function () { H.toast('Could not send test tokens'); });
+      .then(function (x) {
+        claimState = x.ok ? 'ok' : 'bad';
+        claimMsg = x.ok ? '' : ((x.j && x.j.message) || 'Claim failed');
+        paintClaim();
+      })
+      .catch(function () { claimState = 'bad'; claimMsg = 'Claim failed'; paintClaim(); })
+      .then(function () { claimTimer = setTimeout(function () { claimState = 'idle'; paintClaim(); }, 5000); });
   }
   function realFeedSection(pd, foods) {
     if (!payOn()) return document.createDocumentFragment(); // M13: real payments are fully hidden from players while REAL_PAYMENTS_ENABLED is false
     var box = el('div', 'realfeed'), word = payWord();
     box.appendChild(el('div', 'rfhead', C.TEST_PLAY ? 'Test token · ' + word : 'Real $BLUNANA'));
-    if (C.TEST_PLAY) { var claim = el('button', 'food', (W.pubkey ? 'Get 100,000 ' : 'Connect wallet to get 100,000 ') + word); claim.onclick = function () { A.play('tap'); if (!W.pubkey) onConnectClick(); else claimTest(); }; box.appendChild(claim); }
+    if (C.TEST_PLAY) { var claim = el('button', 'food'); claim.setAttribute('data-blutest-claim', '1'); claim.onclick = function () { A.play('tap'); if (claimState === 'busy') return; if (!W.pubkey) onConnectClick(); else claimTest(); }; box.appendChild(claim); paintClaim(); }
     if (!realOn()) { var b = el('button', 'food rfoff', '🍌 Real feeding coming soon'); b.disabled = true; box.appendChild(b); box.appendChild(el('p', 'rfnote', 'Pretend feeding works now.')); return box; }
     if (!W.pubkey || !pd.owned) { box.appendChild(el('p', 'rfnote', W.pubkey ? 'Pick one of your own pets to feed it ' + word + '.' : 'Connect your wallet to feed with ' + word + '.')); return box; }
     box.appendChild(el('p', 'rfnote', C.TEST_PLAY ? word + ' is a test token. It is not $BLUNANA and has no value. A feed sends it to the test reserve.' : 'Feeding goes back into building the $BLUNANA and MNK3YLabs ecosystems.'));
@@ -460,7 +495,7 @@
       }).catch(function (e) { H.toast(rejected(e) ? 'Cancelled. Nothing was burned.' : 'Boost didn\'t go through: ' + txt(e && e.message, 60)); return false; });
   }
   if ($('boostBtn')) $('boostBtn').onclick = function () { if (!this.disabled) openBoost(); };
-  if ($('blutestClaim')) $('blutestClaim').onclick = function () { A.play('tap'); if (!W.pubkey) onConnectClick(); else claimTest(); };
+  if ($('blutestClaim')) $('blutestClaim').onclick = function () { A.play('tap'); if (claimState === 'busy') return; if (!W.pubkey) onConnectClick(); else claimTest(); };
   syncClaim();
 
   window.BLUP3TS_WALLET = { addOwnInfo: addOwnInfo, addOwnTap: addOwnTap, afterWalletMode: afterWalletMode, modeNote: modeNote, renderConnect: renderConnect, onMode: onMode, onConnectClick: onConnectClick, carouselExtra: carouselExtra,
