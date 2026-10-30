@@ -271,6 +271,7 @@
       try { r = x.std.features['standard:connect'].connect(silent ? { silent: true } : undefined); } catch (e) { return fail(e); }
       return Promise.resolve(r).then(function (res) {
         var accs = (res && res.accounts) || x.std.accounts || [], acc = accs.filter(function (a) { return a && (!a.chains || a.chains.indexOf('solana:mainnet') >= 0); })[0] || accs[0];
+        W.account = acc || null;
         return done(acc && acc.address);
       }).catch(fail);
     }
@@ -312,7 +313,7 @@
       if (listened.indexOf(x.std) >= 0) return; listened.push(x.std);
       try { var ev = x.std.features['standard:events']; if (ev && typeof ev.on === 'function') ev.on('change', function (props) {
         if (W.std !== x.std || !props || !props.accounts) return;
-        var a = props.accounts[0]; if (!a) return disconnect(false, 'Wallet disconnected'); accountChanged(a.address);
+        var a = props.accounts[0]; if (!a) return disconnect(false, 'Wallet disconnected'); W.account = a; accountChanged(a.address);
       }); } catch (e) {}
       return;
     }
@@ -322,7 +323,7 @@
   }
   function disconnect(user, msg) {
     var p = W.provider, sw = W.std; W.gen++;
-    W.provider = null; W.std = null; W.pubkey = null; tokenBal = null; balGen++; W.kind = null; W.verified = false; W.pets = []; W.loading = false; W.error = null; W.soon = false; W.counts = {}; W.connecting = false; W.tryStarters = false; W.progressReady = false;
+    W.provider = null; W.std = null; W.account = null; W.pubkey = null; tokenBal = null; balGen++; W.kind = null; W.verified = false; W.pets = []; W.loading = false; W.error = null; W.soon = false; W.counts = {}; W.connecting = false; W.tryStarters = false; W.progressReady = false;
     if (user) remember(null); // you chose to disconnect: no quiet reconnect next time
     dropOwned(); refresh(); H.toast(msg || 'Disconnected');
     if (user && sw) { try { var dc = sw.features['standard:disconnect']; if (dc && typeof dc.disconnect === 'function') Promise.resolve(dc.disconnect()).catch(function () {}); } catch (e) {} }
@@ -480,17 +481,40 @@
       : [H.p('Feeding costs ' + amt + ' $BLUNANA. It goes to the MNK3YLabs community reserve.'), H.p('Every $BLUNANA spent in BLUP3TS goes back into building the $BLUNANA and MNK3YLabs ecosystems: new pets, styles, features and community events.'), H.p('Your wallet will show the same amount before you approve. Solana also charges a tiny network fee in SOL.'), el('p', 'muted', 'This is a game, not an investment.'), go, no];
     H.openSheet(f.tier + ' for ' + pd.name, lines);
   }
+  function stdAccount() {
+    var list = (W.std && W.std.accounts) || [], hit = null;
+    list.forEach(function (a) { if (!hit && a && a.address === W.pubkey) hit = a; });
+    return hit || (W.account && W.account.address === W.pubkey ? W.account : null) || list[0] || null;
+  }
+  function sigText(res) {
+    var out = Array.isArray(res) ? res[0] : res, sig = out && (out.signature || out);
+    if (sig && sig.signature) sig = sig.signature;
+    if (typeof sig === 'string' && B58.test(sig.slice(0, 44))) return sig;
+    if (sig && typeof sig.length === 'number') { var s = SOL.bs58encode(sig instanceof Uint8Array ? sig : Uint8Array.from(sig)); if (typeof s === 'string' && B58.test(s.slice(0, 44))) return s; }
+    throw new Error('no signature');
+  }
+  function walletSend(tx) {
+    var std = W.std, feat = std && std.features && std.features['solana:signAndSendTransaction'];
+    var fn = feat && (typeof feat === 'function' ? feat : feat.signAndSendTransaction);
+    if (typeof fn === 'function') {
+      var account = stdAccount(); if (!account) throw new Error('Reconnect your wallet');
+      var raw = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
+      return Promise.resolve(fn.call(feat, { account: account, chain: 'solana:mainnet', transaction: new Uint8Array(raw) })).then(sigText);
+    }
+    var p = W.provider;
+    if (p && typeof p.signAndSendTransaction === 'function') return Promise.resolve(p.signAndSendTransaction(tx)).then(sigText);
+    throw new Error('wallet can\'t send');
+  }
   function sendFeed(pd, f) {
-    var p = W.provider, payer = W.pubkey; if (!payOn() || !p || !payer || !realOn()) return Promise.resolve(false);
+    var payer = W.pubkey; if (!payOn() || !payer || !realOn()) { H.toast('Feeding is not ready.'); return Promise.resolve(false); }
     if (!SOL.TIERS || (C.FEED_COSTS || {})[f.id] !== SOL.TIERS[f.id] || SOL.tierCost(C, f.id) !== f.cost || !(SOL.realTierCost(C, f.id) >= 1)) { H.toast('Feeding is paused: amounts don\'t match.'); return Promise.resolve(false); }
     var conn = new SOL.Connection(C.RPC_URL, 'confirmed'), sig;
     H.toast('Getting it ready…');
     return SOL.buildFeedTx({ cfg: C, connection: conn, payer: payer, tier: f.id, petMint: pd.mint }).then(function (tx) {
       SOL.verifyFeedTx(tx, { cfg: C, payer: payer, tier: f.id, petMint: pd.mint }); // checked again right before the wallet sees it
-      if (typeof p.signAndSendTransaction !== 'function') throw new Error('wallet can\'t send');
-      return p.signAndSendTransaction(tx);
+      return walletSend(tx);
     }).then(function (r) {
-      sig = r && (r.signature || r); if (typeof sig !== 'string' || !B58.test(sig.slice(0, 44))) throw new Error('no signature');
+      sig = r; if (typeof sig !== 'string' || !B58.test(sig.slice(0, 44))) throw new Error('no signature');
       H.toast('Waiting for Solana…');
       return waitConfirmed(sig);
     }).then(function () {
