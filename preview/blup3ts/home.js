@@ -140,7 +140,7 @@
   }
   function renderCarousel(scrollToActive) {
     if (view === 'nfts') renderNfts();
-    var car = $('carousel'), keep = car.scrollLeft; car.textContent = '';
+    var desk = document.body.classList.contains('desk'), car = $('carousel'), keep = desk ? car.scrollTop : car.scrollLeft; car.textContent = '';
     var list = A.visiblePets ? A.visiblePets() : A.pets(), x = window.BLUP3TS_WALLET && BLUP3TS_WALLET.carouselExtra ? BLUP3TS_WALLET.carouselExtra() : null;
     if (x && !list.length) car.appendChild(x); // M11: connected wallet with no pets (or still looking): the friendly card comes first
     list.forEach(function (d, i) { car.appendChild(cardFor(d, i)); });
@@ -149,10 +149,16 @@
     var d = A.petDef(), st = A.petState(d.id), none = !list.some(function (q) { return q.id === d.id; });
     $('carStatus').textContent = none ? '\u00a0' : 'Active: ' + d.name + ' · Level ' + A.levelFor(st.str) + ' · Hunger ' + Math.round(st.full) + '% full';
     $('playBtn').textContent = '▶ Play'; $('playBtn').style.visibility = none ? 'hidden' : ''; $('playBtn').disabled = none; // keeps its space: no jumpy layout
-    if (scrollToActive) { var a = car.querySelector('.pcard.on'); if (a) centerOn(a, false); } else car.scrollLeft = keep;
+    if (scrollToActive) { var a = car.querySelector('.pcard.on'); if (a) centerOn(a, false); } else if (desk) car.scrollTop = keep; else car.scrollLeft = keep;
   }
   function centerOn(card, smooth) {
-    var car = $('carousel'), x = card.offsetLeft - (car.clientWidth - card.offsetWidth) / 2;
+    var car = $('carousel');
+    if (document.body.classList.contains('desk')) {
+      var cr = car.getBoundingClientRect(), br = card.getBoundingClientRect(), top = car.scrollTop + (br.top - cr.top) - Math.max(0, (cr.height - br.height) / 2);
+      if (car.scrollTo) car.scrollTo({ top: Math.max(0, top), behavior: smooth && !reduced ? 'smooth' : 'auto' }); else car.scrollTop = Math.max(0, top);
+      return;
+    }
+    var x = card.offsetLeft - (car.clientWidth - card.offsetWidth) / 2;
     if (car.scrollTo) car.scrollTo({ left: x, behavior: smooth && !reduced ? 'smooth' : 'auto' }); else car.scrollLeft = x;
   }
   function select(id, smooth) {
@@ -170,10 +176,10 @@
   var car = $('carousel');
   car.addEventListener('keydown', function (e) { if (e.key === 'ArrowRight') { e.preventDefault(); step(1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); } else if (e.key === 'Enter' && e.target === car) goGame(); });
   // mouse wheel: vertical wheel scrolls the row sideways
-  car.addEventListener('wheel', function (e) { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); car.scrollLeft += e.deltaY; } }, { passive: false });
+  car.addEventListener('wheel', function (e) { if (document.body.classList.contains('desk')) return; if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); car.scrollLeft += e.deltaY; } }, { passive: false });
   // mouse drag (touch already scrolls natively)
   var dragX = null, dragStart = 0, dragMoved = false;
-  car.addEventListener('pointerdown', function (e) { if (e.pointerType !== 'mouse' || e.button !== 0) return; dragX = e.clientX; dragStart = car.scrollLeft; dragMoved = false; });
+  car.addEventListener('pointerdown', function (e) { if (document.body.classList.contains('desk') || e.pointerType !== 'mouse' || e.button !== 0) return; dragX = e.clientX; dragStart = car.scrollLeft; dragMoved = false; });
   window.addEventListener('pointermove', function (e) { if (dragX === null) return; var dx = e.clientX - dragX; if (Math.abs(dx) > 6) { dragMoved = true; car.classList.add('dragging'); } if (dragMoved) car.scrollLeft = dragStart - dx; });
   window.addEventListener('pointerup', function () { if (dragX === null) return; dragX = null; car.classList.remove('dragging'); setTimeout(function () { dragMoved = false; }, 0); });
 

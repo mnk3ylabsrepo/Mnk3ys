@@ -32,7 +32,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BLUP3TS">
 <meta name="application-name" content="BLUP3TS">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 
@@ -49,6 +49,7 @@
     <div class="carousel" id="carousel" tabindex="-1" role="listbox" aria-label="Pick your pet"></div>
     <button class="carnav next" id="carNext" aria-label="Next pet">›</button>
   </div>
+  <div class="homestack">
   <div class="carstatus" id="carStatus" aria-live="polite"></div>
   <button class="playbtn" id="playBtn">▶ Play</button>
   <button class="hb nftsbtn" id="nftsBtn">🖼️ My NFTs</button>
@@ -67,6 +68,7 @@
   <button class="hb boostbtn" id="boostBtn" hidden disabled aria-disabled="true">✨ Burn cNFT for a boost · Coming soon</button>
   <button class="looksrow" id="looksBtn"><span class="lk">🎨</span><span><b>Looks</b><br><small id="looksSub">Watch cases · unlock at Level 3</small></span><span class="soonpill">⌚ Cases</span></button>
   <a class="wm2 wmlink" id="homeWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Made by Azgog (@azgog): Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
+  </div>
 </section>
 
 <section class="view nftsview" id="nftsView" aria-label="My NFTs">
@@ -346,8 +348,8 @@
 </main>
 </div>
 
+<p class="betaline">Beta. Pretend mode uses play money. Wallet mode feeds use BLUTEST, a test token, not $BLUNANA.</p>
 <footer class="foot">
-  <div class="footline">Beta. Pretend mode uses play money. Wallet mode feeds use BLUTEST, a test token, not $BLUNANA.</div>
   <nav class="socials" aria-label="BLUP3TS socials">
     <a class="soc" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M18.9 2H22l-6.8 7.8L23 22h-6.2l-4.9-6.4L6.3 22H3.2l7.3-8.3L1 2h6.3l4.4 5.8L18.9 2Zm-1.1 18h1.7L6.3 3.9H4.5L17.8 20Z"/></svg>@BluP3ts</a>
     <a class="soc" href="https://discord.gg/QM4ztAPSgf" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18 18 0 0 0-5.6 0L8.6 3a19.6 19.6 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1A19.8 19.8 0 0 0 6.1 21l1.3-2.1c-.7-.3-1.4-.6-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.7 19.7 0 0 0 6-3c.5-5.2-.8-9.7-3.6-13.6ZM8.3 15.3c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm7.4 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>Discord</a>
@@ -365,7 +367,7 @@
 <script src="eat.js"></script>
 <script src="app.js?v=6"></script>
 <script src="faq.js?v=2"></script>
-<script src="home.js?v=2"></script>
+<script src="home.js?v=3"></script>
 <script src="fullscreen.js?v=1"></script>
 <script src="vendor/blup3ts-sol.js"></script>
 <script src="boost.js"></script>
