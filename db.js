@@ -264,6 +264,75 @@ async function markPairsPrizeFailed(prizeRowId, errorMessage) {
   );
 }
 
+// BLUP3TS NFT progress, keyed by the wallet that owns the pet. Same Neon database as the rest of the site.
+let blup3tsReady = null;
+function ensureBlup3tsPets() {
+  const p = getPool();
+  if (!p) return Promise.resolve(false);
+  if (!blup3tsReady) {
+    blup3tsReady = p.query(
+      `CREATE TABLE IF NOT EXISTS blup3ts_pets (
+        wallet_address TEXT NOT NULL,
+        pet_id TEXT NOT NULL,
+        hunger REAL NOT NULL,
+        joy REAL NOT NULL,
+        str INTEGER NOT NULL,
+        eaten INTEGER NOT NULL,
+        jams INTEGER NOT NULL,
+        updated_at TIMESTAMPTZ DEFAULT NOW(),
+        PRIMARY KEY (wallet_address, pet_id)
+      )`
+    ).catch(function (e) { blup3tsReady = null; throw e; });
+  }
+  return blup3tsReady.then(function () { return true; });
+}
+function clampPet(n, max) {
+  n = Number(n);
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.min(max, n);
+}
+async function getBlup3tsPets(wallet) {
+  const p = getPool();
+  if (!p || !wallet) return [];
+  await ensureBlup3tsPets();
+  const res = await p.query(
+    'SELECT pet_id, hunger, joy, str, eaten, jams FROM blup3ts_pets WHERE wallet_address = $1',
+    [wallet]
+  );
+  return (res.rows || []).map(function (r) {
+    return { id: r.pet_id, full: r.hunger, joy: r.joy, str: r.str, eaten: r.eaten, jams: r.jams };
+  });
+}
+async function saveBlup3tsPets(wallet, pets) {
+  const p = getPool();
+  if (!p || !wallet || !Array.isArray(pets)) return 0;
+  await ensureBlup3tsPets();
+  const rows = pets.filter(function (q) { return q && /^own-[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(q.id); }).slice(0, 60);
+  if (!rows.length) return 0;
+  const client = await p.connect();
+  try {
+    await client.query('BEGIN');
+    for (let i = 0; i < rows.length; i++) {
+      const q = rows[i];
+      await client.query(
+        `INSERT INTO blup3ts_pets (wallet_address, pet_id, hunger, joy, str, eaten, jams, updated_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,NOW())
+         ON CONFLICT (wallet_address, pet_id) DO UPDATE SET
+           hunger = EXCLUDED.hunger, joy = EXCLUDED.joy, str = EXCLUDED.str,
+           eaten = EXCLUDED.eaten, jams = EXCLUDED.jams, updated_at = NOW()`,
+        [wallet, q.id, clampPet(q.full, 100), clampPet(q.joy, 100), Math.round(clampPet(q.str, 1000000)), Math.round(clampPet(q.eaten, 1000000)), Math.round(clampPet(q.jams, 1000000))]
+      );
+    }
+    await client.query('COMMIT');
+  } catch (e) {
+    try { await client.query('ROLLBACK'); } catch (err) {}
+    throw e;
+  } finally {
+    client.release();
+  }
+  return rows.length;
+}
+
 module.exports = {
   getPool,
   upsertUser,
@@ -283,4 +352,6 @@ module.exports = {
   claimFirstPendingPairsPrize,
   markPairsPrizeSent,
   markPairsPrizeFailed,
+  getBlup3tsPets,
+  saveBlup3tsPets,
 };

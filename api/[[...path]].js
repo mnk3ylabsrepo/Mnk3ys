@@ -50,12 +50,12 @@ module.exports = (req, res) => {
     }
     if (!raw.startsWith('/')) raw = '/' + raw;
     if (!raw.startsWith('/api')) {
-      if (/^\/(discord|verify|collections|holders|prices|blunana-ohlc|wallets|pairs|blup3ts-nfts|blup3ts-floor|blup3ts-rpc|blup3ts-claim)(\/|$|\?)/.test(raw)) {
+      if (/^\/(discord|verify|collections|holders|prices|blunana-ohlc|wallets|pairs|blup3ts-nfts|blup3ts-floor|blup3ts-rpc|blup3ts-claim|blup3ts-pets)(\/|$|\?)/.test(raw)) {
         raw = '/api' + raw;
       }
     }
   }
-  if (!raw.startsWith('/api') && /^\/(discord|verify|collections|holders|prices|blunana-ohlc|wallets|pairs|blup3ts-nfts|blup3ts-floor|blup3ts-rpc|blup3ts-claim)(\/|$|\?)/.test(raw)) {
+  if (!raw.startsWith('/api') && /^\/(discord|verify|collections|holders|prices|blunana-ohlc|wallets|pairs|blup3ts-nfts|blup3ts-floor|blup3ts-rpc|blup3ts-claim|blup3ts-pets)(\/|$|\?)/.test(raw)) {
     raw = '/api' + raw;
   }
   const q = (req.url || '').includes('?') ? '?' + (req.url || '').split('?').slice(1).join('?') : '';
@@ -70,7 +70,7 @@ module.exports = (req, res) => {
     }
   }
 
-  const isApiRoute = /^\/api\/(discord|verify|collections|holders|prices|blunana-ohlc|wallets|pairs|blup3ts-nfts|blup3ts-floor|blup3ts-rpc|blup3ts-claim)(\/|$|\?)/.test(raw);
+  const isApiRoute = /^\/api\/(discord|verify|collections|holders|prices|blunana-ohlc|wallets|pairs|blup3ts-nfts|blup3ts-floor|blup3ts-rpc|blup3ts-claim|blup3ts-pets)(\/|$|\?)/.test(raw);
   if (isApiRoute) {
     req.url = raw + q;
     return app(req, res);

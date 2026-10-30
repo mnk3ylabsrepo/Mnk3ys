@@ -12,7 +12,7 @@
   // Wallet connect switched off (config.js WALLET_CONNECT_ENABLED): stop here. Nothing below runs, so no wallet
   // provider is touched, no RPC/DAS call is made and no deep link is built. The code stays for when it is turned on.
   if (C.WALLET_CONNECT_ENABLED !== true) return;
-  var W = { connecting: false, tryStarters: false, kind: null, provider: null, std: null, pubkey: null, verified: false, loading: false, error: null, soon: false, pets: [], found: 0, skipped: 0, gen: 0, counts: {} };
+  var W = { connecting: false, tryStarters: false, kind: null, provider: null, std: null, pubkey: null, verified: false, loading: false, error: null, soon: false, pets: [], found: 0, skipped: 0, gen: 0, counts: {}, progressReady: false };
   function payOn() { return C.REAL_PAYMENTS_ENABLED === true; }
   var BOOST = window.BLUP3TS_BOOST_CORE ? BLUP3TS_BOOST_CORE({ cfg: C, load: function () { try { return JSON.parse(localStorage.getItem('blup3ts.web.boost')); } catch (e) { return null; } },
     save: function (s) { try { localStorage.setItem('blup3ts.web.boost', JSON.stringify(s)); } catch (e) {} } }) : null;
@@ -143,6 +143,7 @@
       W.found = +j.found || pets.length; W.skipped = Math.max(0, (+j.found || 0) - pets.length); W.pets = pets; W.counts = {};
       pets.forEach(function (p) { W.counts[p.collectionId] = (W.counts[p.collectionId] || 0) + 1; });
       W.loading = false; showOwned();
+      pullPets(owner);
       if (W.pets.length && !A.petDef().owned) whenIdle(function () { if (W.pubkey === owner && W.pets[0]) { A.setActive(W.pets[0].id); refresh(); } }); // M11: start on your own pet
       say(!W.pets.length ? 'No MNK3YS or ZMB3YS found in this wallet' : 'Found ' + W.pets.length + ' pet' + (W.pets.length === 1 ? '' : 's') + ' 🎉');
     }).catch(function (e) {
@@ -150,6 +151,27 @@
     });
   }
   function say(t) { H.toast(t); } // the page toast floats over every screen (the watch toast lives on the watch Home page only)
+  var persistTimer = null, OWN = /^own-[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+  function pullPets(owner, attempt) {
+    W.progressReady = false;
+    fetch('/api/blup3ts-pets?wallet=' + encodeURIComponent(owner), { headers: { accept: 'application/json' }, cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (W.pubkey !== owner) return;
+        if (!j || j.ok !== true || !Array.isArray(j.pets)) { if (!attempt) setTimeout(function () { if (W.pubkey === owner) pullPets(owner, 1); }, 2000); return; }
+        if (A.applyProgress) A.applyProgress(j.pets);
+        W.progressReady = true;
+        refresh();
+      }).catch(function () { if (W.pubkey === owner && !attempt) setTimeout(function () { if (W.pubkey === owner) pullPets(owner, 1); }, 2000); });
+  }
+  function pushPets() {
+    if (!W.progressReady || !W.pubkey || !A.state) return;
+    var pets = A.state().pets || {}, rows = [];
+    Object.keys(pets).forEach(function (id) { if (!OWN.test(id)) return; var q = pets[id]; rows.push({ id: id, full: q.full, joy: q.joy, str: q.str, eaten: q.eaten, jams: q.jams }); });
+    if (!rows.length) return;
+    fetch('/api/blup3ts-pets', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ wallet: W.pubkey, pets: rows }), keepalive: true, cache: 'no-store' }).catch(function () {});
+  }
+  function persist() { if (!W.progressReady) return; clearTimeout(persistTimer); persistTimer = setTimeout(pushPets, 800); }
   function showOwned() {
     if (A.state().mode === 'wallet' && W.pubkey && W.pets.length) A.addPets(W.pets); else dropOwned();
     refresh();
@@ -256,7 +278,7 @@
   }
   function disconnect(user, msg) {
     var p = W.provider, sw = W.std; W.gen++;
-    W.provider = null; W.std = null; W.pubkey = null; W.kind = null; W.verified = false; W.pets = []; W.loading = false; W.error = null; W.soon = false; W.counts = {}; W.connecting = false; W.tryStarters = false;
+    W.provider = null; W.std = null; W.pubkey = null; W.kind = null; W.verified = false; W.pets = []; W.loading = false; W.error = null; W.soon = false; W.counts = {}; W.connecting = false; W.tryStarters = false; W.progressReady = false;
     if (user) remember(null); // you chose to disconnect: no quiet reconnect next time
     dropOwned(); refresh(); H.toast(msg || 'Disconnected');
     if (user && sw) { try { var dc = sw.features['standard:disconnect']; if (dc && typeof dc.disconnect === 'function') Promise.resolve(dc.disconnect()).catch(function () {}); } catch (e) {} }
@@ -434,7 +456,7 @@
   if ($('boostBtn')) $('boostBtn').onclick = function () { if (!this.disabled) openBoost(); };
 
   window.BLUP3TS_WALLET = { addOwnInfo: addOwnInfo, addOwnTap: addOwnTap, afterWalletMode: afterWalletMode, modeNote: modeNote, renderConnect: renderConnect, onMode: onMode, onConnectClick: onConnectClick, carouselExtra: carouselExtra,
-    state: function () { return W; }, signIn: signIn, reload: loadPets, disconnect: function () { disconnect(true); }, realOn: realOn, boost: BOOST,
+    state: function () { return W; }, signIn: signIn, reload: loadPets, disconnect: function () { disconnect(true); }, realOn: realOn, boost: BOOST, persist: persist,
     _test: { petOf: petOf, safeImg: safeImg, txt: txt, siwsMessage: siwsMessage, providers: providers } };
   A.realFeedSection = realFeedSection;
   var prevReset = A.onReset; A.onReset = function () { if (BOOST) BOOST.reset(); if (prevReset) prevReset(); renderBoostBtn(); };

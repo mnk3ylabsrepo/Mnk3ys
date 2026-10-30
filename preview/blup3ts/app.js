@@ -68,7 +68,8 @@
       store.setItem(P + 'swaps', JSON.stringify(S.looks)); store.setItem(P + 'active', JSON.stringify(S.active));
       store.setItem(P + 'sound', JSON.stringify(!!S.sound)); store.setItem(P + 'speed', JSON.stringify(S.speed));
       store.setItem(P + 'started', JSON.stringify(!!S.started)); store.setItem(P + 'mode', JSON.stringify(S.mode));
-      store.setItem(P + 'orig', JSON.stringify(!!S.orig)); store.setItem(P + 'adult', JSON.stringify(!!S.adult)); store.setItem(P + 'layout', JSON.stringify(S.layout)); store.setItem(P + 'vol', JSON.stringify(S.vol)); store.setItem(P + 'fold', JSON.stringify(S.fold));
+      store.setItem(P + 'orig', JSON.stringify(!!S.orig)); store.setItem(P + 'adult', JSON.stringify(!!S.adult)); store.setItem(P + 'layout', JSON.stringify(S.layout)); store.setItem(P + 'vol', JSON.stringify(S.vol));       store.setItem(P + 'fold', JSON.stringify(S.fold));
+      if (window.BLUP3TS_WALLET && BLUP3TS_WALLET.persist) BLUP3TS_WALLET.persist();
     } catch (e) {}
   }
   var simClock = new Date(2026, 9, 22, 10, 9).getTime();
@@ -742,6 +743,7 @@
     visiblePets: visiblePets, setStarterFilter: function (fn) { hideStarters = typeof fn === 'function' ? fn : function () { return false; }; },
     setActive: function (id) { if (eating) return false; if (!DATA.pets.some(function (p) { return p.id === id; })) return false; S.active = id; save(); setPetArt(); render(); if (page === 'pets') renderPets(); if (page === 'stats') renderTraits(); return true; },
     addPets: function (list) { rarCache = {}; DATA.pets = DATA.pets.filter(function (p) { return !p.owned; }).concat(list); list.forEach(function (p) { if (!S.pets[p.id]) S.pets[p.id] = newPet(); }); setPetArt(); render(); save(); },
+    applyProgress: function (rows) { if (!Array.isArray(rows)) return; rows.forEach(function (q) { if (!q || !/^own-[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(q.id)) return; var cur = S.pets[q.id], str = Math.max(0, +q.str || 0); if (cur && cur.str > str) return; S.pets[q.id] = { full: clamp(q.full), joy: clamp(q.joy), str: str, eaten: Math.max(0, +q.eaten || 0), jams: Math.max(0, +q.jams || 0) }; }); render(); },
     removeOwnedPets: function () { DATA.pets = DATA.pets.filter(function (p) { return !p.owned; }); setPetArt(); render(); },
     setMode: function (m) { var was = S.mode; S.mode = m === 'wallet' && walletOn() ? 'wallet' : 'pretend'; save(); if (was === 'wallet' && S.mode === 'pretend' && window.BLUP3TS_FLOOR) BLUP3TS_FLOOR.reroll(); }, /* back to Pretend: fresh random floor pets */
     refreshStarters: function () { rarCache = {}; setPetArt(); render(); if (page === 'pets') renderPets(); }, /* starters.js put new floor pets in the starter slots (same ids, same progress) */ walletOn: walletOn,

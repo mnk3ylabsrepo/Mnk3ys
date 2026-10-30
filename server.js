@@ -184,6 +184,29 @@ app.post('/api/blup3ts-rpc', express.json({ limit: '16kb' }), async function (re
   }
 });
 
+app.get('/api/blup3ts-pets', async function (req, res) {
+  const wallet = String(req.query.wallet || '').trim();
+  if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(wallet)) return res.status(400).json({ ok: false, pets: [] });
+  try {
+    const pets = await db.getBlup3tsPets(wallet);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.json({ ok: true, pets: pets });
+  } catch (e) {
+    res.status(503).json({ ok: false, pets: [] });
+  }
+});
+app.post('/api/blup3ts-pets', express.json({ limit: '32kb' }), async function (req, res) {
+  const wallet = String((req.body && req.body.wallet) || '').trim();
+  if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(wallet)) return res.status(400).json({ ok: false });
+  try {
+    const saved = await db.saveBlup3tsPets(wallet, req.body && req.body.pets);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.json({ ok: true, saved: saved });
+  } catch (e) {
+    res.status(503).json({ ok: false });
+  }
+});
+
 app.post('/api/blup3ts-claim', express.json({ limit: '1kb' }), async function (req, res) {
   try {
     const ip = String(req.headers['x-forwarded-for'] || (req.socket && req.socket.remoteAddress) || '').split(',')[0].trim();

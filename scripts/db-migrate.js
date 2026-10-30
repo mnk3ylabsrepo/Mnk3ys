@@ -51,6 +51,18 @@ CREATE TABLE IF NOT EXISTS pairs_prizes (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_pairs_prizes_wallet_status ON pairs_prizes(wallet_address, status);
+
+CREATE TABLE IF NOT EXISTS blup3ts_pets (
+  wallet_address TEXT NOT NULL,
+  pet_id TEXT NOT NULL,
+  hunger REAL NOT NULL,
+  joy REAL NOT NULL,
+  str INTEGER NOT NULL,
+  eaten INTEGER NOT NULL,
+  jams INTEGER NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (wallet_address, pet_id)
+);
 `;
 
 async function run() {
