@@ -217,12 +217,30 @@
   // ---------- sheets ----------
   var lastFocus = null;
   function p(t) { return el('p', null, t); }
+  function placeSheet() {
+    var sh = $('sheet'); if (!sh || !sh.classList.contains('show')) return;
+    var vv = window.visualViewport;
+    var h = vv && vv.height ? vv.height : window.innerHeight;
+    var w = vv && vv.width ? vv.width : window.innerWidth;
+    var top = (vv && vv.offsetTop ? vv.offsetTop : 0) + h / 2;
+    var left = (vv && vv.offsetLeft ? vv.offsetLeft : 0) + w / 2;
+    sh.style.top = top + 'px';
+    sh.style.left = left + 'px';
+    sh.style.maxHeight = Math.max(180, Math.round(h - 24)) + 'px';
+    sh.style.maxWidth = Math.max(280, Math.round(Math.min(560, w - 24))) + 'px';
+  }
   function openSheet(title, nodes) {
     lastFocus = document.activeElement;
     $('sheetTitle').textContent = title; var b = $('sheetBody'); b.textContent = ''; nodes.forEach(function (n) { b.appendChild(n); });
-    $('sheet').classList.add('show'); $('sheetBg').classList.add('show'); $('sheetClose').focus();
+    $('sheet').classList.add('show'); $('sheetBg').classList.add('show'); placeSheet(); $('sheetClose').focus();
   }
-  function closeSheet() { $('sheet').classList.remove('show'); $('sheetBg').classList.remove('show'); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+  function closeSheet() {
+    var sh = $('sheet'); sh.classList.remove('show'); $('sheetBg').classList.remove('show');
+    sh.style.top = ''; sh.style.left = ''; sh.style.maxHeight = ''; sh.style.maxWidth = '';
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  if (window.visualViewport) { window.visualViewport.addEventListener('resize', placeSheet); window.visualViewport.addEventListener('scroll', placeSheet); }
+  window.addEventListener('resize', placeSheet);
   $('sheetClose').onclick = closeSheet; $('sheetBg').onclick = closeSheet;
   document.addEventListener('keydown', function (e) {
     var sh = $('sheet'); if (!sh.classList.contains('show')) return;

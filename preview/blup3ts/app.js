@@ -715,10 +715,8 @@
     return { w: Math.max(200, box.width - (sw > 40 ? sw + 36 : 420)), h: Math.max(200, box.height - barH) };
   }
   function deskFrame() {
-    var b = document.body;
-    if (!deskOn()) { b.style.removeProperty('--vvh'); return; }
     var vv = window.visualViewport, h = vv && vv.height ? vv.height : window.innerHeight;
-    b.style.setProperty('--vvh', Math.round(h) + 'px');
+    document.body.style.setProperty('--vvh', Math.round(h) + 'px');
   }
   function fit() {
     var gv = $('gameView'), full = isFull(), side = full && foldSide();
