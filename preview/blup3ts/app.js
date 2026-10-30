@@ -441,7 +441,7 @@
       b.onclick = function () { feed(f); };
       box.appendChild(b);
     });
-    if (S.mode === 'wallet') box.appendChild(API.realFeedSection ? API.realFeedSection(petDef(), FOODS) : el('div'));
+    if (S.mode === 'wallet' && API.realFeedSection) box.insertBefore(API.realFeedSection(petDef(), FOODS), box.firstChild);
     show('ov-feed');
   }
   // the real eating sequence lives in eat.js; this part only handles the game numbers

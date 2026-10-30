@@ -182,7 +182,7 @@
     if (wasOwned || /^own-/.test(A.state().active)) whenIdle(function () { A.setActive(A.pets()[0].id); refresh(); });
   }
   function whenIdle(fn) { if (!A.isEating()) return fn(); var t = setInterval(function () { if (!A.isEating()) { clearInterval(t); fn(); } }, 200); }
-  function refresh() { H.renderMode(); H.renderCarousel(false); if (A.refreshPets) A.refreshPets(); }
+  function refresh() { H.renderMode(); syncClaim(); H.renderCarousel(false); if (A.refreshPets) A.refreshPets(); }
 
   // ---------- connect / sign in ----------
   function onConnectClick() {
@@ -313,7 +313,13 @@
     var lk = W.pubkey ? W.kind : phone ? 'solflare' : null; // connected chip + phone 'Open in Solflare' show the wallet's own icon
     var label = W.connecting ? '⏳ Connecting…' : W.pubkey ? short(W.pubkey) + ' · Disconnect' : phone ? 'Connect · Open in Solflare' : '👛 Connect wallet';
     if (!W.connecting && lk && LOGO[lk]) withLogo(btn, lk, label); else btn.textContent = (W.pubkey || phone) && !W.connecting ? '👛 ' + label : label; btn.setAttribute('aria-label', W.pubkey ? 'Disconnect wallet ' + short(W.pubkey) : 'Connect wallet'); renderBoostBtn(); }
-  function onMode(m) { if (m === 'wallet') showOwned(); else { W.gen++; W.loading = false; dropOwned(); } }
+  function syncClaim() {
+    var b = $('blutestClaim'); if (!b || !C.TEST_PLAY) return;
+    var wallet = A.state && A.state().mode === 'wallet';
+    b.hidden = !wallet;
+    b.textContent = (W.pubkey ? 'Get 100,000 ' : 'Connect wallet to get 100,000 ') + payWord();
+  }
+  function onMode(m) { if (m === 'wallet') showOwned(); else { W.gen++; W.loading = false; dropOwned(); } syncClaim(); }
   // M11: phone, not connected: tapping Wallet goes straight to the connect step (one less tap). Desktop unchanged.
   function afterWalletMode() { if (!W.pubkey && !W.connecting && isMobile()) onConnectClick(); }
   // Starters are hidden while a wallet is connected (or quietly reconnecting) in Wallet mode, unless you tapped 'Try a starter pet'
@@ -350,7 +356,7 @@
     if (!payOn()) return document.createDocumentFragment(); // M13: real payments are fully hidden from players while REAL_PAYMENTS_ENABLED is false
     var box = el('div', 'realfeed'), word = payWord();
     box.appendChild(el('div', 'rfhead', C.TEST_PLAY ? 'Test token · ' + word : 'Real $BLUNANA'));
-    if (C.TEST_PLAY && W.pubkey) { var claim = el('button', 'food', 'Get 100,000 ' + word); claim.onclick = function () { A.play('tap'); claimTest(); }; box.appendChild(claim); }
+    if (C.TEST_PLAY) { var claim = el('button', 'food', (W.pubkey ? 'Get 100,000 ' : 'Connect wallet to get 100,000 ') + word); claim.onclick = function () { A.play('tap'); if (!W.pubkey) onConnectClick(); else claimTest(); }; box.appendChild(claim); }
     if (!realOn()) { var b = el('button', 'food rfoff', '🍌 Real feeding coming soon'); b.disabled = true; box.appendChild(b); box.appendChild(el('p', 'rfnote', 'Pretend feeding works now.')); return box; }
     if (!W.pubkey || !pd.owned) { box.appendChild(el('p', 'rfnote', W.pubkey ? 'Pick one of your own pets to feed it ' + word + '.' : 'Connect your wallet to feed with ' + word + '.')); return box; }
     box.appendChild(el('p', 'rfnote', C.TEST_PLAY ? word + ' is a test token. It is not $BLUNANA and has no value. A feed sends it to the test reserve.' : 'Feeding goes back into building the $BLUNANA and MNK3YLabs ecosystems.'));
@@ -454,6 +460,8 @@
       }).catch(function (e) { H.toast(rejected(e) ? 'Cancelled. Nothing was burned.' : 'Boost didn\'t go through: ' + txt(e && e.message, 60)); return false; });
   }
   if ($('boostBtn')) $('boostBtn').onclick = function () { if (!this.disabled) openBoost(); };
+  if ($('blutestClaim')) $('blutestClaim').onclick = function () { A.play('tap'); if (!W.pubkey) onConnectClick(); else claimTest(); };
+  syncClaim();
 
   window.BLUP3TS_WALLET = { addOwnInfo: addOwnInfo, addOwnTap: addOwnTap, afterWalletMode: afterWalletMode, modeNote: modeNote, renderConnect: renderConnect, onMode: onMode, onConnectClick: onConnectClick, carouselExtra: carouselExtra,
     state: function () { return W; }, signIn: signIn, reload: loadPets, disconnect: function () { disconnect(true); }, realOn: realOn, boost: BOOST, persist: persist,
