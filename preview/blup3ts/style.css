@@ -874,8 +874,8 @@ button:not(:disabled):active, [role=button]:active, a.extlink:active, .soc:activ
 .dots button::before { transform:translateX(var(--dx, 0px)); } /* 320px watch: the Balance tap area slides right off the LEVEL tile; the dot itself stays put */
 
 /* Desktop: one screen, two columns. Phones and short windows keep the stacked mobile layout. */
-body.desk { height:100dvh; max-height:100dvh; overflow:hidden; padding:18px max(120px, 8vw) 14px; align-items:stretch; }
-body.desk .homeview.on, body.desk .gameview.on { flex:1 1 auto; min-height:0; width:100%; max-width:1280px; margin-inline:auto; }
+body.desk { height:var(--vvh, 100svh); max-height:var(--vvh, 100svh); min-height:0; overflow:hidden; padding:max(18px, env(safe-area-inset-top)) max(120px, 8vw) max(14px, env(safe-area-inset-bottom)); align-items:stretch; }
+body.desk .homeview.on, body.desk .gameview.on { flex:1 1 0; min-height:0; width:100%; max-width:1280px; margin-inline:auto; }
 body.desk .homeview.on { display:grid; grid-template-columns:minmax(320px,400px) minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto auto minmax(0,1fr); column-gap:36px; align-items:stretch; padding:0; overflow:hidden; }
 body.desk .homeview .wmark { font-size:44px; }
 body.desk .hlabs { width:52px; height:52px; }
@@ -911,7 +911,7 @@ body.desk .socials { margin:0; }
 body.desk .nftsview.on { flex:1 1 auto; min-height:0; width:100%; max-width:1280px; overflow:auto; align-self:center; }
 /* Tablet: same one-screen layout as desktop, with tighter columns so the footer stays in view. */
 @media (max-width: 1099px) {
-  body.desk { padding:10px 16px 8px; }
+  body.desk { padding:max(10px, env(safe-area-inset-top)) 16px max(8px, env(safe-area-inset-bottom)); }
   body.desk .homeview.on { grid-template-columns:minmax(220px,280px) minmax(0,1fr); column-gap:16px; }
   body.desk .gameview.on { grid-template-columns:auto minmax(210px,260px); column-gap:16px; }
   body.desk .homeview .wmark { font-size:36px; }

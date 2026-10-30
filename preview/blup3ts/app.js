@@ -714,9 +714,16 @@
     var bar = gv.querySelector('.gamebar'), barH = bar ? bar.getBoundingClientRect().height + 20 : 0;
     return { w: Math.max(200, box.width - (sw > 40 ? sw + 36 : 420)), h: Math.max(200, box.height - barH) };
   }
+  function deskFrame() {
+    var b = document.body;
+    if (!deskOn()) { b.style.removeProperty('--vvh'); return; }
+    var vv = window.visualViewport, h = vv && vv.height ? vv.height : window.innerHeight;
+    b.style.setProperty('--vvh', Math.round(h) + 'px');
+  }
   function fit() {
     var gv = $('gameView'), full = isFull(), side = full && foldSide();
     document.body.classList.toggle('desk', deskOn());
+    deskFrame();
     if (gv) { gv.classList.toggle('full', full); gv.classList.toggle('fold-h', side); gv.classList.toggle('fold-v', full && !side); }
     caseFxFit(full, side);
     if (full) { // M13: Full view = an open foldable phone (two screens + hinge) that fits the window
@@ -750,7 +757,9 @@
     var k = Math.round(h) + '|' + Math.round(b); if (k === wmLast) return; wmLast = k;
     a.style.height = Math.round(h) + 'px'; a.style.bottom = Math.round(b) + 'px';
   }
-  window.addEventListener('resize', fit); fit();
+  window.addEventListener('resize', fit);
+  if (window.visualViewport) { window.visualViewport.addEventListener('resize', fit); window.visualViewport.addEventListener('scroll', fit); }
+  fit();
 
   // hooks for automated checks
   // ===== API for home.js and wallet.js =====
