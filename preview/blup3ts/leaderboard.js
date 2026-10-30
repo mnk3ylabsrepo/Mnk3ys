@@ -1,10 +1,5 @@
-/* BLUP3TS Leaderboard. Vanilla JS, no libraries, CSP safe (no inline code or styles).
- * Reads window.BLUP3TS_CONFIG:
- *   LEADERBOARD_ENABLED            false = hidden. true = the screen can open.
- *   LEADERBOARD_ENDPOINT           default '/api/blup3ts-leaderboard'  (GET ?board=str|jam|level&period=week|all)
- *   LEADERBOARD_DISCORD_LOGIN_URL  link for the 'Sign in with Discord to join' button (hidden if empty)
- * Open it with: any element that has data-open-leaderboard, or window.BLUP3TS_LEADERBOARD.open('str').
- * Names and scores come from the server. Text is set with textContent, never innerHTML.
+/* BLUP3TS ranks. Opens in the same sheet as FAQ and Settings.
+ * Scores come from the server. Text is set with textContent, never innerHTML.
  */
 (function () {
   'use strict';
@@ -18,8 +13,8 @@
     { id: 'level', label: 'Level', unit: 'Level' }
   ];
   var PERIODS = [{ id: 'week', label: 'Weekly' }, { id: 'all', label: 'Overall' }];
-  var CACHE_MS = 60000, TIMEOUT_MS = 8000;
-  var cache = {}, root = null, board = 'str', period = 'week', reqId = 0, lastFocus = null;
+  var CACHE_MS = 60000, TIMEOUT_MS = 25000;
+  var cache = {}, box = null, board = 'str', period = 'all', reqId = 0;
 
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = String(text); return e; }
   function num(n) { n = Number(n); return isFinite(n) ? Math.round(n).toLocaleString('en-US') : '–'; }
@@ -31,115 +26,84 @@
     if (/^[a-z][a-z0-9+.-]*:/i.test(src) || src.indexOf('//') === 0) return '';
     return src;
   }
+  function label(name) {
+    var s = String(name || 'Player');
+    return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(s) ? s.slice(0, 4) + '…' + s.slice(-4) : s;
+  }
   function weekText(w) {
-    if (period === 'all') return 'Overall · every player who has played';
-    if (!w || !w.start) return 'This week · resets Sunday';
+    if (period === 'all') return 'Overall · saved progress for everyone who has played';
+    if (!w || !w.start) return 'This week · resets Sunday. Overall keeps your full total.';
     var s = String(w.start), d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(s) ? s + 'T00:00:00Z' : s);
-    if (isNaN(d)) return 'This week · resets Sunday';
+    if (isNaN(d)) return 'This week · resets Sunday. Overall keeps your full total.';
     return 'Week of ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }) + ' · resets Sunday';
   }
-
-  function build() {
-    root = el('section', 'lb-view'); root.id = 'lbView'; root.hidden = true;
-    root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-labelledby', 'lbTitle');
-    var inner = el('div', 'lb-inner');
-    var top = el('div', 'lb-top');
-    var back = el('button', 'lb-back', '‹ Back'); back.type = 'button'; back.setAttribute('aria-label', 'Close leaderboard');
-    back.addEventListener('click', close);
-    var head = el('div', 'lb-head');
-    var h = el('h2', 'lb-title'); h.id = 'lbTitle';
-    h.appendChild(el('span', 'lb-trophy', '🏆')).setAttribute('aria-hidden', 'true'); h.appendChild(document.createTextNode(' LEADERBOARD'));
-    head.appendChild(h); head.appendChild(el('p', 'lb-week', 'This week · resets Sunday'));
-    top.appendChild(back); top.appendChild(head); inner.appendChild(top);
-
-    var per = el('div', 'lb-period'); per.setAttribute('role', 'group'); per.setAttribute('aria-label', 'Time range');
-    PERIODS.forEach(function (p) {
-      var b = el('button', 'lb-period-btn', p.label); b.type = 'button'; b.dataset.period = p.id;
-      b.addEventListener('click', function () { period = p.id; show(board); });
-      per.appendChild(b);
+  function seg(items, current, attr, pick) {
+    var g = el('div', 'modeseg'); g.setAttribute('role', 'group');
+    items.forEach(function (item) {
+      var b = el('button', current === item.id ? 'a' : '', item.label); b.type = 'button';
+      b.setAttribute('aria-pressed', current === item.id ? 'true' : 'false');
+      b.addEventListener('click', function () { pick(item.id); });
+      g.appendChild(b);
     });
-    inner.appendChild(per);
-
-    var tabs = el('div', 'lb-tabs'); tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'Leaderboard type');
-    BOARDS.forEach(function (b) {
-      var t = el('button', 'lb-tab', b.label); t.type = 'button'; t.setAttribute('role', 'tab'); t.dataset.board = b.id;
-      t.addEventListener('click', function () { show(b.id); });
-      tabs.appendChild(t);
-    });
-    tabs.addEventListener('keydown', function (e) {
-      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-      var i = BOARDS.map(function (b) { return b.id; }).indexOf(board);
-      i = (i + (e.key === 'ArrowRight' ? 1 : BOARDS.length - 1)) % BOARDS.length;
-      show(BOARDS[i].id); var nb = tabs.querySelector('[data-board="' + BOARDS[i].id + '"]'); if (nb) nb.focus();
-    });
-    inner.appendChild(tabs);
-
-    var body = el('div', 'lb-body'); body.setAttribute('role', 'tabpanel'); body.setAttribute('aria-live', 'polite');
-    inner.appendChild(body);
-    inner.appendChild(el('div', 'lb-me'));
-    inner.appendChild(el('p', 'lb-foot', 'Top 3 get a gold badge'));
-    root.appendChild(inner);
-    root.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
-    document.body.appendChild(root);
+    return g;
   }
-
   function row(e, unit, isMe) {
     var r = Number(e.rank);
-    var li = el(isMe ? 'div' : 'li', 'lb-row' + (r >= 1 && r <= 3 ? ' lb-r' + r : '') + (isMe ? ' lb-mine' : ''));
-    var medal = r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : '';
-    var rk = el('span', 'lb-rank', medal || (r > 0 ? num(r) : '–')); if (medal) rk.setAttribute('aria-label', 'Rank ' + r);
-    li.appendChild(rk);
-    var pic = el('span', 'lb-pic'), src = safeImg(e.petImage);
+    var li = el(isMe ? 'div' : 'li', 'rankrow' + (isMe ? ' me' : ''));
+    li.appendChild(el('span', 'rankn', r > 0 ? num(r) : '–'));
+    var pic = el('span', 'rankpic'), src = safeImg(e.petImage);
     if (src) {
       var img = el('img'); img.alt = ''; img.loading = 'lazy'; img.decoding = 'async'; img.draggable = false; img.src = src;
       img.addEventListener('error', function () { img.remove(); pic.textContent = '🐵'; });
       pic.appendChild(img);
     } else pic.textContent = '🐵';
     li.appendChild(pic);
-    var who = el('span', 'lb-who');
-    var nm = el('span', 'lb-name', isMe ? 'You' : (e.name || 'Player')); if (e.name) nm.title = String(e.name); who.appendChild(nm);
+    var who = el('span', 'rankwho');
+    var nm = el('b', null, isMe ? 'You' : label(e.name)); if (e.name) nm.title = String(e.name); who.appendChild(nm);
     var bits = [];
     if (e.petName) bits.push(String(e.petName));
-    var tag = e.collection ? String(e.collection) + (e.petNumber != null && e.petNumber !== '' ? ' #' + e.petNumber : '') : '';
-    if (tag && String(e.petName || '').indexOf(tag) < 0) bits.push(tag);
     if (e.level != null && unit !== 'Level') bits.push('Lv ' + num(e.level));
     if (e.walletCount > 1) bits.push(num(e.walletCount) + ' wallets');
-    who.appendChild(el('span', 'lb-sub', bits.join(' · ')));
+    who.appendChild(el('span', 'ranksub', bits.join(' · ')));
     li.appendChild(who);
-    var sc = el('span', 'lb-score');
+    var sc = el('span', 'rankscore');
     sc.appendChild(el('b', null, num(e.score))); sc.appendChild(el('small', null, unit));
     li.appendChild(sc);
     return li;
   }
-
-  function stateMsg(cls, emoji, text, retry) {
-    var d = el('div', 'lb-state ' + cls); d.appendChild(el('div', 'lb-state-emo', emoji)).setAttribute('aria-hidden', 'true');
+  function note(text, retry) {
+    var d = el('div', 'ranknote');
     d.appendChild(el('p', null, text));
-    if (retry) { var b = el('button', 'lb-retry', 'Try again'); b.type = 'button'; b.addEventListener('click', function () { delete cache[key()]; show(board); }); d.appendChild(b); }
+    if (retry) {
+      var b = el('button', 'sbtn', 'Try again'); b.type = 'button';
+      b.addEventListener('click', function () { delete cache[key()]; show(board); });
+      d.appendChild(b);
+    }
     return d;
   }
-
   function render(data) {
-    var body = root.querySelector('.lb-body'), me = root.querySelector('.lb-me'), info = boardInfo(board);
-    body.textContent = ''; me.textContent = '';
-    [].forEach.call(root.querySelectorAll('.lb-period-btn'), function (b) {
-      var on = b.dataset.period === period; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
-    root.querySelector('.lb-week').textContent = weekText(data && data.week);
-    if (data === 'loading') { body.appendChild(stateMsg('lb-loading', '⏳', 'Loading the leaderboard…')); body.setAttribute('aria-busy', 'true'); return; }
-    body.removeAttribute('aria-busy');
-    if (data === 'error') { body.appendChild(stateMsg('lb-error', '😴', 'Leaderboard is taking a nap, try again soon', true)); return; }
+    if (!box) return;
+    var info = boardInfo(board);
+    box.textContent = '';
+    box.appendChild(seg(PERIODS, period, 'period', function (id) { period = id; show(board); }));
+    box.appendChild(seg(BOARDS, board, 'board', function (id) { show(id); }));
+    box.appendChild(el('p', 'ranknote', weekText(data && data.week)));
+    if (data === 'loading') { box.appendChild(note('Loading ranks…')); return; }
+    if (data === 'error') { box.appendChild(note('Could not load ranks. Try again.', true)); return; }
     var list = Array.isArray(data.entries) ? data.entries : [];
-    if (!list.length) body.appendChild(stateMsg('lb-empty', '🌱', period === 'week' ? 'No scores yet this week. Play to be the first!' : 'No scores yet. Play to be the first!'));
-    else { var ol = el('ol', 'lb-list'); list.forEach(function (e) { ol.appendChild(row(e, info.unit, false)); }); body.appendChild(ol); }
-    if (data.me && typeof data.me === 'object') me.appendChild(row(data.me, info.unit, true));
-    else if (data.signedIn) me.appendChild(el('p', 'lb-join', 'Play a pet to join the board'));
-    else if (LOGIN_URL) {
-      var a = el('a', 'lb-discord', 'Sign in with Discord to join'); a.href = LOGIN_URL; a.rel = 'noopener';
-      me.appendChild(a);
+    if (!list.length) box.appendChild(note(period === 'week' ? 'No scores this week yet. Overall still has saved progress.' : 'No scores yet.'));
+    else {
+      var ol = el('div', 'ranklist');
+      list.forEach(function (e) { ol.appendChild(row(e, info.unit, false)); });
+      box.appendChild(ol);
+    }
+    if (data && data.me && typeof data.me === 'object') box.appendChild(row(data.me, info.unit, true));
+    else if (data && data.signedIn) box.appendChild(el('p', 'ranknote', 'Play a pet to join the board'));
+    else if (data && LOGIN_URL) {
+      var a = el('a', 'sbtn', 'Sign in with Discord'); a.href = LOGIN_URL; a.rel = 'noopener';
+      box.appendChild(a);
     }
   }
-
   function load() {
     var k = key(), c = cache[k];
     if (c && Date.now() - c.t < CACHE_MS) return Promise.resolve(c.d);
@@ -148,42 +112,30 @@
     var timer = setTimeout(function () { if (ctl) ctl.abort(); }, TIMEOUT_MS);
     return fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' }, signal: ctl ? ctl.signal : undefined })
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (d) { clearTimeout(timer); if (!d || typeof d !== 'object') throw new Error('bad data'); cache[k] = { t: Date.now(), d: d }; return d; },
+      .then(function (d) { clearTimeout(timer); if (!d || d.ok === false) throw new Error('bad data'); cache[k] = { t: Date.now(), d: d }; return d; },
             function (err) { clearTimeout(timer); throw err; });
   }
-
   function show(id) {
     board = boardInfo(id).id;
-    [].forEach.call(root.querySelectorAll('.lb-tab'), function (t) {
-      var on = t.dataset.board === board; t.classList.toggle('on', on); t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1;
-    });
+    var home = window.BLUP3TS_HOME;
+    if (!home || !home.openSheet) return;
+    if (!box || !box.isConnected) { box = el('div', 'ranks'); home.openSheet('Ranks', [box]); }
     var my = ++reqId; render('loading');
     load().then(function (d) { if (my === reqId) render(d); }, function () { if (my === reqId) render('error'); });
   }
-
   function open(id) {
     if (!ENABLED) return false;
-    if (!root) build();
-    lastFocus = document.activeElement;
-    root.hidden = false; document.documentElement.classList.add('lb-open');
     show(id || board);
-    var b = root.querySelector('.lb-back'); if (b) b.focus();
     return true;
   }
-  function close() {
-    if (!root || root.hidden) return;
-    root.hidden = true; document.documentElement.classList.remove('lb-open');
-    if (lastFocus && lastFocus.focus) lastFocus.focus();
-  }
-
+  function close() { if (window.BLUP3TS_HOME && window.BLUP3TS_HOME.closeSheet) window.BLUP3TS_HOME.closeSheet(); }
   function wire() {
     [].forEach.call(document.querySelectorAll('[data-open-leaderboard]'), function (b) {
       if (!ENABLED) { b.hidden = true; return; }
       b.hidden = false;
-      b.addEventListener('click', function (e) { e.preventDefault(); open(b.getAttribute('data-open-leaderboard') || 'str'); });
+      b.addEventListener('click', function (e) { e.preventDefault(); if (window.BLUP3TS_APP && BLUP3TS_APP.play) BLUP3TS_APP.play('tap'); open(b.getAttribute('data-open-leaderboard') || 'str'); });
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
-
-  window.BLUP3TS_LEADERBOARD = { open: open, close: close, enabled: ENABLED, refresh: function () { cache = {}; if (root && !root.hidden) show(board); } };
+  window.BLUP3TS_LEADERBOARD = { open: open, close: close, enabled: ENABLED, refresh: function () { cache = {}; if (box && box.isConnected) show(board); } };
 })();
