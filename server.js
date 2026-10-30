@@ -184,11 +184,21 @@ app.post('/api/blup3ts-rpc', express.json({ limit: '16kb' }), async function (re
   }
 });
 
+async function blup3tsOwnedIds(wallet) {
+  try {
+    const body = await blup3tsNft.lookup(wallet, process.env, global.fetch);
+    if (!body || !Array.isArray(body.pets)) return null;
+    return body.pets.map(function (p) { return 'own-' + p.id; });
+  } catch (e) {
+    return null;
+  }
+}
 app.get('/api/blup3ts-pets', async function (req, res) {
   const wallet = String(req.query.wallet || '').trim();
   if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(wallet)) return res.status(400).json({ ok: false, pets: [] });
   try {
-    const pets = await db.getBlup3tsPets(wallet);
+    const owned = await blup3tsOwnedIds(wallet);
+    const pets = owned ? await db.syncBlup3tsPets(wallet, owned) : await db.getBlup3tsPets(wallet);
     res.setHeader('Cache-Control', 'private, no-store');
     res.json({ ok: true, pets: pets });
   } catch (e) {
@@ -199,9 +209,10 @@ app.post('/api/blup3ts-pets', express.json({ limit: '32kb' }), async function (r
   const wallet = String((req.body && req.body.wallet) || '').trim();
   if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(wallet)) return res.status(400).json({ ok: false });
   try {
-    const saved = await db.saveBlup3tsPets(wallet, req.body && req.body.pets);
+    const owned = await blup3tsOwnedIds(wallet);
+    const saved = await db.saveBlup3tsPets(wallet, req.body && req.body.pets, owned);
     res.setHeader('Cache-Control', 'private, no-store');
-    res.json({ ok: true, saved: saved });
+    res.json({ ok: true, saved: saved.saved, pets: saved.pets });
   } catch (e) {
     res.status(503).json({ ok: false });
   }

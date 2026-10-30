@@ -44,7 +44,7 @@
   function load() {
     var s = fresh(), v;
     if (typeof (v = get('balance')) === 'number' && v >= 0) s.bal = v;
-    v = get('pets'); if (v && typeof v === 'object') Object.keys(v).forEach(function (id) { var q = v[id]; if (/^[A-Za-z0-9-]{3,48}$/.test(id) && q && typeof q.full === 'number' && typeof q.str === 'number') s.pets[id] = { full: clamp(q.full), joy: clamp(q.joy), str: Math.max(0, +q.str || 0), eaten: Math.max(0, +q.eaten || 0), jams: Math.max(0, +q.jams || 0) }; });
+    v = get('pets'); if (v && typeof v === 'object') Object.keys(v).forEach(function (id) { var q = v[id]; if (/^[A-Za-z0-9-]{3,48}$/.test(id) && q && typeof q.full === 'number' && typeof q.str === 'number') s.pets[id] = { full: clamp(q.full), joy: clamp(q.joy), str: Math.max(0, +q.str || 0), eaten: Math.max(0, +q.eaten || 0), jams: Math.max(0, +q.jams || 0), holder: typeof q.holder === 'string' && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(q.holder) ? q.holder : undefined }; });
     v = get('swaps'); if (v && typeof v === 'object') s.looks = v;
     v = get('active'); if (typeof v === 'string' && /^[A-Za-z0-9-]{3,48}$/.test(v)) s.active = v; // an owned pet shows once the wallet loads it
     // a saved pet that is no longer a starter (e.g. retired MNK3YS) -> MNK3Y #1579. Owned pets only while wallet connect is on.
@@ -773,7 +773,17 @@
     visiblePets: visiblePets, setStarterFilter: function (fn) { hideStarters = typeof fn === 'function' ? fn : function () { return false; }; },
     setActive: function (id) { if (eating) return false; if (!DATA.pets.some(function (p) { return p.id === id; })) return false; S.active = id; save(); setPetArt(); render(); if (page === 'pets') renderPets(); if (page === 'stats') renderTraits(); return true; },
     addPets: function (list) { rarCache = {}; DATA.pets = DATA.pets.filter(function (p) { return !p.owned; }).concat(list); list.forEach(function (p) { if (!S.pets[p.id]) S.pets[p.id] = newPet(); }); setPetArt(); render(); save(); },
-    applyProgress: function (rows) { if (!Array.isArray(rows)) return; rows.forEach(function (q) { if (!q || !/^own-[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(q.id)) return; var cur = S.pets[q.id], str = Math.max(0, +q.str || 0); if (cur && cur.str > str) return; S.pets[q.id] = { full: clamp(q.full), joy: clamp(q.joy), str: str, eaten: Math.max(0, +q.eaten || 0), jams: Math.max(0, +q.jams || 0) }; }); render(); },
+    // A pet's progress belongs to the wallet holding it. A different holder starts again at zero.
+    noteHolder: function (wallet, ids) {
+      if (typeof wallet !== 'string' || !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(wallet) || !Array.isArray(ids)) return;
+      ids.forEach(function (id) {
+        var p = S.pets[id]; if (!p || !p.holder || p.holder === wallet) return;
+        S.pets[id] = { full: 0, joy: 0, str: 0, eaten: 0, jams: 0, holder: wallet };
+        if (S.looks[id]) delete S.looks[id];
+      });
+      save();
+    },
+    applyProgress: function (rows) { if (!Array.isArray(rows)) return; rows.forEach(function (q) { if (!q || !/^own-[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(q.id)) return; var cur = S.pets[q.id], str = Math.max(0, +q.str || 0); if (!q.reset && cur && cur.str > str) return; S.pets[q.id] = { full: clamp(q.full), joy: clamp(q.joy), str: str, eaten: Math.max(0, +q.eaten || 0), jams: Math.max(0, +q.jams || 0), holder: typeof q.holder === 'string' && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(q.holder) ? q.holder : (cur && cur.holder) }; if (q.reset && S.looks[q.id]) delete S.looks[q.id]; }); save(); render(); },
     removeOwnedPets: function () { DATA.pets = DATA.pets.filter(function (p) { return !p.owned; }); setPetArt(); render(); },
     setMode: function (m) { var was = S.mode; S.mode = m === 'wallet' && walletOn() ? 'wallet' : 'pretend'; save(); if (was === 'wallet' && S.mode === 'pretend' && window.BLUP3TS_FLOOR) BLUP3TS_FLOOR.reroll(); }, /* back to Pretend: fresh random floor pets */
     refreshStarters: function () { rarCache = {}; setPetArt(); render(); if (page === 'pets') renderPets(); }, /* starters.js put new floor pets in the starter slots (same ids, same progress) */ walletOn: walletOn,

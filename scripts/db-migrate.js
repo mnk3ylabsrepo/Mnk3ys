@@ -63,6 +63,11 @@ CREATE TABLE IF NOT EXISTS blup3ts_pets (
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   PRIMARY KEY (wallet_address, pet_id)
 );
+CREATE TABLE IF NOT EXISTS blup3ts_pet_holder (
+  pet_id TEXT PRIMARY KEY,
+  wallet_address TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 `;
 
 async function run() {

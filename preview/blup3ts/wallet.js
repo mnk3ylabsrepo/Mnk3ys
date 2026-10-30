@@ -213,11 +213,15 @@
     var pets = A.state().pets || {}, rows = [];
     Object.keys(pets).forEach(function (id) { if (!OWN.test(id)) return; var q = pets[id]; rows.push({ id: id, full: q.full, joy: q.joy, str: q.str, eaten: q.eaten, jams: q.jams }); });
     if (!rows.length) return;
-    fetch('/api/blup3ts-pets', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ wallet: W.pubkey, pets: rows }), keepalive: true, cache: 'no-store' }).catch(function () {});
+    var owner = W.pubkey;
+    fetch('/api/blup3ts-pets', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ wallet: owner, pets: rows }), keepalive: true, cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { if (j && j.pets && j.pets.length && W.pubkey === owner && A.applyProgress) A.applyProgress(j.pets); })
+      .catch(function () {});
   }
   function persist() { if (!W.progressReady) return; clearTimeout(persistTimer); persistTimer = setTimeout(pushPets, 800); }
   function showOwned() {
-    if (A.state().mode === 'wallet' && W.pubkey && W.pets.length) A.addPets(W.pets); else dropOwned();
+    if (A.state().mode === 'wallet' && W.pubkey && W.pets.length) { if (A.noteHolder) A.noteHolder(W.pubkey, W.pets.map(function (p) { return p.id; })); A.addPets(W.pets); } else dropOwned();
     refresh();
   }
   function dropOwned() {
