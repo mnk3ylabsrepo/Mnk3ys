@@ -708,9 +708,11 @@
   }
   function deskOn() { return window.matchMedia('(min-width: 1100px) and (min-height: 700px)').matches; }
   function deskBox() {
-    var mainEl = document.querySelector('#gameView main'); if (!mainEl) return null;
-    var box = mainEl.getBoundingClientRect(); if (box.width < 200 || box.height < 200) return null;
-    return { w: Math.max(200, box.width - 320), h: Math.max(200, box.height - 8) };
+    var gv = $('gameView'); if (!gv) return null;
+    var box = gv.getBoundingClientRect(); if (box.width < 200 || box.height < 200) return null;
+    var side = gv.querySelector('.sidecol'), sw = side ? side.getBoundingClientRect().width : 0;
+    var bar = gv.querySelector('.gamebar'), barH = bar ? bar.getBoundingClientRect().height + 20 : 0;
+    return { w: Math.max(200, box.width - (sw > 40 ? sw + 36 : 420)), h: Math.max(200, box.height - barH) };
   }
   function fit() {
     var gv = $('gameView'), full = isFull(), side = full && foldSide();

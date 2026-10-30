@@ -235,6 +235,7 @@ main { display:flex; flex-direction:column; align-items:center; width:100%; }
 .foot { margin-top:12px; text-align:center; max-width:560px; }
 .betaline { width:100%; max-width:560px; margin-top:18px; text-align:center; font-size:14px; font-weight:900; color:var(--gold); }
 .homestack { display:flex; flex-direction:column; align-items:center; width:100%; }
+.sidecol { display:contents; }
 
 @media (min-width: 900px) {
   main { display:grid; grid-template-columns:auto 360px; grid-template-areas:"watch how" "tabs how" "controls how"; column-gap:34px; align-items:start; width:auto; }
@@ -892,14 +893,18 @@ body.desk .hbtns { margin-top:6px; }
 body.desk .looksrow, body.desk .blutest-claim { width:100%; max-width:none; margin-top:6px; }
 body.desk .modenote { margin-top:4px; }
 body.desk .betaline { max-width:none; margin:14px 0 0; text-align:center; }
-body.desk .gameview.on { display:grid; grid-template-rows:auto minmax(0,1fr); align-content:stretch; }
-body.desk .gamebar { max-width:none; margin:0 0 4px; }
+body.desk .gameview.on { display:grid; grid-template-columns:auto minmax(340px,420px); grid-template-rows:minmax(0,1fr) auto auto minmax(0,1fr); column-gap:36px; justify-content:center; align-items:stretch; padding:0; overflow:hidden; }
+body.desk .gamebar { grid-column:1 / -1; grid-row:2; width:auto; max-width:none; margin:0 0 12px; align-self:end; }
 body.desk .gameview .hero { display:none; }
-body.desk .gameview main { display:grid; grid-template-columns:auto 280px; grid-template-rows:minmax(0,1fr) auto; grid-template-areas:"watch tabs" "watch controls"; column-gap:36px; justify-content:center; align-items:center; width:100%; height:100%; min-height:0; }
-body.desk .stagewrap { grid-area:watch; justify-self:end; align-self:center; margin:0; }
-body.desk .tabs { grid-area:tabs; align-self:end; width:100%; max-width:none; }
-body.desk .controls { grid-area:controls; align-self:start; width:100%; max-width:none; margin-top:8px; flex-direction:column; }
-body.desk .controls button { width:100%; }
+body.desk .gameview main { display:contents; }
+body.desk .stagewrap { grid-column:1; grid-row:3; justify-self:end; align-self:center; margin:0; }
+body.desk .sidecol { display:flex; flex-direction:column; gap:16px; grid-column:2; grid-row:3; align-self:stretch; min-height:0; min-width:0; background:rgba(10,16,26,.82); border:1px solid #2c3a52; border-radius:28px; padding:16px; box-shadow:0 16px 40px rgba(0,0,0,.28); }
+body.desk .sidecol .tabs { flex:1 1 0; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:12px; width:100%; max-width:none; margin:0; align-self:stretch; }
+body.desk .sidecol .tabs button { height:100%; min-height:64px; font-size:15px; border-radius:16px; padding:10px 8px; gap:6px; }
+body.desk .sidecol .tabs button span { font-size:26px; }
+body.desk .sidecol .tabs img.blu { width:28px; height:28px; }
+body.desk .sidecol .controls { flex:1.15 1 0; display:flex; flex-direction:column; gap:12px; width:100%; max-width:none; margin:0; }
+body.desk .sidecol .controls button { flex:1 1 auto; width:100%; min-height:54px; font-size:16px; border-radius:16px; }
 body.desk .foot { width:100%; max-width:none; margin-top:8px; display:flex; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px 16px; }
 body.desk .muted { margin:0; text-align:center; }
 body.desk .socials { margin:0; }
