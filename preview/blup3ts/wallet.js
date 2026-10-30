@@ -58,6 +58,50 @@
   }
   function rejected(e) { var c = e && (e.code || (e.error && e.error.code)); return c === 4001 || /reject|denied|cancel|declin/i.test(String(e && (e.message || e))); }
   function realOn() { return payOn() && C.NETWORK === 'mainnet-live' && isKey(C.RESERVE_WALLET) && isKey(C.BLUNANA_MINT) && !!SOL; }
+  var TOKEN_PROG = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA', ATA_PROG = 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL', HOLD = 10000;
+  var tokenBal = null, balGen = 0;
+  function livePlay() { return C.TEST_PLAY === true && A.state().mode === 'wallet'; }
+  function holdsEnough() { return tokenBal != null && tokenBal >= HOLD; }
+  function readBal() {
+    var gen = ++balGen, owner = W.pubkey, mint = C.BLUNANA_MINT;
+    if (!livePlay() || !owner || !SOL || !isKey(mint)) { tokenBal = null; paintPlay(); paintClaim(); return Promise.resolve(); }
+    var PK = SOL.PublicKey;
+    return PK.findProgramAddress([new PK(owner).toBytes(), new PK(TOKEN_PROG).toBytes(), new PK(mint).toBytes()], new PK(ATA_PROG)).then(function (found) {
+      return rpc('getAccountInfo', [found[0].toBase58(), { encoding: 'base64' }]);
+    }).then(function (r) {
+      if (gen !== balGen || W.pubkey !== owner) return;
+      var data = r && r.value && r.value.data, b64 = Array.isArray(data) ? data[0] : (typeof data === 'string' ? data : '');
+      if (!b64) tokenBal = 0;
+      else {
+        var raw = atob(b64), n = 0n;
+        for (var i = 0; i < 8; i++) n += BigInt(raw.charCodeAt(64 + i)) << BigInt(8 * i);
+        tokenBal = Number(n / (10n ** BigInt(C.BLUNANA_DECIMALS || 6)));
+      }
+      paintPlay(); paintClaim();
+    }).catch(function () { if (gen !== balGen) return; tokenBal = null; paintPlay(); paintClaim(); });
+  }
+  function unlockFoods() {
+    if (!livePlay() || !A.foods) return;
+    document.querySelectorAll('#foods .food[data-tier]').forEach(function (b) {
+      var f = A.foods.filter(function (x) { return x.id === b.dataset.tier; })[0];
+      if (f) b.disabled = feedLocked(f);
+    });
+  }
+  function paintPlay() {
+    var live = livePlay(), word = payWord();
+    var cap = $('balCap'), fine = $('balFine'), refill = $('refillBtn');
+    if (cap) cap.textContent = live ? word : 'Pretend $BLUNANA';
+    if (fine) fine.textContent = live ? (W.pubkey ? 'Test token in this wallet. Feeding sends it to the test reserve. It is not $BLUNANA.' : 'Connect a wallet to see your ' + word + '. Wallet mode does not use pretend play money.') : 'Play money for Pretend mode. Nothing here touches real tokens.';
+    if (refill) refill.hidden = !!live;
+    if (live && $('bal')) $('bal').textContent = !W.pubkey ? '—' : (tokenBal == null ? '…' : A.fmt(tokenBal));
+    var fw = $('feedWord'), ff = $('feedFine'), fb = $('feedBal'), ov = $('ov-feed');
+    if (fw) fw.textContent = live ? word : 'pretend';
+    if (ff) ff.textContent = live ? word + ' · your wallet approves each feed · not $BLUNANA' : 'Pretend $BLUNANA · play money · no real tokens';
+    if (live && fb && ov && ov.classList.contains('show')) fb.textContent = !W.pubkey ? '—' : (tokenBal == null ? '…' : A.fmt(tokenBal));
+    var home = $('blutestBal');
+    if (home) { home.hidden = !live; home.textContent = !W.pubkey ? 'Connect a wallet to see your ' + word + ' balance.' : (tokenBal == null ? 'Checking ' + word + ' balance…' : word + ' balance: ' + A.fmt(tokenBal)); }
+    unlockFoods();
+  }
 
   // ---------- RPC (read-only) ----------
   function rpc(method, params) {
@@ -220,7 +264,7 @@
       W.connecting = false; W.tryStarters = false; W.lastConnect = Date.now();
       W.kind = x.kind; W.provider = x.p || null; W.std = x.std || null; W.pubkey = k; W.verified = false; W.pets = []; listen(x); remember(x.kind);
       dropOwned(); W.loading = true; // looking card + spinner straight away, starters hidden
-      H.toast((silent ? 'Welcome back ' : 'Connected ') + short(k)); refresh(); if (C.SIGN_IN_ENABLED === true) askSignIn(); return loadPets();
+      H.toast((silent ? 'Welcome back ' : 'Connected ') + short(k)); refresh(); readBal(); if (C.SIGN_IN_ENABLED === true) askSignIn(); return loadPets();
     };
     var r;
     if (x.std) { // Wallet Standard: standard:connect gives back accounts; we read the public address only
@@ -261,7 +305,7 @@
   var listened = [];
   function accountChanged(k) {
     if (!isKey(k)) return disconnect(false, 'Wallet disconnected');
-    if (k !== W.pubkey) { W.pubkey = k; W.verified = false; W.pets = []; W.tryStarters = false; dropOwned(); H.toast('Switched to ' + short(k)); loadPets(); }
+    if (k !== W.pubkey) { W.pubkey = k; tokenBal = null; W.verified = false; W.pets = []; W.tryStarters = false; dropOwned(); H.toast('Switched to ' + short(k)); readBal(); loadPets(); }
   }
   function listen(x) {
     if (x.std) {
@@ -278,7 +322,7 @@
   }
   function disconnect(user, msg) {
     var p = W.provider, sw = W.std; W.gen++;
-    W.provider = null; W.std = null; W.pubkey = null; W.kind = null; W.verified = false; W.pets = []; W.loading = false; W.error = null; W.soon = false; W.counts = {}; W.connecting = false; W.tryStarters = false; W.progressReady = false;
+    W.provider = null; W.std = null; W.pubkey = null; tokenBal = null; balGen++; W.kind = null; W.verified = false; W.pets = []; W.loading = false; W.error = null; W.soon = false; W.counts = {}; W.connecting = false; W.tryStarters = false; W.progressReady = false;
     if (user) remember(null); // you chose to disconnect: no quiet reconnect next time
     dropOwned(); refresh(); H.toast(msg || 'Disconnected');
     if (user && sw) { try { var dc = sw.features['standard:disconnect']; if (dc && typeof dc.disconnect === 'function') Promise.resolve(dc.disconnect()).catch(function () {}); } catch (e) {} }
@@ -316,9 +360,9 @@
   function syncClaim() {
     var b = $('blutestClaim'); if (!b || !C.TEST_PLAY) return;
     b.hidden = !(A.state && A.state().mode === 'wallet');
-    paintClaim();
+    paintClaim(); paintPlay();
   }
-  function onMode(m) { if (m === 'wallet') showOwned(); else { W.gen++; W.loading = false; dropOwned(); } syncClaim(); }
+  function onMode(m) { if (m === 'wallet') { showOwned(); readBal(); } else { W.gen++; W.loading = false; tokenBal = null; dropOwned(); } syncClaim(); }
   // M11: phone, not connected: tapping Wallet goes straight to the connect step (one less tap). Desktop unchanged.
   function afterWalletMode() { if (!W.pubkey && !W.connecting && isMobile()) onConnectClick(); }
   // Starters are hidden while a wallet is connected (or quietly reconnecting) in Wallet mode, unless you tapped 'Try a starter pet'
@@ -365,27 +409,56 @@
       b.classList.toggle('is-busy', claimState === 'busy');
       b.classList.toggle('is-ok', claimState === 'ok');
       b.classList.toggle('is-bad', claimState === 'bad');
-      b.disabled = claimState === 'busy';
+      var rich = !!W.pubkey && holdsEnough() && claimState === 'idle';
+      var waiting = !!W.pubkey && tokenBal == null && claimState === 'idle' && livePlay();
+      b.disabled = claimState === 'busy' || rich || waiting;
       b.setAttribute('aria-busy', claimState === 'busy' ? 'true' : 'false');
       if (claimState === 'busy') claimLabel(b, 'Sending ' + payWord() + '…');
       else if (claimState === 'ok') claimLabel(b, '100,000 ' + payWord() + ' sent');
       else if (claimState === 'bad') claimLabel(b, claimMsg || 'Claim failed');
+      else if (waiting) claimLabel(b, 'Checking ' + payWord() + '…');
+      else if (rich) claimLabel(b, 'You already have 10,000+ ' + payWord());
       else claimLabel(b, (W.pubkey ? 'Get 100,000 ' : 'Connect wallet to get 100,000 ') + payWord());
     });
   }
   function claimTest() {
     if (!W.pubkey) return H.toast('Connect your wallet first');
-    if (claimState === 'busy') return;
+    if (claimState === 'busy' || holdsEnough()) return;
     claimState = 'busy'; clearTimeout(claimTimer); paintClaim();
     fetch('/api/blup3ts-claim', { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ wallet: W.pubkey }), cache: 'no-store' })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (x) {
         claimState = x.ok ? 'ok' : 'bad';
         claimMsg = x.ok ? '' : ((x.j && x.j.message) || 'Claim failed');
-        paintClaim();
+        paintClaim(); if (x.ok) readBal();
       })
       .catch(function () { claimState = 'bad'; claimMsg = 'Claim failed'; paintClaim(); })
       .then(function () { claimTimer = setTimeout(function () { claimState = 'idle'; paintClaim(); }, 5000); });
+  }
+  function feedCost(f) { return SOL && f ? SOL.realTierCost(C, f.id) : (f ? f.cost : 0); }
+  function feedLocked(f) {
+    if (!W.pubkey) return false;
+    if (!realOn() || !isKey(A.petDef().mint) || tokenBal == null) return true;
+    return tokenBal < feedCost(f);
+  }
+  function payFeed(pd, f) {
+    if (!W.pubkey) return onConnectClick();
+    if (!realOn()) return H.toast('Test token feeding is not ready.');
+    if (!isKey(pd && pd.mint)) return H.toast('Pick one of your own pets to feed with ' + payWord() + '.');
+    if (tokenBal == null) return H.toast('Checking your ' + payWord() + ' balance…');
+    if (tokenBal < feedCost(f)) return H.toast('Not enough ' + payWord() + '.');
+    confirmFeed(pd, f);
+  }
+  function feedNote() {
+    var box = el('div', 'realfeed'), word = payWord(), line = el('p', 'rfnote');
+    if (!W.pubkey) line.textContent = 'Connect your wallet. Each feed sends ' + word + ' and your wallet asks you to approve.';
+    else if (!isKey(A.petDef().mint)) line.textContent = 'Pick one of your own pets. Feeding sends ' + word + ' from your wallet.';
+    else line.textContent = word + ' balance: ' + (tokenBal == null ? '…' : A.fmt(tokenBal)) + '. A feed opens your wallet. It is not $BLUNANA.';
+    box.appendChild(line);
+    var claim = el('button', 'food'); claim.setAttribute('data-blutest-claim', '1');
+    claim.onclick = function () { A.play('tap'); if (claim.disabled) return; if (!W.pubkey) onConnectClick(); else claimTest(); };
+    box.appendChild(claim);
+    return box;
   }
   function realFeedSection(pd, foods) {
     if (!payOn()) return document.createDocumentFragment(); // M13: real payments are fully hidden from players while REAL_PAYMENTS_ENABLED is false
@@ -423,7 +496,7 @@
     }).then(function () {
       if (W.pubkey !== payer) return false;
       if (!A.setActive(pd.id) && A.petDef().id !== pd.id) return false;
-      return A.feedReal(f);
+      var ate = A.feedReal(f); if (ate) readBal(); return ate;
     }).catch(function (e) { H.toast(rejected(e) ? 'Cancelled. Nothing was sent.' : 'Feeding didn\'t go through: ' + txt(e && e.message, 60)); return false; });
   }
   function waitConfirmed(sig) {
@@ -502,6 +575,7 @@
     state: function () { return W; }, signIn: signIn, reload: loadPets, disconnect: function () { disconnect(true); }, realOn: realOn, boost: BOOST, persist: persist,
     _test: { petOf: petOf, safeImg: safeImg, txt: txt, siwsMessage: siwsMessage, providers: providers } };
   A.realFeedSection = realFeedSection;
+  A.paintPlay = paintPlay; A.paintClaim = paintClaim; A.refreshToken = readBal; A.payFeed = payFeed; A.feedCost = feedCost; A.feedLocked = feedLocked; A.feedNote = feedNote;
   var prevReset = A.onReset; A.onReset = function () { if (BOOST) BOOST.reset(); if (prevReset) prevReset(); renderBoostBtn(); };
   if (A.setStarterFilter) A.setStarterFilter(hidingStarters);
   if (A.state().mode === 'wallet') H.renderMode();

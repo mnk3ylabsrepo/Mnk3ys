@@ -177,6 +177,7 @@
     var hrs = (p.full - RULES.hungry) / decayRate(petDef().id);
     bluText($('sHungry'), hrs > 0 ? 'in ' + (hrs < 1 ? Math.round(hrs * 60) + ' min' : hrs.toFixed(1) + ' hr') : 'now! 🍌');
     $('bal').textContent = fmt(S.bal);
+    if (API && API.paintPlay) API.paintPlay();
     var fi = $('fullInfo'); if (fi && S.layout === 'phone') { var ri = rarityInfo(d); fi.textContent = '⭐ Lv ' + lvl + ' · ' + fmt(p.str) + ' / ' + fmt(hi) + ' STR' + (ri && ri.tier ? ' · ' + ri.tier.name + ' (preview)' : ''); }
     var t = new Date(simClock); $('clock').textContent = t.getHours() + ':' + String(t.getMinutes()).padStart(2, '0');
   }
@@ -427,21 +428,28 @@
   }
 
   // ===== Feed (pretend $BLUNANA only) =====
+  function tokenFeed() { return S.mode === 'wallet' && API.payFeed && (window.BLUP3TS_CONFIG || {}).TEST_PLAY === true; }
   function openFeed() {
     if (eating || jamTimer) return; // no feeding while a jam is running
-    $('feedBal').textContent = fmt(S.bal);
+    var live = tokenFeed();
+    $('feedBal').textContent = live ? '…' : fmt(S.bal);
+    if (API.paintPlay) API.paintPlay();
+    if (live && API.refreshToken) API.refreshToken();
     var box = $('foods'); box.textContent = '';
     FOODS.forEach(function (f) {
-      var b = el('button', 'food' + (f.trial ? ' trial' : '')); b.disabled = S.bal < f.cost; b.dataset.tier = f.id;
+      var cost = live && API.feedCost ? API.feedCost(f) : f.cost;
+      var b = el('button', 'food' + (f.trial ? ' trial' : '')); b.disabled = live ? API.feedLocked(f) : S.bal < f.cost; b.dataset.tier = f.id;
       var fi = el('div', 'fi');
       fi.appendChild(BLUP3TS_EAT.icon(f.id));
       b.appendChild(fi);
       var fn = el('div', 'fn'); fn.appendChild(el('b', null, f.tier + ' · ' + f.name)); if (f.trial) fn.firstChild.appendChild(el('i', 'tryit', 'Try it')); fn.appendChild(el('span', null, '+' + f.full + ' food · +' + f.str + ' STR')); b.appendChild(fn);
-      var fc = el('div', 'fc'); var ci = el('img'); ci.src = 'assets/blunana_badge.png'; ci.alt = ''; fc.appendChild(ci); fc.appendChild(document.createTextNode(fmt(f.cost))); b.appendChild(fc);
-      b.onclick = function () { feed(f); };
+      var fc = el('div', 'fc'); var ci = el('img'); ci.src = 'assets/blunana_badge.png'; ci.alt = ''; fc.appendChild(ci); fc.appendChild(document.createTextNode(fmt(cost))); b.appendChild(fc);
+      b.onclick = function () { if (live) API.payFeed(petDef(), f); else feed(f); };
       box.appendChild(b);
     });
-    if (S.mode === 'wallet' && API.realFeedSection) box.insertBefore(API.realFeedSection(petDef(), FOODS), box.firstChild);
+    if (live && API.feedNote) box.insertBefore(API.feedNote(), box.firstChild);
+    if (live && API.paintClaim) API.paintClaim();
+    else if (S.mode === 'wallet' && API.realFeedSection) box.insertBefore(API.realFeedSection(petDef(), FOODS), box.firstChild);
     show('ov-feed');
   }
   // the real eating sequence lives in eat.js; this part only handles the game numbers
@@ -482,7 +490,8 @@
       onDone: function () {
         eating = false; eatLog.done = true; eatLog.ms = Math.round(performance.now() - eatLog.startedAt);
         render(); burst('heart', 4 + f.n);
-        toast(real ? 'Fed with real $BLUNANA ✔' : '−' + fmt(f.cost) + ' pretend', !real);
+        toast(real ? 'Fed with ' + ((CFG.TEST_PLAY && CFG.TEST_TOKEN_SYMBOL) || '$BLUNANA') + ' ✔' : '−' + fmt(f.cost) + ' pretend', !real);
+        if (real && API.refreshToken) API.refreshToken();
         var after = levelFor(S.pets[petId].str); if (after > before) setTimeout(function () { levelUp(after, before); }, 250);
       }
     });
@@ -611,7 +620,7 @@
   $('moodPill').onclick = function () { play('tap'); var m = mood(pet()); toast(m[0] + ' ' + (MOOD_TIP[m[1]] || 'Tap Feed or Jam to play together.')); };
   $('tileHunger').onclick = function () { play('tap'); toast('Hunger shows how full your pet is. Tap Feed to fill it up.'); };
   $('tileStr').onclick = $('tileLvl').onclick = function () { play('tap'); showPage('stats'); };
-  $('balCoin').onclick = function () { play('tap'); bump(this, 'spin', 900); toast('Pretend $BLUNANA, play money'); };
+  $('balCoin').onclick = function () { play('tap'); bump(this, 'spin', 900); toast(S.mode === 'wallet' && CFG.TEST_PLAY ? (CFG.TEST_TOKEN_SYMBOL || 'BLUTEST') + ' · test token' : 'Pretend $BLUNANA, play money'); };
   $('sideBtn').onclick = function () { play('tap'); hideOverlays(); if (!S.started) start(); showPage('home'); };
   [].forEach.call(document.querySelectorAll('#screen .betatap'), function (n) { n.onclick = function () { play('tap'); toast('New stuff on the way, share ideas on Discord'); }; });
   if ($('soundBtn')) $('soundBtn').onclick = function () { setSound(!soundOn); };

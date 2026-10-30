@@ -32,7 +32,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BLUP3TS">
 <meta name="application-name" content="BLUP3TS">
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 
@@ -63,6 +63,7 @@
   </div>
   <p class="modenote" id="modeNote"></p>
   <button type="button" class="btn b-cyan blutest-claim" id="blutestClaim" hidden><span class="blutest-mark" aria-hidden="true"></span><span class="blutest-label">Get 100,000 BLUTEST</span></button>
+  <p class="blutest-bal" id="blutestBal" hidden></p>
   <button class="hb boostbtn" id="boostBtn" hidden disabled aria-disabled="true">✨ Burn cNFT for a boost · Coming soon</button>
   <button class="looksrow" id="looksBtn"><span class="lk">🎨</span><span><b>Looks</b><br><small id="looksSub">Watch cases · unlock at Level 3</small></span><span class="soonpill">⌚ Cases</span></button>
   <a class="wm2 wmlink" id="homeWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Made by Azgog (@azgog): Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
@@ -177,18 +178,18 @@
 
         <!-- BALANCE -->
         <section class="page" data-page="balance" id="pg-balance">
-          <div class="balbig"><img id="balCoin" class="balcoin" src="assets/blunana_badge.png" alt="Pretend $BLUNANA coin" role="button" tabindex="0"><span id="bal">100,000</span></div>
-          <div class="cap center">Pretend $BLUNANA</div>
+          <div class="balbig"><img id="balCoin" class="balcoin" src="assets/blunana_badge.png" alt="" role="button" tabindex="0"><span id="bal">100,000</span></div>
+          <div class="cap center" id="balCap">Pretend $BLUNANA</div>
           <button class="btn b-tcyan refill" id="refillBtn">Refill to 100,000</button>
-          <div class="fine center pad">Play money for Pretend mode. Nothing here touches real tokens.</div>
+          <div class="fine center pad" id="balFine">Play money for Pretend mode. Nothing here touches real tokens.</div>
           <button class="btn b-ghost small soon2" id="walletSoon2" hidden>👛 Wallet mode</button>
         </section>
 
         <!-- OVERLAYS -->
         <div class="overlay" id="ov-feed">
-          <div class="ovhdr"><button class="close" data-close aria-label="Close">✕</button><span class="baltag"><img class="coin" src="assets/blunana_badge.png" alt=""><span id="feedBal"></span> pretend</span></div>
+          <div class="ovhdr"><button class="close" data-close aria-label="Close">✕</button><span class="baltag"><img class="coin" src="assets/blunana_badge.png" alt=""><span id="feedBal"></span> <span id="feedWord">pretend</span></span></div>
           <div id="foods"></div>
-          <div class="fine center">Pretend $BLUNANA · play money · no real tokens</div>
+          <div class="fine center" id="feedFine">Pretend $BLUNANA · play money · no real tokens</div>
         </div>
 
         <div class="overlay" id="ov-look">
@@ -362,12 +363,12 @@
 <script src="rarity.js"></script>
 <script src="tiers.js"></script>
 <script src="eat.js"></script>
-<script src="app.js?v=3"></script>
+<script src="app.js?v=5"></script>
 <script src="faq.js?v=2"></script>
 <script src="home.js?v=2"></script>
 <script src="fullscreen.js?v=1"></script>
 <script src="vendor/blup3ts-sol.js"></script>
 <script src="boost.js"></script>
-<script src="wallet.js?v=4"></script>
+<script src="wallet.js?v=6"></script>
 </body>
 </html>
