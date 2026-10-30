@@ -875,15 +875,16 @@ button:not(:disabled):active, [role=button]:active, a.extlink:active, .soc:activ
 /* Desktop: one screen, two columns. Phones and short windows keep the stacked mobile layout. */
 body.desk { height:100dvh; max-height:100dvh; overflow:hidden; padding:18px max(120px, 8vw) 14px; align-items:stretch; }
 body.desk .homeview.on, body.desk .gameview.on { flex:1 1 auto; min-height:0; width:100%; max-width:1280px; margin-inline:auto; }
-body.desk .homeview.on { display:grid; grid-template-columns:minmax(320px,400px) minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); column-gap:36px; align-items:stretch; padding:0; overflow:hidden; }
+body.desk .homeview.on { display:grid; grid-template-columns:minmax(320px,400px) minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto auto minmax(0,1fr); column-gap:36px; align-items:stretch; padding:0; overflow:hidden; }
 body.desk .homeview .wmark { font-size:44px; }
 body.desk .hlabs { width:52px; height:52px; }
-body.desk .hhead { grid-column:1; grid-row:1; align-self:end; padding:0 0 10px; }
+body.desk .hhead { grid-column:1; grid-row:2; align-self:end; padding:0 0 8px; }
 body.desk .htag { margin-top:4px; font-size:14px; max-width:none; }
-body.desk .homestack { grid-column:1; grid-row:2; align-items:stretch; justify-content:center; width:auto; min-height:0; overflow:auto; padding-bottom:8px; }
-body.desk .carwrap { grid-column:2; grid-row:1 / span 2; margin:0; align-self:stretch; min-width:0; min-height:0; overflow:hidden; display:flex; flex-direction:column; background:rgba(10,16,26,.82); border:1px solid #2c3a52; border-radius:28px; padding:16px; box-shadow:0 16px 40px rgba(0,0,0,.28); }
+body.desk .homestack { grid-column:1; grid-row:3; align-self:start; align-items:stretch; justify-content:flex-start; width:auto; min-height:0; overflow:visible; padding-bottom:0; }
+body.desk .carwrap { grid-column:2; grid-row:1 / -1; margin:0; align-self:stretch; min-width:0; min-height:0; overflow:hidden; display:flex; flex-direction:column; background:rgba(10,16,26,.82); border:1px solid #2c3a52; border-radius:28px; padding:16px; box-shadow:0 16px 40px rgba(0,0,0,.28); }
 body.desk .carnav { display:none; }
-body.desk .carousel { display:grid; grid-template-columns:repeat(auto-fill,minmax(156px,1fr)); grid-auto-rows:max-content; align-content:start; gap:12px; flex:1 1 auto; width:100%; height:auto; min-height:0; max-height:none; margin:0; padding:2px 4px 4px 0; overflow-x:hidden; overflow-y:auto; scroll-snap-type:none; scrollbar-width:thin; scrollbar-color:#2c3a52 transparent; -webkit-mask-image:none; mask-image:none; }
+body.desk .carousel { display:grid; grid-template-columns:repeat(auto-fill,minmax(156px,1fr)); grid-auto-rows:max-content; align-content:start; gap:12px; flex:1 1 auto; width:100%; height:auto; min-height:0; max-height:none; margin:0; padding:8px 4px 8px 2px; overflow-x:hidden; overflow-y:auto; scroll-snap-type:none; scrollbar-width:thin; scrollbar-color:#2c3a52 transparent; -webkit-mask-image:none; mask-image:none; }
+body.desk .pcbadge { top:10px; z-index:2; }
 body.desk .pcard { flex:none; width:auto; min-width:0; max-width:none; scroll-snap-align:none; }
 body.desk .pcart { width:100%; height:auto; aspect-ratio:1; max-height:none; }
 body.desk .playbtn { margin-top:6px; height:56px; width:100%; }
