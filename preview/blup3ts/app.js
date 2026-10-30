@@ -706,20 +706,30 @@
         pw.style.left = nl + 'px'; pw.style.width = nw + 'px'; pw.style.height = nw + 'px'; }
     }
   }
+  function deskOn() { return window.matchMedia('(min-width: 1100px) and (min-height: 700px)').matches; }
+  function deskBox() {
+    var mainEl = document.querySelector('#gameView main'); if (!mainEl) return null;
+    var box = mainEl.getBoundingClientRect(); if (box.width < 200 || box.height < 200) return null;
+    return { w: Math.max(200, box.width - 320), h: Math.max(200, box.height - 8) };
+  }
   function fit() {
     var gv = $('gameView'), full = isFull(), side = full && foldSide();
+    document.body.classList.toggle('desk', deskOn());
     if (gv) { gv.classList.toggle('full', full); gv.classList.toggle('fold-h', side); gv.classList.toggle('fold-v', full && !side); }
     caseFxFit(full, side);
     if (full) { // M13: Full view = an open foldable phone (two screens + hinge) that fits the window
-      var FW = side ? 856 : 452, FH = side ? 598 : 934, top = Math.max(56, Math.round($('stagewrap').getBoundingClientRect().top + (window.scrollY || 0))), avail = Math.min(window.innerWidth, ($('gameView') && $('gameView').clientWidth) || window.innerWidth) - (window.innerWidth >= 900 ? 394 : 0), // desktop: the How-to-play column sits beside it
+      var FW = side ? 856 : 452, FH = side ? 598 : 934, desk = deskOn() && gv && gv.classList.contains('on') ? deskBox() : null;
+      var top = Math.max(56, Math.round($('stagewrap').getBoundingClientRect().top + (window.scrollY || 0))), avail = Math.min(window.innerWidth, ($('gameView') && $('gameView').clientWidth) || window.innerWidth) - (window.innerWidth >= 900 && !deskOn() ? 394 : 0), // wide phones kept a side column for a how-to that is not on this page
         // NEXT BATCH mock: on a phone the Duo device may use the side padding too (it stays centred, no sideways scroll)
-        fs = Math.min(((window.innerWidth < 600 ? window.innerWidth - 4 : avail - 12)) / FW, (window.innerHeight - top - 8) / FH);
+        fs = desk ? Math.min((desk.w - 12) / FW, desk.h / FH) : Math.min(((window.innerWidth < 600 ? window.innerWidth - 4 : avail - 12)) / FW, (window.innerHeight - top - 8) / FH);
       fs = Math.max(.3, Math.min(1.6, fs)); // Stacked on a landscape phone gets small but never clips
       $('stage').style.transform = 'scale(' + fs + ')'; $('stagewrap').style.width = (FW * fs) + 'px'; $('stagewrap').style.height = (FH * fs) + 'px';
       wmScale = fs; $('stage').style.setProperty('--fs', fs); wmFit(); sideFit(); return;
     }
     var w = Math.min(window.innerWidth - 24, 560), s = Math.min(1, w / 452, (window.innerHeight * .9) / 660);
-    if (window.innerWidth >= 900) s = Math.min(1, (window.innerHeight - 250) / 660);
+    var deskWatch = deskOn() && gv && gv.classList.contains('on') ? deskBox() : null;
+    if (deskWatch) s = Math.min(deskWatch.w / 452, deskWatch.h / 660, 1.55);
+    else if (window.innerWidth >= 900) s = Math.min(1, (window.innerHeight - 250) / 660);
     s = Math.max(.55, s);
     // short landscape phones: keep the watch big enough to tap (the page scrolls a little instead)
     if (window.innerHeight < 520 && window.innerWidth > window.innerHeight) s = Math.max(s, Math.min(.8, (window.innerWidth - 24) / 452));
