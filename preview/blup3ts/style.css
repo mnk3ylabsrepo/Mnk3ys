@@ -892,7 +892,7 @@ body.desk .playbtn { margin-top:6px; height:56px; width:100%; }
 body.desk .hbtns { margin-top:6px; }
 body.desk .looksrow, body.desk .blutest-claim { width:100%; max-width:none; margin-top:6px; }
 body.desk .modenote { margin-top:4px; }
-body.desk .betaline { max-width:none; margin:14px 0 0; text-align:center; }
+body.desk .betaline { flex:none; max-width:none; margin:14px 0 0; text-align:center; }
 body.desk .gameview.on { display:grid; grid-template-columns:auto minmax(340px,420px); grid-template-rows:minmax(0,1fr) auto auto minmax(0,1fr); column-gap:36px; justify-content:center; align-items:stretch; padding:0; overflow:hidden; }
 body.desk .gamebar { grid-column:1 / -1; grid-row:2; width:auto; max-width:none; margin:0 0 12px; align-self:end; }
 body.desk .gameview .hero { display:none; }
@@ -905,9 +905,32 @@ body.desk .sidecol .tabs button span { font-size:18px; }
 body.desk .sidecol .tabs img.blu { width:20px; height:20px; }
 body.desk .sidecol .controls { flex:none; display:flex; flex-direction:column; gap:8px; width:100%; max-width:none; margin:0; }
 body.desk .sidecol .controls button { flex:none; width:100%; height:44px; min-height:0; font-size:14px; border-radius:14px; padding:8px 12px; }
-body.desk .foot { width:100%; max-width:none; margin-top:8px; display:flex; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px 16px; }
+body.desk .foot { flex:none; width:100%; max-width:none; margin-top:8px; display:flex; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px 16px; }
 body.desk .muted { margin:0; text-align:center; }
 body.desk .socials { margin:0; }
 body.desk .nftsview.on { flex:1 1 auto; min-height:0; width:100%; max-width:1280px; overflow:auto; align-self:center; }
+/* Tablet: same one-screen layout as desktop, with tighter columns so the footer stays in view. */
+@media (max-width: 1099px) {
+  body.desk { padding:10px 16px 8px; }
+  body.desk .homeview.on { grid-template-columns:minmax(220px,280px) minmax(0,1fr); column-gap:16px; }
+  body.desk .gameview.on { grid-template-columns:auto minmax(210px,260px); column-gap:16px; }
+  body.desk .homeview .wmark { font-size:36px; }
+  body.desk .hlabs { width:44px; height:44px; }
+  body.desk .htag { font-size:13px; }
+  body.desk .playbtn { height:48px; }
+  body.desk .betaline { margin:8px 0 0; font-size:12px; }
+  body.desk .foot { margin-top:4px; }
+  body.desk .sidecol { padding:10px; gap:8px; }
+  body.desk .sidecol .tabs button { height:46px; font-size:12px; }
+  body.desk .sidecol .controls button { height:40px; font-size:13px; }
+}
+@media (max-height: 720px) {
+  body.desk .homeview .wmark { font-size:32px; }
+  body.desk .hlabs { width:36px; height:36px; }
+  body.desk .hhead { padding-bottom:4px; }
+  body.desk .playbtn { height:44px; margin-top:2px; }
+  body.desk .hbtns, body.desk .looksrow, body.desk .blutest-claim, body.desk .modenote { margin-top:2px; }
+  body.desk .looksrow { padding:8px 10px; }
+}
 .srtxt { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; } /* spoken only: what a stat tile does */
 .dots { pointer-events:none; } .dots button { pointer-events:auto; } /* only the dot buttons take taps, never the empty column box (320px: LEVEL tile under it) */

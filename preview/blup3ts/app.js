@@ -706,7 +706,7 @@
         pw.style.left = nl + 'px'; pw.style.width = nw + 'px'; pw.style.height = nw + 'px'; }
     }
   }
-  function deskOn() { return window.matchMedia('(min-width: 1100px) and (min-height: 700px)').matches; }
+  function deskOn() { return window.matchMedia('(min-width: 700px) and (min-height: 600px)').matches; }
   function deskBox() {
     var gv = $('gameView'); if (!gv) return null;
     var box = gv.getBoundingClientRect(); if (box.width < 200 || box.height < 200) return null;
