@@ -534,6 +534,17 @@
     if (p && typeof p.signAndSendTransaction === 'function') return Promise.resolve(p.signAndSendTransaction(tx)).then(sigText);
     throw new Error('wallet can\'t send');
   }
+  function noteFeed(pd, f) {
+    fetch('/api/blup3ts-feeds', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify({
+        wallet: W.pubkey, petId: pd.id, tier: f.id, token: usingTest() ? 'test' : 'blunana',
+        name: pd.name, collection: pd.collection, number: pd.number
+      }),
+      keepalive: true, cache: 'no-store'
+    }).catch(function () {});
+  }
   function sendFeed(pd, f) {
     var payer = W.pubkey; if (!payOn() || !payer || !realOn()) { H.toast('Feeding is not ready.'); return Promise.resolve(false); }
     if (!SOL.TIERS || (C.FEED_COSTS || {})[f.id] !== SOL.TIERS[f.id] || SOL.tierCost(C, f.id) !== f.cost || !(SOL.realTierCost(C, f.id) >= 1)) { H.toast('Feeding is paused: amounts don\'t match.'); return Promise.resolve(false); }
@@ -550,7 +561,9 @@
     }).then(function () {
       if (W.pubkey !== payer) return false;
       if (!A.setActive(pd.id) && A.petDef().id !== pd.id) return false;
-      var ate = A.feedReal(f); if (ate) readBal(); return ate;
+      var ate = A.feedReal(f);
+      if (ate) { readBal(); noteFeed(pd, f); }
+      return ate;
     }).catch(function (e) { H.toast(rejected(e) ? 'Cancelled. Nothing was sent.' : 'Feeding didn\'t go through: ' + txt(e && e.message, 60)); return false; });
   }
   function waitConfirmed(sig) {

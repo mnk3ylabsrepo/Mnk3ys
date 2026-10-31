@@ -302,6 +302,23 @@ function ensureBlup3tsPets() {
            ADD COLUMN IF NOT EXISTS pet_number INTEGER,
            ADD COLUMN IF NOT EXISTS pet_image TEXT`
       );
+    }).then(function () {
+      return p.query(
+        `CREATE TABLE IF NOT EXISTS blup3ts_feeds (
+          id BIGSERIAL PRIMARY KEY,
+          wallet_address TEXT NOT NULL,
+          pet_id TEXT NOT NULL,
+          pet_name TEXT,
+          collection TEXT,
+          pet_number INTEGER,
+          tier TEXT NOT NULL,
+          amount INTEGER NOT NULL,
+          token TEXT NOT NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )`
+      );
+    }).then(function () {
+      return p.query('CREATE INDEX IF NOT EXISTS blup3ts_feeds_created_idx ON blup3ts_feeds (created_at)');
     }).catch(function (e) { blup3tsReady = null; throw e; });
   }
   return blup3tsReady.then(function () { return true; });
@@ -502,6 +519,39 @@ async function saveBlup3tsPets(wallet, pets, ownedIds) {
   return out || { saved: 0, pets: [] };
 }
 
+async function addBlup3tsFeed(row) {
+  const p = getPool();
+  if (!p) return null;
+  await ensureBlup3tsPets();
+  const recent = await p.query(
+    'SELECT created_at FROM blup3ts_feeds WHERE wallet_address = $1 ORDER BY id DESC LIMIT 1',
+    [row.wallet]
+  );
+  const last = recent.rows[0] && recent.rows[0].created_at && new Date(recent.rows[0].created_at).getTime();
+  if (last && Date.now() - last < 8000) return { limited: true };
+  await p.query("DELETE FROM blup3ts_feeds WHERE created_at < NOW() - INTERVAL '2 days'");
+  const ins = await p.query(
+    `INSERT INTO blup3ts_feeds (wallet_address, pet_id, pet_name, collection, pet_number, tier, amount, token)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+    [row.wallet, row.petId, row.name, row.collection, row.number, row.tier, row.amount, row.token]
+  );
+  return { id: ins.rows[0] && ins.rows[0].id };
+}
+async function listBlup3tsFeeds(afterId) {
+  const p = getPool();
+  if (!p) return { latest: 0, rows: [] };
+  await ensureBlup3tsPets();
+  const top = await p.query('SELECT COALESCE(MAX(id), 0)::int AS latest FROM blup3ts_feeds');
+  const latest = top.rows[0] ? Number(top.rows[0].latest) || 0 : 0;
+  const after = Math.max(0, Math.round(Number(afterId) || 0));
+  if (!after) return { latest: latest, rows: [] };
+  const res = await p.query(
+    `SELECT id, wallet_address, pet_name, collection, pet_number, tier, amount, token
+     FROM blup3ts_feeds WHERE id > $1 ORDER BY id ASC LIMIT 20`,
+    [after]
+  );
+  return { latest: latest, rows: res.rows || [] };
+}
 async function getBlup3tsLeaderboardRows() {
   const p = getPool();
   if (!p) return [];
@@ -539,4 +589,6 @@ module.exports = {
   saveBlup3tsPets,
   syncBlup3tsPets,
   getBlup3tsLeaderboardRows,
+  addBlup3tsFeed,
+  listBlup3tsFeeds,
 };

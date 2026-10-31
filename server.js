@@ -229,6 +229,25 @@ app.get('/api/blup3ts-leaderboard', async function (req, res) {
     res.status(503).json({ ok: false, entries: [], me: null });
   }
 });
+const blup3tsFeeds = require('./lib/blup3ts/feeds');
+app.get('/api/blup3ts-feeds', async function (req, res) {
+  try {
+    const body = await blup3tsFeeds.recent(req.query && req.query.after);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.json(body);
+  } catch (e) {
+    res.status(503).json({ ok: false, latest: 0, feeds: [] });
+  }
+});
+app.post('/api/blup3ts-feeds', express.json({ limit: '2kb' }), async function (req, res) {
+  try {
+    const out = await blup3tsFeeds.record(req.body, process.env);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.status(out.status).json(out.body);
+  } catch (e) {
+    res.status(503).json({ ok: false });
+  }
+});
 app.get('/api/blup3ts-reserve', async function (req, res) {
   try {
     const body = await blup3tsBoard.reserve();

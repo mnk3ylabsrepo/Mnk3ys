@@ -82,6 +82,19 @@ ALTER TABLE blup3ts_pets ADD COLUMN IF NOT EXISTS pet_name TEXT;
 ALTER TABLE blup3ts_pets ADD COLUMN IF NOT EXISTS collection TEXT;
 ALTER TABLE blup3ts_pets ADD COLUMN IF NOT EXISTS pet_number INTEGER;
 ALTER TABLE blup3ts_pets ADD COLUMN IF NOT EXISTS pet_image TEXT;
+CREATE TABLE IF NOT EXISTS blup3ts_feeds (
+  id BIGSERIAL PRIMARY KEY,
+  wallet_address TEXT NOT NULL,
+  pet_id TEXT NOT NULL,
+  pet_name TEXT,
+  collection TEXT,
+  pet_number INTEGER,
+  tier TEXT NOT NULL,
+  amount INTEGER NOT NULL,
+  token TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS blup3ts_feeds_created_idx ON blup3ts_feeds (created_at);
 `;
 
 async function run() {
