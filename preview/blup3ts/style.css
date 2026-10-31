@@ -6,11 +6,11 @@ html { -webkit-text-size-adjust:100%; }
 body { min-height:100vh; font-family:Nun,-apple-system,"Segoe UI",Roboto,sans-serif; color:#fff; -webkit-font-smoothing:antialiased;
   background:radial-gradient(circle at 30% 10%, #12305a 0, #070b18 55%, #03040a 100%) fixed; display:flex; flex-direction:column; align-items:center;
   padding:calc(46px + env(safe-area-inset-top)) 12px calc(20px + env(safe-area-inset-bottom)); overflow-x:hidden; }
-.ticker { position:fixed; top:0; left:0; right:0; z-index:70; height:32px; overflow:hidden; display:flex; align-items:center; background:#07101c; border-bottom:1px solid #2c3a52; color:var(--gold); font-size:13px; font-weight:800; }
-.tickertrack { display:flex; gap:48px; width:max-content; white-space:nowrap; animation:ticker 36s linear infinite; }
-.tickertrack span { padding-left:48px; }
-@keyframes ticker { from { transform:translateX(0); } to { transform:translateX(-50%); } }
-@media (prefers-reduced-motion: reduce) { .tickertrack { animation:none; } .ticker { justify-content:center; } .tickertrack span + span { display:none; } }
+.ticker { position:fixed; top:0; left:0; right:0; z-index:70; height:32px; overflow:hidden; background:#07101c; border-bottom:1px solid #2c3a52; color:var(--gold); font-size:13px; font-weight:800; }
+.tickertrack { position:absolute; top:0; left:0; height:32px; display:flex; align-items:center; gap:48px; width:max-content; white-space:nowrap; will-change:transform; animation:ticker 36s linear infinite; -webkit-animation:ticker 36s linear infinite; }
+.tickertrack span { padding-left:48px; line-height:32px; }
+@keyframes ticker { from { transform:translate3d(0,0,0); } to { transform:translate3d(-50%,0,0); } }
+@-webkit-keyframes ticker { from { -webkit-transform:translate3d(0,0,0); } to { -webkit-transform:translate3d(-50%,0,0); } }
 button { font:inherit; color:inherit; border:0; background:none; cursor:pointer; }
 button:focus-visible { outline:3px solid var(--cyan); outline-offset:2px; }
 .hero { display:flex; align-items:center; gap:12px; max-width:560px; width:100%; margin:28px 0 10px; }

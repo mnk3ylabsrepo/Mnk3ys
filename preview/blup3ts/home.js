@@ -356,6 +356,9 @@
       track.textContent = '';
       track.appendChild(el('span', null, line(n)));
       track.appendChild(el('span', null, line(n)));
+      track.style.animation = 'none';
+      void track.offsetWidth;
+      track.style.animation = '';
     }
     draw(null);
     fetch('/api/blup3ts-reserve', { headers: { accept: 'application/json' }, cache: 'no-store' })
