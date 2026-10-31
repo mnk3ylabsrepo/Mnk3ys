@@ -38,34 +38,64 @@
   function shortAddr(pk) {
     return pk && pk.length > 12 ? pk.slice(0, 4) + '…' + pk.slice(-4) : (pk || '');
   }
-  function providers() {
-    return [window.solflare, window.solana, window.backpack, window.glow];
+  var W = { connecting: false, kind: null, provider: null, std: null, account: null, pubkey: null, lastConnect: 0, lastDrop: 0 };
+  var LOGO = { solflare: '../blup3ts/assets/wallets/solflare.png', phantom: '../blup3ts/assets/wallets/phantom.png' };
+  var ALLOWED = ['Phantom', 'Solflare', 'Backpack'];
+  var STD = [];
+  var REM = 'blupa1rs.wallet';
+  function walletPk() { return W.pubkey || null; }
+  function isMobile() { return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent)); }
+  function remembered() { try { var v = localStorage.getItem(REM); return /^(phantom|solflare|backpack)$/.test(v) ? v : null; } catch (e) { return null; } }
+  function remember(kind) { try { if (kind) localStorage.setItem(REM, kind); else localStorage.removeItem(REM); } catch (e) {} }
+  function fromDeepLink() { try { return new URLSearchParams(location.search).get('wallet') === '1'; } catch (e) { return false; } }
+  function deepLink(base) {
+    var u = new URL(location.href); u.hash = ''; u.searchParams.delete('fresh'); u.searchParams.set('wallet', '1');
+    return base + encodeURIComponent(u.href) + '?ref=' + encodeURIComponent(location.origin);
   }
-  function walletPk() {
-    var list = providers();
-    for (var i = 0; i < list.length; i++) {
-      if (list[i] && list[i].publicKey) return list[i].publicKey.toString();
-    }
-    return null;
+  function logoImg(kind) {
+    var src = LOGO[kind]; if (!src) return null;
+    var i = document.createElement('img'); i.className = 'wlogo'; i.src = src; i.alt = ''; i.width = 22; i.height = 22; i.draggable = false;
+    return i;
   }
-  function walletProvider() {
-    var list = providers();
-    for (var i = 0; i < list.length; i++) {
-      var p = list[i];
-      if (p && p.publicKey && typeof p.signTransaction === 'function') return p;
-    }
-    return null;
+  function withLogo(node, kind, text) {
+    node.textContent = '';
+    var i = logoImg(kind);
+    if (i) node.appendChild(i);
+    node.appendChild(document.createTextNode(text));
+    return node;
   }
-  function detected() {
-    var list = [];
-    if (window.solflare) list.push({ name: 'Solflare', provider: window.solflare });
-    if (window.backpack) list.push({ name: 'Backpack', provider: window.backpack });
-    if (window.glow) list.push({ name: 'Glow', provider: window.glow });
-    if (window.solana && !list.some(function (x) { return x.provider === window.solana; })) {
-      var name = window.solana.isPhantom ? 'Phantom' : window.solana.isSolflare ? 'Solflare' : 'Solana';
-      list.push({ name: name, provider: window.solana });
-    }
-    return list;
+  function allowedName(n) {
+    n = String(n || '').toLowerCase();
+    return ALLOWED.filter(function (a) { return n === a.toLowerCase() || n.indexOf(a.toLowerCase()) === 0; })[0] || null;
+  }
+  function stdOk(w) {
+    try {
+      var f = w.features || {};
+      return (w.chains || []).some(function (c) { return c === 'solana:mainnet'; }) && f['standard:connect'] && typeof f['standard:connect'].connect === 'function';
+    } catch (e) { return false; }
+  }
+  function walletList() {
+    var out = [], have = {};
+    STD.forEach(function (w) {
+      var nm = allowedName(w.name);
+      if (nm && !have[nm] && stdOk(w)) { have[nm] = 1; out.push({ kind: nm.toLowerCase(), name: nm, std: w }); }
+    });
+    try { var ph = window.phantom && window.phantom.solana; if (!have.Phantom && ph && ph.isPhantom) out.push({ kind: 'phantom', name: 'Phantom', p: ph }); } catch (e) {}
+    try { var sf = window.solflare; if (!have.Solflare && sf && sf.isSolflare) out.push({ kind: 'solflare', name: 'Solflare', p: sf }); } catch (e) {}
+    try { var bp = window.backpack; if (!have.Backpack && bp && bp.isBackpack) out.push({ kind: 'backpack', name: 'Backpack', p: bp }); } catch (e) {}
+    return out;
+  }
+  function rejected(e) { var c = e && (e.code || (e.error && e.error.code)); return c === 4001 || /reject|denied|cancel|declin/i.test(String(e && (e.message || e))); }
+  function paintConnect() {
+    var btn = $('connectBtn'); if (!btn) return;
+    var phone = !W.pubkey && isMobile() && !walletList().length;
+    btn.classList.toggle('busy', !!W.connecting);
+    btn.setAttribute('aria-busy', W.connecting ? 'true' : 'false');
+    var lk = W.pubkey ? W.kind : phone ? 'solflare' : null;
+    var label = W.connecting ? 'Connecting…' : W.pubkey ? shortAddr(W.pubkey) + ' · Disconnect' : phone ? 'Connect · Open in Solflare' : 'Connect wallet';
+    if (!W.connecting && lk && LOGO[lk]) withLogo(btn, lk, label);
+    else btn.textContent = (W.connecting ? '⏳ ' : '👛 ') + label;
+    btn.setAttribute('aria-label', W.pubkey ? 'Disconnect wallet ' + shortAddr(W.pubkey) : 'Connect wallet');
   }
 
   function kindOf(id) { return (TYPE[id] && TYPE[id].kind) || 'tok'; }
@@ -114,10 +144,9 @@
   }
 
   function syncWallet() {
-    var btn = $('connectBtn');
+    paintConnect();
     var pk = walletPk();
     if (pk) {
-      btn.textContent = '👛 ' + shortAddr(pk);
       var bal = $('bal');
       bal.textContent = '…';
       fetch('/api/verify?wallet=' + encodeURIComponent(pk), { credentials: 'include' })
@@ -126,10 +155,7 @@
           bal.textContent = data && data.blunanaFormatted != null ? data.blunanaFormatted : '—';
         })
         .catch(function () { bal.textContent = '—'; });
-    } else {
-      btn.textContent = '👛 Connect wallet';
-      $('bal').textContent = '—';
-    }
+    } else $('bal').textContent = '—';
     setTurns(state.turns);
   }
 
@@ -330,14 +356,25 @@
     }, 1200);
   }
 
-  function openSheet(title, node) {
+  var toastTimer;
+  function toast(text) {
+    var n = $('hToast'); if (!n) return;
+    n.textContent = text || '';
+    n.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { n.classList.remove('show'); }, 2800);
+  }
+  function openSheet(title, nodes, icon) {
     var titleEl = $('sheetTitle');
     var body = $('sheetBody');
-    titleEl.textContent = title;
+    titleEl.textContent = '';
+    if (icon) titleEl.appendChild(icon);
+    titleEl.appendChild(document.createTextNode(title));
     body.textContent = '';
-    body.appendChild(node);
+    (Array.isArray(nodes) ? nodes : [nodes]).forEach(function (n) { if (n) body.appendChild(n); });
     $('sheetBg').classList.add('show');
     $('sheet').classList.add('show');
+    if ($('sheetClose')) $('sheetClose').focus();
   }
   function closeSheet() {
     $('sheetBg').classList.remove('show');
@@ -380,48 +417,121 @@
     openSheet('Prizes', body);
   }
 
-  function walletSheet() {
-    var pk = walletPk();
-    var body = el('div');
-    if (pk) {
-      body.appendChild(el('p', null, shortAddr(pk)));
-      var off = el('button', 'sbtn', 'Disconnect');
-      off.type = 'button';
-      off.addEventListener('click', function () {
-        var p = walletProvider();
-        var done = function () { closeSheet(); syncWallet(); load(); };
-        if (p && typeof p.disconnect === 'function') p.disconnect().then(done).catch(done);
-        else done();
-      });
-      body.appendChild(off);
-      openSheet('Wallet', body);
-      return;
-    }
-    var wallets = detected();
-    if (!wallets.length) {
-      body.appendChild(el('p', null, 'No Solana wallet found in this browser. Install Phantom, Solflare, Backpack, or Glow, then refresh.'));
-      openSheet('Connect wallet', body);
-      return;
-    }
-    wallets.forEach(function (w) {
-      var b = el('button', 'sbtn', w.name);
-      b.type = 'button';
-      b.addEventListener('click', function () {
-        closeSheet();
-        w.provider.connect({ onlyIfTrusted: false }).then(function () {
-          syncWallet();
-          load();
-        }).catch(function (err) {
-          if (!(err && err.code === 4001)) setMsg('Wallet connect failed', true);
+  var listened = [];
+  function accountChanged(k) {
+    if (!k) return disconnect(false, 'Wallet disconnected');
+    k = String(k);
+    if (k !== W.pubkey) { W.pubkey = k; toast('Switched to ' + shortAddr(k)); syncWallet(); load(); }
+  }
+  function listen(x) {
+    if (x.std) {
+      if (listened.indexOf(x.std) >= 0) return;
+      listened.push(x.std);
+      try {
+        var ev = x.std.features['standard:events'];
+        if (ev && typeof ev.on === 'function') ev.on('change', function (props) {
+          if (W.std !== x.std || !props || !props.accounts) return;
+          var a = props.accounts[0];
+          if (!a) return disconnect(false, 'Wallet disconnected');
+          W.account = a;
+          accountChanged(a.address);
         });
+      } catch (e) {}
+      return;
+    }
+    var p = x.p;
+    if (!p || listened.indexOf(p) >= 0 || typeof p.on !== 'function') return;
+    listened.push(p);
+    try { p.on('disconnect', function () { if (W.provider === p && W.pubkey) disconnect(false, 'Wallet disconnected'); }); } catch (e) {}
+    try { p.on('accountChanged', function (pk) { if (W.provider !== p) return; accountChanged(pk && (pk.toBase58 ? pk.toBase58() : String(pk))); }); } catch (e) {}
+  }
+  function disconnect(user, msg) {
+    var p = W.provider, sw = W.std;
+    W.provider = null; W.std = null; W.account = null; W.pubkey = null; W.kind = null; W.connecting = false;
+    if (user) remember(null);
+    syncWallet();
+    load();
+    toast(msg || 'Disconnected');
+    if (user && sw) { try { var dc = sw.features['standard:disconnect']; if (dc && typeof dc.disconnect === 'function') Promise.resolve(dc.disconnect()).catch(function () {}); } catch (e) {} }
+    if (user && p && typeof p.disconnect === 'function') { try { Promise.resolve(p.disconnect()).catch(function () {}); } catch (e) {} }
+  }
+  function connect(x, silent) {
+    if (W.connecting || W.pubkey) return Promise.resolve();
+    if ($('sheet') && $('sheet').classList.contains('show')) closeSheet();
+    W.connecting = true;
+    syncWallet();
+    function done(pk) {
+      var k = pk && (typeof pk === 'string' ? pk : pk.toBase58 ? pk.toBase58() : pk.toString());
+      if (!k) throw new Error('no public key');
+      W.connecting = false;
+      W.lastConnect = Date.now();
+      W.kind = x.kind;
+      W.provider = x.p || null;
+      W.std = x.std || null;
+      W.pubkey = k;
+      listen(x);
+      remember(x.kind);
+      toast((silent ? 'Welcome back ' : 'Connected ') + shortAddr(k));
+      syncWallet();
+      load();
+    }
+    function fail(e) {
+      W.connecting = false;
+      W.pubkey = null;
+      syncWallet();
+      if (silent) return;
+      toast(rejected(e) ? 'Connect cancelled. No problem.' : 'Couldn\'t connect the wallet.');
+    }
+    var r;
+    if (x.std) {
+      try { r = x.std.features['standard:connect'].connect(silent ? { silent: true } : undefined); } catch (e) { fail(e); return Promise.resolve(); }
+      return Promise.resolve(r).then(function (res) {
+        var accs = (res && res.accounts) || x.std.accounts || [];
+        var acc = accs.filter(function (a) { return a && (!a.chains || a.chains.indexOf('solana:mainnet') >= 0); })[0] || accs[0];
+        W.account = acc || null;
+        done(acc && acc.address);
+      }).catch(fail);
+    }
+    try { r = silent ? x.p.connect({ onlyIfTrusted: true }) : x.p.connect(); } catch (e) { fail(e); return Promise.resolve(); }
+    return Promise.resolve(r).then(function (res) { done((res && res.publicKey) || x.p.publicKey); }).catch(fail);
+  }
+  function onConnectClick() {
+    var now = Date.now();
+    if (W.connecting) return;
+    if (W.pubkey) {
+      if (now - (W.lastConnect || 0) < 1200) return;
+      W.lastDrop = now;
+      return disconnect(true);
+    }
+    if (now - (W.lastDrop || 0) < 400) return;
+    var list = walletList(), nodes = [];
+    if (list.length === 1 && isMobile()) return connect(list[0]);
+    if (list.length) {
+      nodes.push(el('p', null, 'Pick your wallet. Only your public address is shared. Buying turns asks your wallet to approve the payment.'));
+      list.forEach(function (x) {
+        var b = withLogo(el('button', 'sbtn primary'), x.kind, 'Connect ' + x.name);
+        b.type = 'button';
+        b.addEventListener('click', function () { connect(x); });
+        nodes.push(b);
       });
-      body.appendChild(b);
-    });
-    openSheet('Connect wallet', body);
+    } else if (isMobile()) {
+      nodes.push(el('p', null, 'On a phone, BLUPA1RS connects inside your wallet app. Tap below: it opens this page in Solflare and connects in one tap.'));
+      [['Solflare', 'https://solflare.com/ul/v1/browse/', 'sbtn primary'], ['Phantom', 'https://phantom.app/ul/browse/', 'sbtn']].forEach(function (w) {
+        var a = withLogo(el('a', w[2]), w[0].toLowerCase(), 'Open in ' + w[0]);
+        a.href = deepLink(w[1]);
+        a.rel = 'noopener noreferrer';
+        nodes.push(a);
+      });
+      nodes.push(el('p', 'muted', 'Only your public address is shared until you buy turns.'));
+    } else {
+      nodes.push(el('p', null, 'No wallet found in this browser. Install the Phantom, Solflare or Backpack browser extension, then reload this page.'));
+    }
+    nodes.push(el('p', 'muted', 'BLUPA1RS never asks for your seed phrase or private key. If anything does, it\'s a scam.'));
+    openSheet('Connect wallet', nodes);
   }
 
   function doCollect() {
-    if (!walletPk()) { setMsg('Connect a wallet to collect', true); walletSheet(); return; }
+    if (!walletPk()) { setMsg('Connect a wallet to collect', true); onConnectClick(); return; }
     var prizeId = state.lastWonPrizeId;
     if (!prizeId && state.pendingPrizes[0]) prizeId = state.pendingPrizes[0].prizeId;
     if (!prizeId) { setMsg('No prize to collect', true); return; }
@@ -472,9 +582,7 @@
     if (state.pendingPrizes && state.pendingPrizes.length) { setMsg('Collect your prize first', true); return; }
     if (state.turns > 0) return;
     var pk = walletPk();
-    if (!pk) { setMsg('Connect a wallet first', true); walletSheet(); return; }
-    var provider = walletProvider();
-    if (!provider) { setMsg('Connect a wallet that can sign', true); return; }
+    if (!pk) { setMsg('Connect a wallet first', true); onConnectClick(); return; }
     var buy = $('buyBtn');
     buy.disabled = true;
     setMsg('Preparing…');
@@ -494,25 +602,13 @@
         if (!Tx) throw new Error('Solana library did not load. Refresh the page.');
         var tx = Tx.from(buf);
         setMsg('Confirm in your wallet…');
-        if (typeof provider.signAndSendTransaction === 'function') {
-          return provider.signAndSendTransaction(tx).then(function (result) {
-            var sig = result && (result.signature || result.transactionSignature || (typeof result === 'string' ? result : null));
-            if (!sig) throw new Error('No signature from wallet');
-            if (typeof sig !== 'string' && sig.toString) sig = sig.toString();
-            return fetch('/api/pairs/buy', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-              body: JSON.stringify({ signature: sig, wallet: pk })
-            });
-          });
-        }
-        return provider.signTransaction(tx).then(function (signedTx) {
-          setMsg('Submitting…');
-          var serialized = signedTx.serialize();
-          var binary = '';
-          for (var i = 0; i < serialized.length; i++) binary += String.fromCharCode(serialized[i]);
+        return sendTx(tx).then(function (sent) {
+          var body = { wallet: pk };
+          if (typeof sent === 'string') body.signature = sent;
+          else body.signedTransaction = sent.signedTransaction;
           return fetch('/api/pairs/buy', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-            body: JSON.stringify({ signedTransaction: btoa(binary), wallet: pk })
+            body: JSON.stringify(body)
           });
         });
       })
@@ -573,6 +669,226 @@
       });
   }
 
+  function b58encode(bytes) {
+    var alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    var zeros = 0;
+    while (zeros < bytes.length && bytes[zeros] === 0) zeros++;
+    var n = 0n;
+    for (var i = 0; i < bytes.length; i++) n = (n << 8n) + BigInt(bytes[i]);
+    var s = '';
+    while (n > 0n) { s = alphabet[Number(n % 58n)] + s; n = n / 58n; }
+    return '1'.repeat(zeros) + (s || (zeros ? '' : '1'));
+  }
+  function sigText(res) {
+    var out = Array.isArray(res) ? res[0] : res;
+    var sig = out && (out.signature || out);
+    if (sig && sig.signature) sig = sig.signature;
+    if (typeof sig === 'string') return sig;
+    if (sig && typeof sig.length === 'number') return b58encode(sig instanceof Uint8Array ? sig : Uint8Array.from(sig));
+    throw new Error('No signature from wallet');
+  }
+  function stdAccount() {
+    var list = (W.std && W.std.accounts) || [], hit = null;
+    list.forEach(function (a) { if (!hit && a && a.address === W.pubkey) hit = a; });
+    return hit || (W.account && W.account.address === W.pubkey ? W.account : null) || list[0] || null;
+  }
+  function sendTx(tx) {
+    var std = W.std, feat = std && std.features && std.features['solana:signAndSendTransaction'];
+    var fn = feat && (typeof feat === 'function' ? feat : feat.signAndSendTransaction);
+    if (typeof fn === 'function') {
+      var account = stdAccount();
+      if (!account) throw new Error('Reconnect your wallet');
+      var raw = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
+      return Promise.resolve(fn.call(feat, { account: account, chain: 'solana:mainnet', transaction: new Uint8Array(raw) })).then(sigText);
+    }
+    var p = W.provider;
+    if (p && typeof p.signAndSendTransaction === 'function') return Promise.resolve(p.signAndSendTransaction(tx)).then(sigText);
+    if (p && typeof p.signTransaction === 'function') {
+      return p.signTransaction(tx).then(function (signedTx) {
+        var serialized = signedTx.serialize();
+        var binary = '';
+        for (var i = 0; i < serialized.length; i++) binary += String.fromCharCode(serialized[i]);
+        return { signedTransaction: btoa(binary) };
+      });
+    }
+    throw new Error('Connect a wallet that can sign');
+  }
+
+  var discordUser = null, discordWallets = [], discordSure = '';
+  var DISCORD_LOGIN = '/api/discord/auth?next=/preview/blupa1rs/';
+  function discordName(u) { return (u && (u.global_name || u.username)) || 'Discord'; }
+  function discordAvatar(u) {
+    if (!u || !u.id) return '';
+    if (u.avatar) {
+      var ext = String(u.avatar).indexOf('a_') === 0 ? 'gif' : 'png';
+      return 'https://cdn.discordapp.com/avatars/' + encodeURIComponent(u.id) + '/' + encodeURIComponent(u.avatar) + '.' + ext;
+    }
+    var n = 0;
+    if (u.discriminator && u.discriminator !== '0') n = (parseInt(u.discriminator, 10) || 0) % 5;
+    return 'https://cdn.discordapp.com/embed/avatars/' + n + '.png';
+  }
+  function discordLogo() {
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('fill', 'currentColor');
+    path.setAttribute('d', 'M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18 18 0 0 0-5.6 0L8.6 3a19.6 19.6 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1A19.8 19.8 0 0 0 6.1 21l1.3-2.1c-.7-.3-1.4-.6-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.7 19.7 0 0 0 6-3c.5-5.2-.8-9.7-3.6-13.6ZM8.3 15.3c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm7.4 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z');
+    svg.appendChild(path);
+    return svg;
+  }
+  function showDiscordMark(node) {
+    if (!node) return;
+    node.hidden = false;
+    if (!node.firstChild) node.appendChild(discordLogo());
+  }
+  function paintDiscord() {
+    var btn = $('discordBtn'), img = $('discordPfp'), label = $('discordName'), mark = $('discordMark');
+    if (!btn || !label) return;
+    if (!discordUser) {
+      if (img) { img.hidden = true; img.removeAttribute('src'); }
+      showDiscordMark(mark);
+      btn.classList.add('out');
+      label.textContent = 'Sign in with Discord';
+      btn.setAttribute('aria-label', 'Sign in with Discord');
+      return;
+    }
+    btn.classList.remove('out');
+    var name = discordName(discordUser);
+    if (mark) mark.hidden = true;
+    if (img) {
+      img.hidden = false;
+      img.alt = '';
+      img.onerror = function () { img.hidden = true; showDiscordMark(mark); };
+      img.src = discordAvatar(discordUser);
+    }
+    label.textContent = name;
+    btn.setAttribute('aria-label', 'Discord account, ' + name);
+  }
+  function discordJson(url, opt) {
+    opt = opt || {};
+    opt.credentials = 'same-origin';
+    opt.headers = opt.headers || { Accept: 'application/json' };
+    return fetch(url, opt).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        if (!r.ok) throw new Error((j && j.error) || 'Request failed');
+        return j;
+      });
+    });
+  }
+  function loadDiscordWallets() {
+    if (!discordUser) { discordWallets = []; return Promise.resolve(); }
+    return discordJson('/api/wallets').then(function (j) {
+      discordWallets = Array.isArray(j.wallets) ? j.wallets.map(String) : [];
+    }).catch(function () { discordWallets = []; });
+  }
+  function discordLinked(addr) {
+    var a = String(addr || '').toLowerCase();
+    return discordWallets.some(function (w) { return String(w).toLowerCase() === a; });
+  }
+  function discordAccount() {
+    if (!discordUser) return;
+    var head = el('div', 'dhead');
+    var img = el('img'); img.alt = ''; img.src = discordAvatar(discordUser);
+    var who = el('div');
+    who.appendChild(el('b', null, discordName(discordUser)));
+    if (discordUser.username) who.appendChild(el('small', null, '@' + discordUser.username));
+    head.appendChild(img); head.appendChild(who);
+    var nodes = [head, el('p', null, 'Wallets linked to this Discord. Ranks use one row for all of them.')];
+    if (!discordWallets.length) nodes.push(el('p', 'muted', 'No wallets linked yet.'));
+    discordWallets.forEach(function (w) {
+      var row = el('div', 'dwallet');
+      var b = el('b', null, shortAddr(w)); b.title = w;
+      var u = el('button', null, discordSure === w ? 'Unlink?' : 'Unlink'); u.type = 'button';
+      u.addEventListener('click', function () {
+        if (discordSure !== w) { discordSure = w; discordAccount(); return; }
+        u.disabled = true; u.textContent = 'Unlinking…';
+        discordJson('/api/wallets-unlink', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ wallet: w }) })
+          .then(function () {
+            discordSure = '';
+            discordWallets = discordWallets.filter(function (x) { return String(x).toLowerCase() !== String(w).toLowerCase(); });
+            toast('Unlinked ' + shortAddr(w));
+            discordAccount();
+          })
+          .catch(function () { discordSure = ''; toast('Could not unlink that wallet'); discordAccount(); });
+      });
+      row.appendChild(b); row.appendChild(u); nodes.push(row);
+    });
+    var pk = walletPk();
+    if (pk && !discordLinked(pk)) {
+      var link = el('button', 'sbtn primary', 'Link ' + shortAddr(pk)); link.type = 'button';
+      link.addEventListener('click', function () {
+        link.disabled = true; link.textContent = 'Linking…';
+        discordJson('/api/wallets/link', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ wallet: pk }) })
+          .then(function () { if (!discordLinked(pk)) discordWallets.push(pk); discordSure = ''; toast('Wallet linked'); return loadDiscordWallets(); })
+          .then(function () { discordAccount(); })
+          .catch(function () { toast('Could not link that wallet'); discordAccount(); });
+      });
+      nodes.push(link);
+    }
+    var out = el('button', 'sbtn', 'Sign out'); out.type = 'button';
+    out.addEventListener('click', function () {
+      out.disabled = true;
+      discordJson('/api/discord/logout', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' } })
+        .catch(function () {})
+        .then(function () { discordUser = null; discordWallets = []; discordSure = ''; paintDiscord(); closeSheet(); toast('Signed out of Discord'); });
+    });
+    nodes.push(out);
+    var mark = el('span', 'discordmark'); mark.appendChild(discordLogo());
+    openSheet('Discord', nodes, mark);
+  }
+  function bootDiscord() {
+    var q = new URLSearchParams(location.search);
+    if (q.has('discord')) {
+      if (q.get('discord') === 'error') toast('Discord sign-in did not finish. Try again.');
+      q.delete('discord');
+      var next = q.toString();
+      history.replaceState(null, '', location.pathname + (next ? '?' + next : '') + location.hash);
+    }
+    showDiscordMark($('discordMark'));
+    var btn = $('discordBtn');
+    if (btn) btn.addEventListener('click', function () {
+      if (!discordUser) { location.href = DISCORD_LOGIN; return; }
+      loadDiscordWallets().then(discordAccount);
+    });
+    discordJson('/api/discord/me').then(function (j) {
+      discordUser = j && j.connected && j.user ? j.user : null;
+      paintDiscord();
+      return loadDiscordWallets();
+    }).catch(function () { discordUser = null; paintDiscord(); });
+  }
+  function registerWallets() {
+    function onRegister() {
+      [].slice.call(arguments).forEach(function (w) { if (w && typeof w === 'object' && STD.indexOf(w) < 0) STD.push(w); });
+      return function () {};
+    }
+    var api = Object.freeze({ register: onRegister });
+    try {
+      window.addEventListener('wallet-standard:register-wallet', function (e) { try { if (e && typeof e.detail === 'function') e.detail(api); } catch (x) {} });
+      window.dispatchEvent(new CustomEvent('wallet-standard:app-ready', { detail: api }));
+    } catch (e) {}
+  }
+  function autoConnect() {
+    var deep = fromDeepLink();
+    var kind = remembered();
+    if (deep) {
+      try {
+        var u = new URL(location.href);
+        u.searchParams.delete('wallet');
+        history.replaceState(null, '', u.pathname + u.search + u.hash);
+      } catch (e) {}
+    }
+    if (!deep && !kind) return;
+    var tries = 0;
+    (function look() {
+      if (W.pubkey || W.connecting) return;
+      var list = walletList();
+      var hit = list.filter(function (x) { return !kind || x.kind === kind; })[0] || (deep ? list[0] : null);
+      if (hit) return connect(hit, !deep);
+      if (++tries < 12) setTimeout(look, 150);
+    })();
+  }
+
   function frame() {
     var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
     document.documentElement.style.setProperty('--vvh', Math.round(h) + 'px');
@@ -589,16 +905,17 @@
     $('sheetBg').addEventListener('click', closeSheet);
     $('howBtn').addEventListener('click', howSheet);
     $('prizesBtn').addEventListener('click', prizesSheet);
-    $('connectBtn').addEventListener('click', walletSheet);
+    $('connectBtn').addEventListener('click', onConnectClick);
     $('buyBtn').addEventListener('click', buyTurns);
     $('collectBtn').addEventListener('click', doCollect);
     $('homeLogo').addEventListener('click', function () { window.location.href = '/'; });
     $('homeLogo').style.cursor = 'pointer';
-    detected().forEach(function (w) {
-      if (w.provider && typeof w.provider.on === 'function') {
-        w.provider.on('accountChanged', function () { syncWallet(); load(); });
-      }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && $('sheet').classList.contains('show')) closeSheet();
     });
+    registerWallets();
+    bootDiscord();
+    autoConnect();
     fetch('/api/pairs/config', { credentials: 'include' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {

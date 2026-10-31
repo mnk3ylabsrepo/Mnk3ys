@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <base href="/preview/blupa1rs/">
 <meta name="robots" content="noindex, nofollow">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self'; img-src 'self' data: https://cdn.discordapp.com https:; font-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#05070d">
 <title>BLUPA1RS · MNK3YLabs</title>
 <meta name="description" content="BLUPA1RS: flip two cards, match a pair, and win an NFT or $BLUNANA. Five turns cost 100,000 $BLUNANA.">
 <link rel="icon" type="image/png" href="../blup3ts/assets/favicon-32.png">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 <div class="bgfx" aria-hidden="true"><i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="stars"></i></div>
@@ -28,7 +28,10 @@
       <div class="stat"><span class="k">Turns</span><b id="turns">0</b></div>
       <div class="stat"><span class="k">$BLUNANA</span><b id="bal">—</b></div>
     </div>
-    <button class="hb" id="connectBtn" type="button">👛 Connect wallet</button>
+    <div class="acctpair">
+      <button type="button" class="discordrow out" id="discordBtn"><span class="discordmark" id="discordMark" aria-hidden="true"></span><img id="discordPfp" alt="" width="36" height="36" hidden><span id="discordName">Sign in with Discord</span></button>
+      <button class="hb" id="connectBtn" type="button">👛 Connect wallet</button>
+    </div>
     <button class="playbtn" id="buyBtn" type="button">Buy 5 turns</button>
     <p class="modenote" id="costNote">5 turns = 100,000 $BLUNANA</p>
     <div class="toolrow">
@@ -45,12 +48,13 @@
   </div>
 </section>
 
+<div class="htoast" id="hToast" role="status"></div>
 <div class="sheetbg" id="sheetBg"></div>
 <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
   <div class="sheethead"><h2 id="sheetTitle"></h2><button class="sheetx" id="sheetClose" type="button" aria-label="Close">✕</button></div>
   <div class="sheetbody" id="sheetBody"></div>
 </section>
 <script src="https://unpkg.com/@solana/web3.js@1.95.4/lib/index.iife.min.js"></script>
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
