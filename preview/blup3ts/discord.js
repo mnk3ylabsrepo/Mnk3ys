@@ -84,11 +84,11 @@
     var H = window.BLUP3TS_HOME;
     if (!H || !H.openSheet || !user) return;
     var head = el('div', 'dhead');
-    var mark = el('span', 'discordmark'); mark.appendChild(discordLogo());
+    var img = el('img'); img.alt = ''; img.src = avatar(user);
     var who = el('div');
     who.appendChild(el('b', null, nameOf(user)));
     if (user.username) who.appendChild(el('small', null, '@' + user.username));
-    head.appendChild(mark); head.appendChild(who);
+    head.appendChild(img); head.appendChild(who);
     var nodes = [head, el('p', null, 'Wallets linked to this Discord. Ranks use one row for all of them.')];
     if (!wallets.length) nodes.push(el('p', 'ranknote', 'No wallets linked yet.'));
     wallets.forEach(function (w) {
@@ -129,7 +129,8 @@
         .then(function () { user = null; wallets = []; sure = ''; paint(); if (H.closeSheet) H.closeSheet(); toast('Signed out of Discord'); });
     });
     nodes.push(out);
-    H.openSheet('Discord', nodes);
+    var mark = el('span', 'discordmark'); mark.appendChild(discordLogo());
+    H.openSheet('Discord', nodes, mark);
   }
   function loadWallets() {
     if (!user) { wallets = []; return Promise.resolve(); }

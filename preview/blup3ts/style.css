@@ -332,8 +332,8 @@ main { display:flex; flex-direction:column; align-items:center; width:100%; }
 .discordrow img { width:36px; height:36px; border-radius:50%; object-fit:cover; background:#0e141e; flex:none; }
 .discordmark { width:36px; height:36px; flex:none; display:flex; align-items:center; justify-content:center; color:#5865F2; }
 .discordmark svg { width:28px; height:28px; display:block; }
-.dhead .discordmark { width:56px; height:56px; }
-.dhead .discordmark svg { width:44px; height:44px; }
+.sheethead h2 .discordmark { width:24px; height:24px; }
+.sheethead h2 .discordmark svg { width:22px; height:22px; }
 .tokenseg { flex:1 0 100%; }
 .discordrow span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .dhead { display:flex; align-items:center; gap:12px; }
@@ -362,7 +362,7 @@ main { display:flex; flex-direction:column; align-items:center; width:100%; }
 .sheet.show { opacity:1; visibility:visible; pointer-events:auto; transition:opacity .25s, visibility 0s; }
 .sheethead { display:flex; align-items:center; justify-content:space-between; flex:none; margin-bottom:8px; }
 .sheetbody { flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
-.sheethead h2 { font-size:20px; font-weight:1000; color:var(--cyan); }
+.sheethead h2 { display:flex; align-items:center; gap:8px; font-size:20px; font-weight:1000; color:var(--cyan); }
 .sheetx { background:var(--card2); border-radius:14px; padding:4px 12px; font-weight:900; }
 .sheetbody p { font-size:14.5px; line-height:1.45; color:#d3dce7; margin:6px 0; font-weight:600; }
 .sheetbody ol, .sheetbody ul { padding-left:20px; font-size:14.5px; line-height:1.5; color:#d3dce7; }

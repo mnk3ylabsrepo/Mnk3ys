@@ -239,9 +239,10 @@
     sh.style.maxHeight = Math.max(180, Math.round(h - 24)) + 'px';
     sh.style.maxWidth = Math.max(280, Math.round(Math.min(560, w - 24))) + 'px';
   }
-  function openSheet(title, nodes) {
+  function openSheet(title, nodes, icon) {
     lastFocus = document.activeElement;
-    $('sheetTitle').textContent = title; var b = $('sheetBody'); b.textContent = ''; nodes.forEach(function (n) { b.appendChild(n); });
+    var h = $('sheetTitle'); h.textContent = ''; if (icon) h.appendChild(icon); h.appendChild(document.createTextNode(title));
+    var b = $('sheetBody'); b.textContent = ''; nodes.forEach(function (n) { b.appendChild(n); });
     $('sheet').classList.add('show'); $('sheetBg').classList.add('show'); placeSheet(); $('sheetClose').focus();
   }
   function closeSheet() {
