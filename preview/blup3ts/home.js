@@ -31,7 +31,7 @@
     requestAnimationFrame(function () { requestAnimationFrame(function () { nv.classList.remove('entering'); }); });
   }
   $('playBtn').onclick = function () { goGame(); };
-  $('nftsBtn').onclick = goNfts; $('gameNfts').onclick = goNfts; $('nftsHome').onclick = goHome;
+  $('gameNfts').onclick = goNfts; $('nftsHome').onclick = goHome;
   // M13: exactly two views. The switch shows both: Watch | Phone. Phone has its own layout picker (Auto / Stacked / Side by side).
   var FOLD_NAME = { auto: 'Auto', v: 'Stacked', h: 'Side by side' }, FOLD_NEXT = { auto: 'v', v: 'h', h: 'auto' };
   function renderLayoutBtn() {
@@ -188,19 +188,26 @@
     if (!A.walletOn()) { // wallet connect switched off (config.js WALLET_CONNECT_ENABLED): no wallet controls at all. Code kept for later.
       $('modePretend').setAttribute('aria-pressed', 'true'); $('modePretend').classList.add('a');
       ['connectBtn', 'modeWallet'].forEach(function (id) { var b = $(id); b.hidden = true; b.disabled = true; b.style.display = 'none'; });
-      var seg = document.querySelector('.modeseg'); if (seg) { seg.hidden = true; seg.style.display = 'none'; }
+      var seg = $('modeSeg'); if (seg) { seg.hidden = true; seg.style.display = 'none'; }
+      if ($('tokenSeg')) $('tokenSeg').hidden = true;
       $('modeNote').textContent = 'Pretend mode: play money only.';
       return;
     }
     ['connectBtn', 'modeWallet'].forEach(function (id) { $(id).hidden = false; $(id).disabled = false; }); // wallet connect on: show the controls
-    var seg0 = document.querySelector('.modeseg'); if (seg0) { seg0.hidden = false; seg0.style.display = ''; }
+    var seg0 = $('modeSeg'); if (seg0) { seg0.hidden = false; seg0.style.display = ''; }
     var w = A.state().mode === 'wallet';
     $('modePretend').setAttribute('aria-pressed', w ? 'false' : 'true'); $('modeWallet').setAttribute('aria-pressed', w ? 'true' : 'false');
     $('modePretend').classList.toggle('a', !w); $('modeWallet').classList.toggle('a', w);
-    var tokenSeg = $('tokenSeg'); if (tokenSeg) tokenSeg.hidden = !w;
     var Wlt = window.BLUP3TS_WALLET, kind = Wlt && Wlt.playToken ? Wlt.playToken() : 'test', testOn = kind !== 'blunana';
-    if ($('tokenTest')) { $('tokenTest').classList.toggle('a', w && testOn); $('tokenTest').setAttribute('aria-pressed', w && testOn ? 'true' : 'false'); }
-    if ($('tokenBlunana')) { $('tokenBlunana').classList.toggle('a', w && !testOn); $('tokenBlunana').setAttribute('aria-pressed', w && !testOn ? 'true' : 'false'); }
+    var tokenSeg = $('tokenSeg');
+    if (tokenSeg) {
+      tokenSeg.hidden = !w;
+      tokenSeg.classList.toggle('on', w && !testOn);
+      tokenSeg.setAttribute('aria-checked', w && !testOn ? 'true' : 'false');
+      tokenSeg.setAttribute('aria-label', 'Play token, ' + (testOn ? 'BLUTEST' : 'BLUNANA'));
+    }
+    if ($('tokenTest')) $('tokenTest').classList.toggle('on', w && testOn);
+    if ($('tokenBlunana')) $('tokenBlunana').classList.toggle('on', w && !testOn);
     $('connectBtn').style.display = w ? '' : 'none';
     var W = window.BLUP3TS_WALLET;
     $('modeNote').textContent = w ? (W ? W.modeNote() : 'Wallet mode is on its way in the next update. Pretend mode works now.') : 'Pretend mode: play money only. No wallet needed.';
@@ -214,8 +221,10 @@
     var Wl = window.BLUP3TS_WALLET; if (!Wl || !Wl.setPlayToken) return;
     A.play('tap'); Wl.setPlayToken(kind);
   }
-  if ($('tokenTest')) $('tokenTest').onclick = function () { pickToken('test'); };
-  if ($('tokenBlunana')) $('tokenBlunana').onclick = function () { pickToken('blunana'); };
+  if ($('tokenSeg')) $('tokenSeg').onclick = function () {
+    var Wl = window.BLUP3TS_WALLET, kind = Wl && Wl.playToken ? Wl.playToken() : 'test';
+    pickToken(kind === 'blunana' ? 'test' : 'blunana');
+  };
   $('connectBtn').onclick = function () { if (!A.walletOn()) return; if (window.BLUP3TS_WALLET) BLUP3TS_WALLET.onConnectClick(); else openSheet('Wallet mode', [p('Wallet mode is on its way in the next update.'), p('Pretend mode works now and needs no wallet.')]); };
   // M13: the old 'Add my own' path (jump to Home, flip to Wallet mode, then connect or reload) is gone; wallet.js addOwnTap does it in place.
 

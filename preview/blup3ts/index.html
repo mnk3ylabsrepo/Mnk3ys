@@ -32,7 +32,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BLUP3TS">
 <meta name="application-name" content="BLUP3TS">
-<link rel="stylesheet" href="style.css?v=24">
+<link rel="stylesheet" href="style.css?v=28">
 </head>
 <body>
 
@@ -54,17 +54,16 @@
   <div class="homestack">
   <div class="carstatus" id="carStatus" aria-live="polite"></div>
   <button class="playbtn" id="playBtn">▶ Play</button>
-  <button class="hb nftsbtn" id="nftsBtn">🖼️ My NFTs</button>
   <div class="hbtns">
     <div class="acctpair">
       <button type="button" class="discordrow out" id="discordBtn"><span class="discordmark" id="discordMark" aria-hidden="true"></span><img id="discordPfp" alt="" width="36" height="36" hidden><span id="discordName">Sign in with Discord</span></button>
       <button class="hb" id="connectBtn" hidden>👛 Connect wallet</button>
     </div>
-    <div class="modeseg" role="group" aria-label="Mode" hidden>
-      <button id="modePretend" aria-pressed="true">Pretend</button><button id="modeWallet" aria-pressed="false">Wallet</button>
-    </div>
-    <div class="modeseg tokenseg" id="tokenSeg" role="group" aria-label="Play token" hidden>
-      <button type="button" id="tokenTest" aria-pressed="true">BLUTEST</button><button type="button" id="tokenBlunana" aria-pressed="false">BLUNANA</button>
+    <div class="moderow">
+      <div class="modeseg" id="modeSeg" role="group" aria-label="Mode" hidden>
+        <button id="modePretend" aria-pressed="true">Pretend</button><button id="modeWallet" aria-pressed="false">Wallet</button>
+      </div>
+      <button type="button" class="toksw" id="tokenSeg" role="switch" aria-checked="false" aria-label="Play token, BLUTEST" hidden><span id="tokenTest">BLUTEST</span><span class="toksw-track" aria-hidden="true"><span class="toksw-thumb"></span></span><span id="tokenBlunana">BLUNANA</span></button>
     </div>
     <button class="hb" id="howBtn">❓ How to play</button>
     <button class="hb" id="ranksBtn" data-open-leaderboard="str" hidden>🏆 Ranks</button>
@@ -378,7 +377,7 @@
 <script src="eat.js"></script>
 <script src="app.js?v=12"></script>
 <script src="faq.js?v=4"></script>
-<script src="home.js?v=7"></script>
+<script src="home.js?v=8"></script>
 <script src="fullscreen.js?v=1"></script>
 <script src="vendor/blup3ts-sol.js"></script>
 <script src="boost.js"></script>
