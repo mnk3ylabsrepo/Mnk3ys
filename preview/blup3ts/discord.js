@@ -65,10 +65,12 @@
     if (!user) {
       if (img) { img.hidden = true; img.removeAttribute('src'); }
       showMark(mark);
+      btn.classList.add('out');
       label.textContent = 'Sign in with Discord';
       btn.setAttribute('aria-label', 'Sign in with Discord');
       return;
     }
+    btn.classList.remove('out');
     var name = nameOf(user);
     if (mark) mark.hidden = true;
     if (img) {

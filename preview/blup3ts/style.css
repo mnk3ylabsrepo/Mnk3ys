@@ -328,7 +328,13 @@ main { display:flex; flex-direction:column; align-items:center; width:100%; }
 .playbtn:active { transform:scale(.97); }
 @keyframes pulseglow { 0%,100% { box-shadow:0 10px 30px rgba(72,216,252,.30), inset 0 -3px 0 rgba(0,0,0,.15) } 50% { box-shadow:0 10px 44px rgba(72,216,252,.55), inset 0 -3px 0 rgba(0,0,0,.15) } }
 .hbtns { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px; padding:0 12px; }
-.discordrow { flex:1 0 100%; display:flex; align-items:center; gap:10px; min-width:0; min-height:44px; padding:6px 12px; border-radius:16px; border:1px solid #2c3a52; background:#141b28; color:#dfe7f1; font-weight:1000; text-align:left; }
+.acctpair { flex:1 0 100%; display:grid; grid-template-columns:minmax(0,max-content); justify-content:center; justify-items:stretch; gap:8px; max-width:100%; }
+.discordrow { display:flex; align-items:center; justify-content:center; gap:8px; min-width:0; height:44px; min-height:44px; padding:0 14px; border-radius:14px; border:1px solid #2c3a52; background:#141b28; color:#dfe7f1; font-size:14px; font-weight:1000; text-align:center; }
+.discordrow .discordmark { width:22px; height:22px; }
+.discordrow .discordmark svg { width:20px; height:20px; }
+.discordrow img { width:28px; height:28px; }
+.discordrow.out { background:#5865F2; border-color:#5865F2; color:#fff; }
+.discordrow.out .discordmark { color:#fff; }
 .discordrow img { width:36px; height:36px; border-radius:50%; object-fit:cover; background:#0e141e; flex:none; }
 .discordmark { width:36px; height:36px; flex:none; display:flex; align-items:center; justify-content:center; color:#5865F2; }
 .discordmark svg { width:28px; height:28px; display:block; }
@@ -929,7 +935,7 @@ body.desk .pcard { flex:none; width:auto; min-width:0; max-width:none; scroll-sn
 body.desk .pcart { width:100%; height:auto; aspect-ratio:1; max-height:none; }
 body.desk .playbtn { margin-top:6px; height:56px; width:100%; }
 body.desk .hbtns { margin-top:6px; }
-body.desk .discordrow { width:100%; }
+body.desk .acctpair { margin-top:0; }
 body.desk .looksrow, body.desk .blutest-claim { width:100%; max-width:none; margin-top:6px; }
 body.desk .modenote { margin-top:4px; }
 body.desk .betaline { flex:none; max-width:none; margin:14px 0 0; text-align:center; }
