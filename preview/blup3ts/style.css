@@ -539,7 +539,8 @@ h1.hword { margin:0; font-size:inherit; font-weight:inherit; }
 .pcard.emptycard .emptyrow { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
 .pcard.emptycard .mini { background:#141b28; border:1px solid #2c3a52; color:#dfe7f1; border-radius:12px; padding:7px 8px; font-size:12.5px; font-weight:900; min-height:34px; touch-action:manipulation; }
 #tryStarter { border-color:var(--gold); color:var(--gold); }
-#connectBtn { touch-action:manipulation; }
+#connectBtn { touch-action:manipulation; display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#F2C94C; border-color:#E0B43A; color:#1a1400; }
+#connectBtn .wico { width:20px; height:20px; flex:none; display:block; }
 #connectBtn.busy { opacity:.75; pointer-events:none; }
 .pcard.addcard { min-height:255px; } /* same height as a pet card: no jump when 'Finding pets…' turns into your pets */
 .pcard.emptycard .pcart { height:92px; width:120px; border-radius:24px; }

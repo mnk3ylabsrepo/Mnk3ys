@@ -86,15 +86,24 @@
     return out;
   }
   function rejected(e) { var c = e && (e.code || (e.error && e.error.code)); return c === 4001 || /reject|denied|cancel|declin/i.test(String(e && (e.message || e))); }
+  function walletIcon() {
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'wico'); svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true');
+    ['M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1', 'M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4'].forEach(function (d) {
+      var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('fill', 'none'); path.setAttribute('stroke', 'currentColor'); path.setAttribute('stroke-width', '2');
+      path.setAttribute('stroke-linecap', 'round'); path.setAttribute('stroke-linejoin', 'round'); path.setAttribute('d', d);
+      svg.appendChild(path);
+    });
+    return svg;
+  }
+  function fillWalletBtn(btn, label) { btn.textContent = ''; btn.appendChild(walletIcon()); btn.appendChild(document.createTextNode(label)); }
   function paintConnect() {
     var btn = $('connectBtn'); if (!btn) return;
-    var phone = !W.pubkey && isMobile() && !walletList().length;
     btn.classList.toggle('busy', !!W.connecting);
     btn.setAttribute('aria-busy', W.connecting ? 'true' : 'false');
-    var lk = W.pubkey ? W.kind : phone ? 'solflare' : null;
-    var label = W.connecting ? 'Connecting…' : W.pubkey ? shortAddr(W.pubkey) + ' · Disconnect' : phone ? 'Connect · Open in Solflare' : 'Connect wallet';
-    if (!W.connecting && lk && LOGO[lk]) withLogo(btn, lk, label);
-    else btn.textContent = (W.connecting ? '⏳ ' : '👛 ') + label;
+    var label = W.connecting ? 'Connecting…' : W.pubkey ? shortAddr(W.pubkey) + ' · Disconnect' : 'Connect wallet';
+    fillWalletBtn(btn, label);
     btn.setAttribute('aria-label', W.pubkey ? 'Disconnect wallet ' + shortAddr(W.pubkey) : 'Connect wallet');
   }
 

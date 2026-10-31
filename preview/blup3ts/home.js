@@ -212,7 +212,7 @@
     var W = window.BLUP3TS_WALLET;
     $('modeNote').textContent = w ? (W ? W.modeNote() : 'Wallet mode is on its way in the next update. Pretend mode works now.') : 'Pretend mode: play money only. No wallet needed.';
     if (W) W.renderConnect($('connectBtn'));
-    else $('connectBtn').textContent = '👛 Connect wallet';
+    else $('connectBtn').textContent = 'Connect wallet';
   }
   function setMode(m) { if (m === 'wallet' && !A.walletOn()) return; A.play('tap'); A.setMode(m); if (window.BLUP3TS_WALLET) BLUP3TS_WALLET.onMode(m); renderMode(); renderCarousel(true); }
   $('modePretend').onclick = function () { setMode('pretend'); };
