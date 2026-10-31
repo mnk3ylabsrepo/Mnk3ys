@@ -44,17 +44,39 @@
     var a = String(addr || '').toLowerCase();
     return wallets.some(function (w) { return String(w).toLowerCase() === a; });
   }
+  function discordLogo() {
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('fill', 'currentColor');
+    path.setAttribute('d', 'M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18 18 0 0 0-5.6 0L8.6 3a19.6 19.6 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1A19.8 19.8 0 0 0 6.1 21l1.3-2.1c-.7-.3-1.4-.6-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.7 19.7 0 0 0 6-3c.5-5.2-.8-9.7-3.6-13.6ZM8.3 15.3c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm7.4 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z');
+    svg.appendChild(path);
+    return svg;
+  }
+  function showMark(node) {
+    if (!node) return;
+    node.hidden = false;
+    if (!node.firstChild) node.appendChild(discordLogo());
+  }
   function paint() {
-    var btn = $('discordBtn'), img = $('discordPfp'), label = $('discordName');
+    var btn = $('discordBtn'), img = $('discordPfp'), label = $('discordName'), mark = $('discordMark');
     if (!btn || !label) return;
     if (!user) {
       if (img) { img.hidden = true; img.removeAttribute('src'); }
+      showMark(mark);
       label.textContent = 'Sign in with Discord';
       btn.setAttribute('aria-label', 'Sign in with Discord');
       return;
     }
     var name = nameOf(user);
-    if (img) { img.hidden = false; img.src = avatar(user); img.alt = ''; }
+    if (mark) mark.hidden = true;
+    if (img) {
+      img.hidden = false;
+      img.alt = '';
+      img.onerror = function () { img.hidden = true; showMark(mark); };
+      img.src = avatar(user);
+    }
     label.textContent = name;
     btn.setAttribute('aria-label', 'Discord account, ' + name);
   }
@@ -62,11 +84,11 @@
     var H = window.BLUP3TS_HOME;
     if (!H || !H.openSheet || !user) return;
     var head = el('div', 'dhead');
-    var pic = el('img'); pic.src = avatar(user); pic.alt = ''; pic.width = 56; pic.height = 56;
+    var mark = el('span', 'discordmark'); mark.appendChild(discordLogo());
     var who = el('div');
     who.appendChild(el('b', null, nameOf(user)));
     if (user.username) who.appendChild(el('small', null, '@' + user.username));
-    head.appendChild(pic); head.appendChild(who);
+    head.appendChild(mark); head.appendChild(who);
     var nodes = [head, el('p', null, 'Wallets linked to this Discord. Ranks use one row for all of them.')];
     if (!wallets.length) nodes.push(el('p', 'ranknote', 'No wallets linked yet.'));
     wallets.forEach(function (w) {
@@ -123,6 +145,7 @@
       var next = q.toString();
       history.replaceState(null, '', location.pathname + (next ? '?' + next : '') + location.hash);
     }
+    showMark($('discordMark'));
     var btn = $('discordBtn');
     if (btn) btn.addEventListener('click', function () {
       if (window.BLUP3TS_APP && BLUP3TS_APP.play) BLUP3TS_APP.play('tap');

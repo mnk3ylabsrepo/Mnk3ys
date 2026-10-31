@@ -28,8 +28,10 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   // set to exactly 'mainnet-live'.
   NETWORK: 'mainnet-live',
 
-  // Preview test reserve. Live feeds of BLUTEST are sent here. Not the real $BLUNANA reserve.
+  // BLUTEST only. This wallet is the test-token mint authority. BLUTEST feeds are sent here.
   RESERVE_WALLET: '5eZ3Qt1jKCGdXkCES791W68T87bGG62j9ZHcmBaMUtTP',
+  // Real $BLUNANA community reserve. The top ticker reads its balance. BLUNANA play feeds are sent here.
+  BLUNANA_RESERVE_WALLET: 'B3HziYmuE9Wx42FULYZLTBRNg5WNBj6UH32Vb5kfacBN',
 
   // $BLUNANA (pinned). Classic SPL token, 6 decimals. REAL_BLUNANA_MINT stays the community token.
   // BLUNANA_MINT is what a live feed sends. While TEST_PLAY is on, that is the preview test token, not $BLUNANA.

@@ -428,7 +428,7 @@
   }
 
   // ===== Feed (pretend $BLUNANA only) =====
-  function tokenFeed() { return S.mode === 'wallet' && API.payFeed && (window.BLUP3TS_CONFIG || {}).TEST_PLAY === true; }
+  function tokenFeed() { return S.mode === 'wallet' && API.payFeed && (API.livePlay ? API.livePlay() : (window.BLUP3TS_CONFIG || {}).TEST_PLAY === true); }
   function openFeed() {
     if (eating || jamTimer) return; // no feeding while a jam is running
     var live = tokenFeed();
@@ -490,7 +490,7 @@
       onDone: function () {
         eating = false; eatLog.done = true; eatLog.ms = Math.round(performance.now() - eatLog.startedAt);
         render(); burst('heart', 4 + f.n);
-        toast(real ? 'Fed with ' + ((CFG.TEST_PLAY && CFG.TEST_TOKEN_SYMBOL) || '$BLUNANA') + ' ✔' : '−' + fmt(f.cost) + ' pretend', !real);
+        toast(real ? 'Fed with ' + (API.payWord ? API.payWord() : '$BLUNANA') + ' ✔' : '−' + fmt(f.cost) + ' pretend', !real);
         if (real && API.refreshToken) API.refreshToken();
         var after = levelFor(S.pets[petId].str); if (after > before) setTimeout(function () { levelUp(after, before); }, 250);
       }
@@ -620,7 +620,7 @@
   $('moodPill').onclick = function () { play('tap'); var m = mood(pet()); toast(m[0] + ' ' + (MOOD_TIP[m[1]] || 'Tap Feed or Jam to play together.')); };
   $('tileHunger').onclick = function () { play('tap'); toast('Hunger shows how full your pet is. Tap Feed to fill it up.'); };
   $('tileStr').onclick = $('tileLvl').onclick = function () { play('tap'); showPage('stats'); };
-  $('balCoin').onclick = function () { play('tap'); bump(this, 'spin', 900); toast(S.mode === 'wallet' && CFG.TEST_PLAY ? (CFG.TEST_TOKEN_SYMBOL || 'BLUTEST') + ' · test token' : 'Pretend $BLUNANA, play money'); };
+  $('balCoin').onclick = function () { play('tap'); bump(this, 'spin', 900); toast(S.mode === 'wallet' && API.payWord ? API.payWord() + (API.playToken && API.playToken() === 'blunana' ? ' · community reserve' : ' · test token') : 'Pretend $BLUNANA, play money'); };
   $('sideBtn').onclick = function () { play('tap'); hideOverlays(); if (!S.started) start(); showPage('home'); };
   [].forEach.call(document.querySelectorAll('#screen .betatap'), function (n) { n.onclick = function () { play('tap'); toast('New stuff on the way, share ideas on Discord'); }; });
   if ($('soundBtn')) $('soundBtn').onclick = function () { setSound(!soundOn); };

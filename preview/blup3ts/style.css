@@ -5,7 +5,12 @@
 html { -webkit-text-size-adjust:100%; }
 body { min-height:100vh; font-family:Nun,-apple-system,"Segoe UI",Roboto,sans-serif; color:#fff; -webkit-font-smoothing:antialiased;
   background:radial-gradient(circle at 30% 10%, #12305a 0, #070b18 55%, #03040a 100%) fixed; display:flex; flex-direction:column; align-items:center;
-  padding:calc(14px + env(safe-area-inset-top)) 12px calc(20px + env(safe-area-inset-bottom)); overflow-x:hidden; }
+  padding:calc(46px + env(safe-area-inset-top)) 12px calc(20px + env(safe-area-inset-bottom)); overflow-x:hidden; }
+.ticker { position:fixed; top:0; left:0; right:0; z-index:70; height:32px; overflow:hidden; display:flex; align-items:center; background:#07101c; border-bottom:1px solid #2c3a52; color:var(--gold); font-size:13px; font-weight:800; }
+.tickertrack { display:flex; gap:48px; width:max-content; white-space:nowrap; animation:ticker 36s linear infinite; }
+.tickertrack span { padding-left:48px; }
+@keyframes ticker { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .tickertrack { animation:none; } .ticker { justify-content:center; } .tickertrack span + span { display:none; } }
 button { font:inherit; color:inherit; border:0; background:none; cursor:pointer; }
 button:focus-visible { outline:3px solid var(--cyan); outline-offset:2px; }
 .hero { display:flex; align-items:center; gap:12px; max-width:560px; width:100%; margin:28px 0 10px; }
@@ -325,6 +330,11 @@ main { display:flex; flex-direction:column; align-items:center; width:100%; }
 .hbtns { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px; padding:0 12px; }
 .discordrow { flex:1 0 100%; display:flex; align-items:center; gap:10px; min-width:0; min-height:44px; padding:6px 12px; border-radius:16px; border:1px solid #2c3a52; background:#141b28; color:#dfe7f1; font-weight:1000; text-align:left; }
 .discordrow img { width:36px; height:36px; border-radius:50%; object-fit:cover; background:#0e141e; flex:none; }
+.discordmark { width:36px; height:36px; flex:none; display:flex; align-items:center; justify-content:center; color:#5865F2; }
+.discordmark svg { width:28px; height:28px; display:block; }
+.dhead .discordmark { width:56px; height:56px; }
+.dhead .discordmark svg { width:44px; height:44px; }
+.tokenseg { flex:1 0 100%; }
 .discordrow span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .dhead { display:flex; align-items:center; gap:12px; }
 .dhead img { width:56px; height:56px; border-radius:50%; object-fit:cover; background:#0e141e; flex:none; }
@@ -903,7 +913,7 @@ button:not(:disabled):active, [role=button]:active, a.extlink:active, .soc:activ
 .dots button::before { transform:translateX(var(--dx, 0px)); } /* 320px watch: the Balance tap area slides right off the LEVEL tile; the dot itself stays put */
 
 /* Desktop: one screen, two columns. Phones and short windows keep the stacked mobile layout. */
-body.desk { height:var(--vvh, 100svh); max-height:var(--vvh, 100svh); min-height:0; overflow:hidden; padding:max(18px, env(safe-area-inset-top)) max(120px, 8vw) max(14px, env(safe-area-inset-bottom)); align-items:stretch; }
+body.desk { height:var(--vvh, 100svh); max-height:var(--vvh, 100svh); min-height:0; overflow:hidden; padding:calc(32px + max(10px, env(safe-area-inset-top))) max(120px, 8vw) max(14px, env(safe-area-inset-bottom)); align-items:stretch; }
 body.desk .homeview.on, body.desk .gameview.on { flex:1 1 0; min-height:0; width:100%; max-width:1280px; margin-inline:auto; }
 body.desk .homeview.on { display:grid; grid-template-columns:minmax(320px,400px) minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto auto minmax(0,1fr); column-gap:36px; align-items:stretch; padding:0; overflow:hidden; }
 body.desk .homeview .wmark { font-size:44px; }
@@ -941,7 +951,7 @@ body.desk .socials { margin:0; }
 body.desk .nftsview.on { flex:1 1 auto; min-height:0; width:100%; max-width:1280px; overflow:auto; align-self:center; }
 /* Tablet: same one-screen layout as desktop, with tighter columns so the footer stays in view. */
 @media (max-width: 1099px) {
-  body.desk { padding:max(10px, env(safe-area-inset-top)) 16px max(8px, env(safe-area-inset-bottom)); }
+  body.desk { padding:calc(32px + max(8px, env(safe-area-inset-top))) 16px max(8px, env(safe-area-inset-bottom)); }
   body.desk .homeview.on { grid-template-columns:minmax(220px,280px) minmax(0,1fr); column-gap:16px; }
   body.desk .gameview.on { grid-template-columns:auto minmax(210px,260px); column-gap:16px; }
   body.desk .homeview .wmark { font-size:36px; }

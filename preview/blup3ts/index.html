@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <base href="/preview/blup3ts/">
 <meta name="robots" content="noindex, nofollow">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://img-cdn.magiceden.dev https://firebasestorage.googleapis.com https://na-assets.pinit.io https://gateway.pinit.io https://gateway.irys.xyz https://*.datasprite-cdn.com https://arweave.net https://*.arweave.net https://ipfs.io https://nftstorage.link https://*.ipfs.nftstorage.link https://cdn.helius-rpc.com; media-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://cdn.discordapp.com https://img-cdn.magiceden.dev https://firebasestorage.googleapis.com https://na-assets.pinit.io https://gateway.pinit.io https://gateway.irys.xyz https://*.datasprite-cdn.com https://arweave.net https://*.arweave.net https://ipfs.io https://nftstorage.link https://*.ipfs.nftstorage.link https://cdn.helius-rpc.com; media-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#05070d">
@@ -32,9 +32,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BLUP3TS">
 <meta name="application-name" content="BLUP3TS">
-<link rel="stylesheet" href="style.css?v=20">
+<link rel="stylesheet" href="style.css?v=21">
 </head>
 <body>
+
+<div class="ticker" id="ecoTicker"><div class="tickertrack" id="tickerTrack"></div></div>
 
 <section class="view homeview on" id="homeView" role="main" aria-label="BLUP3TS home">
   <button class="spk spkhome" id="spkHome" aria-label="Sound is off. Turn sound on" aria-pressed="false">🔇</button>
@@ -54,10 +56,13 @@
   <button class="playbtn" id="playBtn">▶ Play</button>
   <button class="hb nftsbtn" id="nftsBtn">🖼️ My NFTs</button>
   <div class="hbtns">
-    <button type="button" class="discordrow" id="discordBtn"><img id="discordPfp" alt="" width="36" height="36" hidden><span id="discordName">Sign in with Discord</span></button>
+    <button type="button" class="discordrow" id="discordBtn"><span class="discordmark" id="discordMark" aria-hidden="true"></span><img id="discordPfp" alt="" width="36" height="36" hidden><span id="discordName">Sign in with Discord</span></button>
     <button class="hb" id="connectBtn" hidden>👛 Connect wallet</button>
     <div class="modeseg" role="group" aria-label="Mode" hidden>
       <button id="modePretend" aria-pressed="true">Pretend</button><button id="modeWallet" aria-pressed="false">Wallet</button>
+    </div>
+    <div class="modeseg tokenseg" id="tokenSeg" role="group" aria-label="Play token" hidden>
+      <button type="button" id="tokenTest" aria-pressed="true">BLUTEST</button><button type="button" id="tokenBlunana" aria-pressed="false">BLUNANA</button>
     </div>
     <button class="hb" id="howBtn">❓ How to play</button>
     <button class="hb" id="ranksBtn" data-open-leaderboard="str" hidden>🏆 Ranks</button>
@@ -67,7 +72,6 @@
   <p class="modenote" id="modeNote"></p>
   <button type="button" class="btn b-cyan blutest-claim" id="blutestClaim" hidden><span class="blutest-mark" aria-hidden="true"></span><span class="blutest-label">Get 100,000 BLUTEST</span></button>
   <p class="blutest-bal" id="blutestBal" hidden></p>
-  <p class="reservebal" id="reserveBal" hidden></p>
   <button class="hb boostbtn" id="boostBtn" hidden disabled aria-disabled="true">✨ Burn cNFT for a boost · Coming soon</button>
   <button class="looksrow" id="looksBtn"><span class="lk">🎨</span><span><b>Looks</b><br><small id="looksSub">Watch cases · unlock at Level 3</small></span><span class="soonpill">⌚ Cases</span></button>
   <a class="wm2 wmlink" id="homeWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Made by Azgog (@azgog): Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
@@ -353,7 +357,7 @@
 </main>
 </div>
 
-<p class="betaline">Beta. Pretend mode uses play money. Wallet mode feeds use BLUTEST, a test token, not $BLUNANA.</p>
+<p class="betaline">Beta. Pretend mode uses play money. In Wallet mode, choose BLUTEST or real $BLUNANA.</p>
 <footer class="foot">
   <nav class="socials" aria-label="BLUP3TS socials">
     <a class="soc" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M18.9 2H22l-6.8 7.8L23 22h-6.2l-4.9-6.4L6.3 22H3.2l7.3-8.3L1 2h6.3l4.4 5.8L18.9 2Zm-1.1 18h1.7L6.3 3.9H4.5L17.8 20Z"/></svg>@BluP3ts</a>
@@ -362,7 +366,7 @@
   <div class="muted">BLUP3TS by MNK3YLabs · Just a game: Pretend mode uses no real tokens.</div>
 </footer>
 
-<script src="config.js?v=4"></script>
+<script src="config.js?v=5"></script>
 <script src="data.js"></script>
 <script src="starters.js?v=2"></script>
 <script src="art.js"></script>
@@ -370,14 +374,14 @@
 <script src="rarity.js"></script>
 <script src="tiers.js"></script>
 <script src="eat.js"></script>
-<script src="app.js?v=11"></script>
-<script src="faq.js?v=3"></script>
-<script src="home.js?v=5"></script>
+<script src="app.js?v=12"></script>
+<script src="faq.js?v=4"></script>
+<script src="home.js?v=6"></script>
 <script src="fullscreen.js?v=1"></script>
 <script src="vendor/blup3ts-sol.js"></script>
 <script src="boost.js"></script>
-<script src="wallet.js?v=10"></script>
+<script src="wallet.js?v=11"></script>
 <script src="leaderboard.js?v=4"></script>
-<script src="discord.js?v=1"></script>
+<script src="discord.js?v=2"></script>
 </body>
 </html>

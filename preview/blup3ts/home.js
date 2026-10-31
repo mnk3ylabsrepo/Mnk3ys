@@ -197,6 +197,10 @@
     var w = A.state().mode === 'wallet';
     $('modePretend').setAttribute('aria-pressed', w ? 'false' : 'true'); $('modeWallet').setAttribute('aria-pressed', w ? 'true' : 'false');
     $('modePretend').classList.toggle('a', !w); $('modeWallet').classList.toggle('a', w);
+    var tokenSeg = $('tokenSeg'); if (tokenSeg) tokenSeg.hidden = !w;
+    var Wlt = window.BLUP3TS_WALLET, kind = Wlt && Wlt.playToken ? Wlt.playToken() : 'test', testOn = kind !== 'blunana';
+    if ($('tokenTest')) { $('tokenTest').classList.toggle('a', w && testOn); $('tokenTest').setAttribute('aria-pressed', w && testOn ? 'true' : 'false'); }
+    if ($('tokenBlunana')) { $('tokenBlunana').classList.toggle('a', w && !testOn); $('tokenBlunana').setAttribute('aria-pressed', w && !testOn ? 'true' : 'false'); }
     $('connectBtn').style.display = w ? '' : 'none';
     var W = window.BLUP3TS_WALLET;
     $('modeNote').textContent = w ? (W ? W.modeNote() : 'Wallet mode is on its way in the next update. Pretend mode works now.') : 'Pretend mode: play money only. No wallet needed.';
@@ -206,6 +210,12 @@
   function setMode(m) { if (m === 'wallet' && !A.walletOn()) return; A.play('tap'); A.setMode(m); if (window.BLUP3TS_WALLET) BLUP3TS_WALLET.onMode(m); renderMode(); renderCarousel(true); }
   $('modePretend').onclick = function () { setMode('pretend'); };
   $('modeWallet').onclick = function () { var was = A.state().mode === 'wallet'; setMode('wallet'); var Wl = window.BLUP3TS_WALLET; if (!was && Wl && Wl.afterWalletMode) Wl.afterWalletMode(); }; // M11: on phones, tapping Wallet goes straight to connect
+  function pickToken(kind) {
+    var Wl = window.BLUP3TS_WALLET; if (!Wl || !Wl.setPlayToken) return;
+    A.play('tap'); Wl.setPlayToken(kind);
+  }
+  if ($('tokenTest')) $('tokenTest').onclick = function () { pickToken('test'); };
+  if ($('tokenBlunana')) $('tokenBlunana').onclick = function () { pickToken('blunana'); };
   $('connectBtn').onclick = function () { if (!A.walletOn()) return; if (window.BLUP3TS_WALLET) BLUP3TS_WALLET.onConnectClick(); else openSheet('Wallet mode', [p('Wallet mode is on its way in the next update.'), p('Pretend mode works now and needs no wallet.')]); };
   // M13: the old 'Add my own' path (jump to Home, flip to Wallet mode, then connect or reload) is gone; wallet.js addOwnTap does it in place.
 
@@ -326,16 +336,22 @@
   A.onReset = function () { renderCarousel(true); renderMode(); if (view === 'nfts') renderNfts(); renderLayoutBtn(); };
   renderLayoutBtn();
   renderSound(A.soundOn()); renderMode(); renderCarousel(true);
-  (function paintReserve() {
-    var node = $('reserveBal');
-    if (!node) return;
+  (function paintTicker() {
+    var track = $('tickerTrack'); if (!track) return;
+    function line(n) {
+      var bal = n == null ? 'The community reserve holds the $BLUNANA spent in BLUP3TS.' : 'The community reserve holds ' + Math.round(n).toLocaleString('en-US') + ' $BLUNANA.';
+      return bal + ' Feeding with $BLUNANA sends tokens into that reserve, and the reserve goes back into the ecosystem: new pets, watch styles, features and events. BLUTEST play is practice and does not move real $BLUNANA.';
+    }
+    function draw(n) {
+      track.textContent = '';
+      track.appendChild(el('span', null, line(n)));
+      track.appendChild(el('span', null, line(n)));
+    }
+    draw(null);
     fetch('/api/blup3ts-reserve', { headers: { accept: 'application/json' }, cache: 'no-store' })
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (j) {
-        if (!j || j.ok !== true || !isFinite(+j.balance)) return;
-        node.hidden = false;
-        node.textContent = 'Reserve: ' + Math.round(+j.balance).toLocaleString('en-US') + ' $BLUNANA';
-      }).catch(function () {});
+      .then(function (j) { if (j && j.ok === true && isFinite(+j.balance)) draw(+j.balance); })
+      .catch(function () {});
   })();
   setInterval(function () { if (view === 'home' && !document.hidden) { if (dragX === null) refreshStats(); } }, 4000);
 })();
