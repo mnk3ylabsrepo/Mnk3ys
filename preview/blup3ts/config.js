@@ -181,7 +181,7 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
       caseBg: 'radial-gradient(120% 80% at 25% 10%,#3d8fe0 0,rgba(61,143,224,0) 45%),linear-gradient(150deg,#1d5aa8,#0b2249 48%,#06142e 70%,#15407e)',
       bandBg: 'repeating-linear-gradient(135deg,rgba(72,216,252,.10) 0 2px,transparent 2px 12px),linear-gradient(#0d2a55,#061533)',
       rim: '#48D8FC', accent: '#F2C94C', glow: 'rgba(72,216,252,.45)', crown: 'repeating-linear-gradient(#ffe08a 0 3px,#b8860b 3px 6px)',
-      logo: 'assets/mnk3ylabs_logo.png', motif: 'drip' },
+      logo: '/assets/preview2/gorilla-logo.jpg', motif: 'drip' },
     zmb3ys: { name: 'ZMB3YS Toxic', collection: 'ZMB3YS',
       caseBg: 'radial-gradient(40% 30% at 18% 22%,rgba(124,255,58,.16) 0,transparent 70%),radial-gradient(35% 25% at 82% 78%,rgba(124,255,58,.12) 0,transparent 70%),linear-gradient(150deg,#2b3a22,#11180d 50%,#0a0f08 70%,#25331b)',
       bandBg: 'repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 3px,transparent 3px 9px),linear-gradient(#1f2b17,#0d140a)',

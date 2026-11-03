@@ -16,7 +16,7 @@
   CARD_TYPES.forEach(function (t) { TYPE[t.id] = t; });
   var BLUNANA_LOGO = 'https://ipfs.io/ipfs/QmTKRAZEcTfDeVDt8hebrCv27DctYghtdfXRMc9FRA6NU3';
   var BADGE = '../blup3ts/assets/blunana_badge.png';
-  var BACK = '/assets/logo.png';
+  var BACK = '/assets/preview2/gorilla-logo.jpg';
   var STORE = 'blupa1rs.state';
   var cfg = { turnsPerBuy: 5, costBlunana: 100000 };
   var state = {
