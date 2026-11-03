@@ -133,6 +133,7 @@ body.p2 {
 .p2-page--mnk3ys    { background-image: url('/assets/preview2/mnk3ys-landscape.jpg'); }
 .p2-page--zmb3ys    { background-image: url('/assets/preview2/zmb3ys-landscape.jpg'); }
 .p2-page--blunana   { background-image: url('/assets/preview2/blunana-landscape.jpg'); }
+.p2-page--games     { background-image: none; }
 .p2-page--lp        { background-image: url('/assets/preview2/lp-landscape.jpg'); }
 .p2-page--utility   { background-image: url('/assets/preview2/utility-landscape.jpg'); }
 .p2-page--juice     { background-image: url('/assets/preview2/juice-landscape.jpg?v=2'); }
@@ -335,14 +336,19 @@ body.p2 {
 
 .p2-kicker { margin: 0 0 1em; }
 
-/* ——— Utility: Pets + Pairs play links ——— */
+/* ——— Games: Pets + Pairs play links ——— */
+.p2-page--games {
+  justify-content: center;
+  align-items: center;
+}
+
 .p2-play {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: max(1.1em, calc(1.6 * var(--u)));
-  margin: 1.1em 0 0.2em;
-  max-width: 34ch;
+  gap: max(1.35em, calc(2 * var(--u)));
+  margin: 1.2em 0 0;
+  max-width: 36ch;
   text-align: center;
 }
 
@@ -365,14 +371,12 @@ body.p2 {
 
 .p2-play__item .p2-desc {
   margin: 0;
-  max-width: 32ch;
+  max-width: 34ch;
   line-height: 1.25;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
 }
 
 .p2-play__item .p2-pill { margin-top: 0.15em; }
-
-.p2-page--utility .p2-pills { margin-top: 1.35em; }
 
 /* ——— Buttons ——— */
 .p2-socials {
@@ -1329,6 +1333,7 @@ body.p2 {
   .p2-page--mnk3ys    { background-image: url('/assets/preview2/mnk3ys-portrait.jpg'); }
   .p2-page--zmb3ys    { background-image: url('/assets/preview2/zmb3ys-portrait.jpg'); }
   .p2-page--blunana   { background-image: url('/assets/preview2/blunana-portrait.jpg'); }
+  .p2-page--games     { background-image: none; }
   .p2-page--lp        { background-image: url('/assets/preview2/lp-portrait.jpg'); }
   .p2-page--utility   { background-image: url('/assets/preview2/utility-portrait.jpg'); }
   .p2-page--juice     { background-image: url('/assets/preview2/juice-portrait.jpg'); }
@@ -1351,6 +1356,7 @@ body.p2 {
   }
 
   .p2-page--blunana,
+  .p2-page--games,
   .p2-page--utility { align-items: center; }
 
   .p2-page--home {
