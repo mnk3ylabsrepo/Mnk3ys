@@ -335,41 +335,61 @@ body.p2 {
 
 .p2-kicker { margin: 0 0 1em; }
 
-/* ——— GAM3S: Pets + Pairs with alternating preview rows ——— */
+/* ——— GAM3S: Pets + Pairs with alternating preview rows (one viewport) ——— */
 .p2-page--games {
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
-  overflow: visible;
-  padding-bottom: 48px;
+  overflow: hidden;
+  height: 100vh;
+  height: 100svh;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-top: calc(var(--p2-nav-h) + 8px);
+  padding-bottom: 16px;
 }
 
 .p2-games {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: min(1100px, 100%);
+  justify-content: center;
+  width: min(1000px, 100%);
+  max-height: calc(100svh - var(--p2-nav-h) - 24px);
   text-align: center;
+  gap: 0.35em;
+}
+
+.p2-games > .p2-games__title {
+  font-size: max(1.9rem, calc(4.6 * var(--u)));
+}
+
+.p2-games > .p2-sub {
+  margin: 0.15em 0 0;
 }
 
 .p2-game-list {
   display: flex;
   flex-direction: column;
-  gap: max(2em, calc(3.2 * var(--u)));
+  justify-content: center;
+  gap: max(0.7em, 1.4vh);
   width: 100%;
-  margin-top: 1.4em;
+  margin-top: 0.55em;
+  min-height: 0;
+  flex: 1 1 auto;
 }
 
 .p2-game {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.9fr);
-  gap: max(1.2em, calc(2.4 * var(--u)));
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.85fr);
+  gap: max(0.9em, calc(1.6 * var(--u)));
   align-items: center;
   width: 100%;
+  min-height: 0;
   text-align: left;
 }
 
 .p2-game--flip {
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.25fr);
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.2fr);
 }
 
 .p2-game--flip .p2-game__shot { order: 2; }
@@ -379,38 +399,35 @@ body.p2 {
   display: block;
   width: 100%;
   height: auto;
+  max-height: min(28vh, 250px);
+  object-fit: cover;
+  object-position: top center;
   border: 2px solid rgba(34, 245, 58, 0.35);
-  border-radius: 18px;
+  border-radius: 14px;
   background: #05070d;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
 }
 
 .p2-game__copy {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.55em;
+  gap: 0.4em;
   min-width: 0;
 }
 
-.p2-game__name {
-  margin: 0;
-  font-family: var(--p2-display);
-  font-weight: 700;
-  font-size: max(1.05rem, calc(1.8 * var(--u)));
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+.p2-game__title {
+  font-size: max(1.45rem, calc(3.1 * var(--u)));
 }
 
 .p2-game__copy .p2-desc {
   margin: 0;
-  max-width: 34ch;
-  line-height: 1.3;
+  max-width: 32ch;
+  line-height: 1.25;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
 }
 
-.p2-game__copy .p2-pill { margin-top: 0.2em; }
+.p2-game__copy .p2-pill { margin-top: 0.1em; }
 
 /* ——— Buttons ——— */
 .p2-socials {
@@ -1448,6 +1465,17 @@ body.p2 {
     margin-top: 0.9em;
   }
 
+  .p2-page--games {
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+    justify-content: flex-start;
+  }
+
+  .p2-games {
+    max-height: none;
+  }
+
   .p2-game,
   .p2-game--flip {
     grid-template-columns: 1fr;
@@ -1466,7 +1494,8 @@ body.p2 {
   }
 
   .p2-game__shot {
-    border-radius: 14px;
+    max-height: 34vh;
+    border-radius: 12px;
   }
 
   .p2-pill {
