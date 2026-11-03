@@ -924,7 +924,7 @@ button:not(:disabled):active, [role=button]:active, a.extlink:active, .soc:activ
 .hb, .soc { min-height:44px; }
 .modeseg button { min-height:44px; }
 #sheetClose { min-width:44px; min-height:44px; }
-@media (orientation: portrait) { #gameNfts, #refillBtn, #walletSoon2, #lookBtn { min-height:calc(44px / var(--fs, 1)); } }
+@media (orientation: portrait) { #gameNfts, #refillBtn, #lookBtn { min-height:calc(44px / var(--fs, 1)); } }
 @media (prefers-reduced-motion: reduce) {
   button, [role=button], a.extlink, .soc { transition:none; }
   button:not(:disabled):active, [role=button]:active, a.extlink:active, .soc:active { scale:none; }
@@ -1012,3 +1012,218 @@ body.desk .nftsview.on { flex:1 1 auto; min-height:0; width:100%; max-width:1280
 }
 .srtxt { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; } /* spoken only: what a stat tile does */
 .dots { pointer-events:none; } .dots button { pointer-events:auto; } /* only the dot buttons take taps, never the empty column box (320px: LEVEL tile under it) */
+
+/* ===== Credit fix (Azgog, Nov 1): one "Made by Azgog (@azgog)" credit per view, centred directly under the watch / phone and under the pet cards ===== */
+.stagewrap { margin-bottom:48px; }
+body.desk .stagewrap { margin:0 0 48px; }
+#gameWm.wmunder, .gameview.full #gameWm.wmunder, .gameview.fold-h #gameWm.wmunder { position:absolute; top:calc(100% + 2px); bottom:auto; left:50%; right:auto; transform:translateX(-50%); height:44px; width:max-content; max-width:calc(100vw - 16px); margin:0; padding:0 12px; display:flex; align-items:center; justify-content:center; white-space:nowrap; z-index:41; pointer-events:auto; }
+.carwrap > a.wm2.wmunder { display:flex; width:max-content; margin:6px auto 0; }
+.carwrap .carnav { top:calc(50% - 25px); }
+body.desk .carwrap > a.wm2.wmunder { flex:none; min-height:32px; margin:8px auto 0; }
+
+/* ===== GOO MOCK 2 (preview only, Nov 2): more goo drips on the MNK3YS (blue) and ZMB3YS (green) watch faces only.
+   Same colours as each face. Watch view only (Duo unchanged). transform/opacity only. ===== */
+.casefx .gx, .casefx .gxdrop { display:none; transform-box:fill-box; transform-origin:50% 0; }
+.gameview:not(.full) .stage[data-motif] .casefx .gx { display:inline; animation:gxStretch 3.6s cubic-bezier(.5,0,.6,1) infinite; }
+.gameview:not(.full) .stage[data-motif] .casefx .gxdrop { display:inline; opacity:0; animation:gxDrop 3.6s cubic-bezier(.55,0,1,.45) infinite; }
+@keyframes gxStretch { 0% { transform:scale(1,1); } 50% { transform:scale(.92,1.5); } 58% { transform:scale(.86,1.6); } 62% { transform:scale(1.08,.82); } 70% { transform:scale(.97,1.06); } 78%,100% { transform:scale(1,1); } }
+@keyframes gxDrop { 0%,57% { transform:translateY(-3px) scale(.5,.9); opacity:0; } 60% { transform:translateY(0) scale(.9,1.25); opacity:1; } 70% { transform:translateY(8px) scale(1,1); opacity:1; } 92% { opacity:.85; } 100% { transform:translateY(34px) scale(.9,1.05); opacity:0; } }
+/* timings per drip (class, not inline style: the page CSP blocks inline styles) */
+.gameview:not(.full) .stage[data-motif] .casefx .gxd1 { animation-duration:3.5s; animation-delay:-.4s; } .gameview:not(.full) .stage[data-motif] .casefx .gxd2 { animation-duration:3.9s; animation-delay:-1.7s; } .gameview:not(.full) .stage[data-motif] .casefx .gxd3 { animation-duration:3.2s; animation-delay:-2.5s; } .gameview:not(.full) .stage[data-motif] .casefx .gxd4 { animation-duration:4.1s; animation-delay:-1.1s; } .gameview:not(.full) .stage[data-motif] .casefx .gxd5 { animation-duration:3.6s; animation-delay:-2.9s; }
+/* phones: 3 extra drips, not 5 */
+@media (max-width: 600px) { .casefx .gxd2, .casefx .gxd4 { display:none !important; } }
+@media (prefers-reduced-motion: reduce) { .casefx .gx { animation:none !important; } .casefx .gxdrop { display:none !important; } }
+
+/* ===== Reset double check (preview, Nov 2): red "Yes, reset" in the sheet ===== */
+.sheetbody .sbtn.danger { background:#e5484d; color:#fff; min-height:44px; }
+.sheetbody .sbtn.danger:focus-visible { outline:3px solid #ffb3b5; outline-offset:2px; }
+
+/* ===== SOL fee line mock (preview, Nov 2): same fine print as #feedFine; [hidden] must win over .fine display ===== */
+#solFeeFine[hidden] { display:none !important; }
+#solFeeFine { margin-top:2px; }
+/* ===== Favorites (NEXT BATCH preview) ===== */
+.favstar { width:44px; height:44px; min-width:44px; flex:none; display:inline-flex; align-items:center; justify-content:center; padding:0; border-radius:50%; background:none; color:#8a97a8; font-size:26px; line-height:1; touch-action:manipulation; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.favstar.on { color:var(--gold); text-shadow:0 0 8px rgba(242,201,76,.55); }
+.favstar:focus-visible { outline:2px solid var(--cyan); outline-offset:-4px; }
+/* Pets list: the star is a sibling of the row button, left of the ✓ */
+.prowwrap { position:relative; margin-bottom:9px; --tap:max(44px, calc(44px / var(--fs, 1))); } /* the watch is drawn scaled down: keep the real on-screen tap at 44px or more */
+.prowwrap > .prow { margin-bottom:0; padding-right:calc(var(--tap) + 12px); }
+.prowwrap.on > .prow { padding-right:12px; }
+.prowwrap.on > .prow .ptext { padding-right:calc(var(--tap) + 2px); }
+.favstar.row { position:absolute; top:50%; right:6px; transform:translateY(-50%); z-index:2; width:var(--tap); height:var(--tap); }
+.prowwrap.on > .favstar.row { right:44px; }
+.favnote { font-size:14px; font-weight:800; color:var(--gold); text-align:center; margin:0 4px 9px; }
+/* Home cards: star in the top right corner (the ✓ Active badge stays top centre) */
+.pcwrap { display:grid; flex:none; scroll-snap-align:center; }
+.pcwrap > .pcard { grid-area:1/1; }
+.favstar.card { grid-area:1/1; justify-self:end; align-self:start; z-index:3; margin:2px 2px 0 0; font-size:24px; }
+body.desk .pcwrap { min-width:0; }
+/* Pet screen: star next to the "✔ MNK3YS · starter pet" line */
+.verified { display:flex; align-items:center; justify-content:center; gap:2px; }
+.favstar.home { --tap:max(44px, calc(44px / var(--fs, 1))); width:var(--tap); height:var(--tap); margin:calc((var(--tap) - 20px) / -2) 0; font-size:22px; }
+
+/* REAL TIME ONLY preview: check-in card, stickers, hunger countdown */
+#careCard .carexp { font-size:17px; font-weight:800; margin-top:8px; }
+#careCard #checkinBtn { width:100%; min-height:44px; margin-top:4px; }
+#careCard #checkinBtn:disabled { opacity:.75; }
+.stickers { display:flex; gap:8px; justify-content:center; margin-top:8px; }
+.sticker { font-size:24px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:#141b28; border:2px solid #2c3a52; filter:grayscale(1); opacity:.45; }
+.sticker.on { filter:none; opacity:1; border-color:var(--gold); }
+.ps.hcount { color:var(--cyan); }
+/* Narrow phones (320-360px wide, build Nov 2 2026): the favorite star no longer eats the pet name's width. The star moves to the
+   bottom-right corner of the row (same 44px+ tap area), so the name line uses the full width; only the two small lines under it
+   keep room for the star. 390px and wider are unchanged. */
+@media (max-width:360px) {
+  .prowwrap > .prow { padding-right:12px; }
+  .prowwrap.on > .prow .ptext { padding-right:0; }
+  .prowwrap > .prow .ps { padding-right:calc(var(--tap) - 6px); }
+  .prowwrap.on > .prow .ps { padding-right:calc(var(--tap) - 6px); }
+  .prowwrap.on > .prow .pcheck { display:none; } /* selected row keeps its cyan ring; the tick makes room so nothing sits on the name or the star */
+  .favstar.row, .prowwrap.on > .favstar.row { top:auto; bottom:0; right:6px; transform:none; }
+}
+/* Ranks security bar (lb_auth.js, build Nov 2 2026) */
+.lbauth { margin:8px 0 10px; padding:10px 12px; border-radius:16px; background:#141b28; border:1px solid #2a3646; text-align:center; }
+.lbauth .sbtn { margin-top:8px; }
+.lbauthp { font-size:14px; font-weight:700; color:var(--dim); margin:0; line-height:1.35; }
+.lbauthok { font-size:16px; font-weight:900; color:#7CFF3A; margin:0 0 4px; }
+
+/* ===== CAPO FACES (Nov 2 2026): 4 Caporegime Del $Empire watch faces, same drip layer + motion as MNK3YLabs Drip.
+   Galaxy Glow (Skins: Galaxy), Golden Robe (Outfit: Golden Robe), Radiation Zone (Backgrounds: Radiation), Spooky Ember (Skins: Demonic, Nov 3).
+   Only colours change; painted look = smooth drips. The screen background is not touched. ===== */
+.stage[data-case="capo_galaxy"] #cxMkDrip stop:nth-child(1) { stop-color:#e3d1ff; }
+.stage[data-case="capo_galaxy"] #cxMkDrip stop:nth-child(2) { stop-color:#9b5cff; }
+.stage[data-case="capo_galaxy"] #cxMkDrip stop:nth-child(3) { stop-color:#4a1fa8; }
+.stage[data-case="capo_galaxy"] #cxBlu stop:nth-child(1) { stop-color:#e3d1ff; }
+.stage[data-case="capo_galaxy"] #cxBlu stop:nth-child(2) { stop-color:#9b5cff; }
+.stage[data-case="capo_galaxy"] #cxBlu stop:nth-child(3) { stop-color:#4a1fa8; }
+.stage[data-case="capo_galaxy"] #cxGold stop:nth-child(1) { stop-color:#e3d1ff; }
+.stage[data-case="capo_galaxy"] #cxGold stop:nth-child(2) { stop-color:#9b5cff; }
+.stage[data-case="capo_galaxy"] #cxGold stop:nth-child(3) { stop-color:#4a1fa8; }
+.stage[data-case="capo_galaxy"] .casefx .fx-drip .fxtop .tw path:first-child { stroke:#4a1fa8; } .stage[data-case="capo_galaxy"] .casefx .fx-drip .fxtop .tw path + path { fill:#2a1260; }
+.stage[data-case="capo_galaxy"][data-motif="drip"] .casefx .fx-drip { filter:drop-shadow(0 0 4px rgba(159,232,255,.70)); }
+.mw[data-case="capo_galaxy"][data-motif="drip"] .mfx i { background:linear-gradient(#e3d1ff,#9b5cff 55%,#4a1fa8); }
+.stage[data-case="capo_golden"] #cxMkDrip stop:nth-child(1) { stop-color:#fff1a8; }
+.stage[data-case="capo_golden"] #cxMkDrip stop:nth-child(2) { stop-color:#f2c230; }
+.stage[data-case="capo_golden"] #cxMkDrip stop:nth-child(3) { stop-color:#a8740c; }
+.stage[data-case="capo_golden"] #cxBlu stop:nth-child(1) { stop-color:#fff1a8; }
+.stage[data-case="capo_golden"] #cxBlu stop:nth-child(2) { stop-color:#f2c230; }
+.stage[data-case="capo_golden"] #cxBlu stop:nth-child(3) { stop-color:#a8740c; }
+.stage[data-case="capo_golden"] #cxGold stop:nth-child(1) { stop-color:#fff1a8; }
+.stage[data-case="capo_golden"] #cxGold stop:nth-child(2) { stop-color:#f2c230; }
+.stage[data-case="capo_golden"] #cxGold stop:nth-child(3) { stop-color:#a8740c; }
+.stage[data-case="capo_golden"] .casefx .fx-drip .fxtop .tw path:first-child { stroke:#a8740c; } .stage[data-case="capo_golden"] .casefx .fx-drip .fxtop .tw path + path { fill:#5a3d06; }
+.stage[data-case="capo_golden"][data-motif="drip"] .casefx .fx-drip { filter:drop-shadow(0 0 4px rgba(255,214,90,.70)); }
+.mw[data-case="capo_golden"][data-motif="drip"] .mfx i { background:linear-gradient(#fff1a8,#f2c230 55%,#a8740c); }
+.stage[data-case="capo_radiation"] #cxMkDrip stop:nth-child(1) { stop-color:#f2ff9a; }
+.stage[data-case="capo_radiation"] #cxMkDrip stop:nth-child(2) { stop-color:#c6f21e; }
+.stage[data-case="capo_radiation"] #cxMkDrip stop:nth-child(3) { stop-color:#5f8f10; }
+.stage[data-case="capo_radiation"] #cxBlu stop:nth-child(1) { stop-color:#f2ff9a; }
+.stage[data-case="capo_radiation"] #cxBlu stop:nth-child(2) { stop-color:#c6f21e; }
+.stage[data-case="capo_radiation"] #cxBlu stop:nth-child(3) { stop-color:#5f8f10; }
+.stage[data-case="capo_radiation"] #cxGold stop:nth-child(1) { stop-color:#f2ff9a; }
+.stage[data-case="capo_radiation"] #cxGold stop:nth-child(2) { stop-color:#c6f21e; }
+.stage[data-case="capo_radiation"] #cxGold stop:nth-child(3) { stop-color:#5f8f10; }
+.stage[data-case="capo_radiation"] .casefx .fx-drip .fxtop .tw path:first-child { stroke:#5f8f10; } .stage[data-case="capo_radiation"] .casefx .fx-drip .fxtop .tw path + path { fill:#e6ff3a; }
+.stage[data-case="capo_radiation"][data-motif="drip"] .casefx .fx-drip { filter:drop-shadow(0 0 4px rgba(214,255,58,.75)); }
+.mw[data-case="capo_radiation"][data-motif="drip"] .mfx i { background:linear-gradient(#f2ff9a,#c6f21e 55%,#5f8f10); }
+/* Spooky Ember (Skins: Demonic): warm ember drips, spooky-cute, nothing gory */
+.stage[data-case="capo_demonic"] #cxMkDrip stop:nth-child(1) { stop-color:#ffd0a0; }
+.stage[data-case="capo_demonic"] #cxMkDrip stop:nth-child(2) { stop-color:#ff6a2a; }
+.stage[data-case="capo_demonic"] #cxMkDrip stop:nth-child(3) { stop-color:#a81e12; }
+.stage[data-case="capo_demonic"] #cxBlu stop:nth-child(1) { stop-color:#ffd0a0; }
+.stage[data-case="capo_demonic"] #cxBlu stop:nth-child(2) { stop-color:#ff6a2a; }
+.stage[data-case="capo_demonic"] #cxBlu stop:nth-child(3) { stop-color:#a81e12; }
+.stage[data-case="capo_demonic"] #cxGold stop:nth-child(1) { stop-color:#ffd0a0; }
+.stage[data-case="capo_demonic"] #cxGold stop:nth-child(2) { stop-color:#ff6a2a; }
+.stage[data-case="capo_demonic"] #cxGold stop:nth-child(3) { stop-color:#a81e12; }
+.stage[data-case="capo_demonic"] .casefx .fx-drip .fxtop .tw path:first-child { stroke:#a81e12; } .stage[data-case="capo_demonic"] .casefx .fx-drip .fxtop .tw path + path { fill:#ffd23f; }
+.stage[data-case="capo_demonic"][data-motif="drip"] .casefx .fx-drip { filter:drop-shadow(0 0 4px rgba(255,110,50,.75)); }
+.mw[data-case="capo_demonic"][data-motif="drip"] .mfx i { background:linear-gradient(#ffd0a0,#ff6a2a 55%,#a81e12); }
+/* CAPO FLAIR (Azgog, Nov 3): small painted trait details on the case edge / band only (index.html fxacc a-capo_*). Screen untouched. */
+.casefx .fxacc > g[class^="a-capo_"] { display:none; }
+.stage[data-case="capo_galaxy"] .casefx .fxacc > g.a-capo_galaxy, .stage[data-case="capo_golden"] .casefx .fxacc > g.a-capo_golden,
+.stage[data-case="capo_radiation"] .casefx .fxacc > g.a-capo_radiation, .stage[data-case="capo_demonic"] .casefx .fxacc > g.a-capo_demonic { display:inline; }
+.casefx g[class^="a-capo_"] rect { }
+.stage[data-case^="capo_"] .casefx .fx-drip .fxtop > circle.tw { display:none; }
+.casefx g[class^="a-capo_"] .ctw { animation:capoTw 1.8s ease-in-out infinite alternate; } .casefx g[class^="a-capo_"] .ctw:nth-child(2n) { animation-delay:.9s; }
+.casefx .a-capo_demonic .cfl { animation:capoFl 1.2s ease-in-out infinite; transform-box:fill-box; transform-origin:50% 100%; }  .casefx .a-capo_demonic .cfl:nth-child(2n) { animation-delay:.4s; }
+.stage[data-case="capo_radiation"] .casefx .fx-drip .dr { filter:drop-shadow(0 0 3px rgba(230,255,58,.8)); }
+@keyframes capoTw { 0% { opacity:1; } 100% { opacity:.35; } }
+@keyframes capoFl { 0% { transform:scaleY(1); } 50% { transform:scaleY(1.2); } 100% { transform:scaleY(.9); } }
+@media (prefers-reduced-motion: reduce) { .casefx g[class^="a-capo_"] .ctw, .casefx .a-capo_demonic .cfl { animation:none; } }
+/* Capo Drip (basic Capo face, Nov 3): red + white drips, like MNK3YLabs Drip */
+.stage[data-case="capo"] #cxMkDrip stop:nth-child(1) { stop-color:#ff9a9a; }
+.stage[data-case="capo"] #cxMkDrip stop:nth-child(2) { stop-color:#ff4d4d; }
+.stage[data-case="capo"] #cxMkDrip stop:nth-child(3) { stop-color:#a3191a; }
+.stage[data-case="capo"] #cxBlu stop:nth-child(1) { stop-color:#ff9a9a; }
+.stage[data-case="capo"] #cxBlu stop:nth-child(2) { stop-color:#ff4d4d; }
+.stage[data-case="capo"] #cxBlu stop:nth-child(3) { stop-color:#a3191a; }
+.stage[data-case="capo"] #cxGold stop:nth-child(1) { stop-color:#ff9a9a; }
+.stage[data-case="capo"] #cxGold stop:nth-child(2) { stop-color:#ff4d4d; }
+.stage[data-case="capo"] #cxGold stop:nth-child(3) { stop-color:#a3191a; }
+.stage[data-case="capo"] .casefx .fx-drip .fxtop .tw path:first-child { stroke:#a3191a; } .stage[data-case="capo"] .casefx .fx-drip .fxtop .tw path + path { fill:#ffffff; }
+.stage[data-case="capo"][data-motif="drip"] .casefx .fx-drip { filter:drop-shadow(0 0 4px rgba(255,77,77,.6)); }
+.mw[data-case="capo"][data-motif="drip"] .mfx i { background:linear-gradient(#ff9a9a,#ff4d4d 55%,#a3191a); }
+
+/* ===== Adopt chooser (Azgog, Nov 3): Orbis + Magic Eden pixel badges, 44px+ tap targets, links only ===== */
+.adoptpick { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:10px 0 4px; }
+.adoptmkt { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; min-width:112px; min-height:96px; padding:10px 12px; box-sizing:border-box;
+  border-radius:14px; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.14); color:#fff; text-decoration:none; font-weight:800; }
+.adoptmkt:active { background:rgba(72,216,252,.18); } .adoptmkt:focus-visible { outline:3px solid var(--cyan); outline-offset:2px; }
+.mktbadge { width:48px; height:48px; image-rendering:pixelated; background-size:100% 100%; border-radius:6px; }
+.mkt-orbis { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Crect width='12' height='12' fill='%230b0b2a'/%3E%3Cpath fill='%238b5cf6' d='M4 2h4v1h1v1h1v4h-1v1h-1v1H4V9H3V8H2V4h1V3h1z'/%3E%3Cpath fill='%23c4b5fd' d='M4 3h2v1H5v1H4z'/%3E%3Cpath fill='%2348D8FC' d='M1 6h1v1h8V6h1v1h-1v1H2V7H1z'/%3E%3C/svg%3E"); }
+.mkt-me { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Crect width='12' height='12' fill='%231a0b1f'/%3E%3Cpath fill='%23e42575' d='M1 3h2v1h1v1h1V4h1V3h1v6H6V6H5v1H4V6H3v3H1z'/%3E%3Cpath fill='%23ff8a3d' d='M8 3h3v1H9v1h2v1H9v2h2v1H8z'/%3E%3C/svg%3E"); }
+.mktname { font-size:14px; }
+
+/* ===== STORE + $EMPIRE feeds + free unlock fee (Nov 3, preview, flags) ===== */
+.storegrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:8px; }
+.storecard { display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 8px; border-radius:14px; background:rgba(255,255,255,.05); border:2px solid rgba(255,255,255,.12); text-align:center; }
+.storecard.capo { border-color:rgba(255,214,90,.45); } .storecard.focus { box-shadow:inset 0 0 0 3px var(--cyan); }
+.storeart { width:64px; height:64px; object-fit:contain; } .storename { font-size:14px; } .storefor { font-size:11px; opacity:.75; }
+.storebuy { min-height:44px; width:100%; font-size:13px; } .storebuy.owned { background:rgba(124,255,58,.14); }
+.sbtn.storeopen { min-height:44px; width:100%; margin-top:8px; }
+.solfeetag { display:inline-block; margin-left:6px; padding:1px 6px; border-radius:8px; font-size:10px; font-style:normal; background:rgba(159,232,255,.16); color:#9fe8ff; }
+.food.empire { border-color:rgba(255,214,90,.5); }
+.stage[data-case="capo_night"] #cxMkDrip stop:nth-child(1) { stop-color:#fff1a8; }
+.stage[data-case="capo_night"] #cxMkDrip stop:nth-child(2) { stop-color:#ffd65a; }
+.stage[data-case="capo_night"] #cxMkDrip stop:nth-child(3) { stop-color:#a8840c; }
+.stage[data-case="capo_night"] #cxBlu stop:nth-child(1) { stop-color:#fff1a8; }
+.stage[data-case="capo_night"] #cxBlu stop:nth-child(2) { stop-color:#ffd65a; }
+.stage[data-case="capo_night"] #cxBlu stop:nth-child(3) { stop-color:#a8840c; }
+.stage[data-case="capo_night"] #cxGold stop:nth-child(1) { stop-color:#fff1a8; }
+.stage[data-case="capo_night"] #cxGold stop:nth-child(2) { stop-color:#ffd65a; }
+.stage[data-case="capo_night"] #cxGold stop:nth-child(3) { stop-color:#a8840c; }
+.stage[data-case="capo_night"][data-motif="drip"] .casefx .fx-drip { }
+.mw[data-case="capo_night"][data-motif="drip"] .mfx i { background:linear-gradient(#fff1a8,#ffd65a 55%,#a8840c); }
+.stage[data-case="capo_velvet"] #cxMkDrip stop:nth-child(1) { stop-color:#ffd6e6; }
+.stage[data-case="capo_velvet"] #cxMkDrip stop:nth-child(2) { stop-color:#ff8fb8; }
+.stage[data-case="capo_velvet"] #cxMkDrip stop:nth-child(3) { stop-color:#a3245a; }
+.stage[data-case="capo_velvet"] #cxBlu stop:nth-child(1) { stop-color:#ffd6e6; }
+.stage[data-case="capo_velvet"] #cxBlu stop:nth-child(2) { stop-color:#ff8fb8; }
+.stage[data-case="capo_velvet"] #cxBlu stop:nth-child(3) { stop-color:#a3245a; }
+.stage[data-case="capo_velvet"] #cxGold stop:nth-child(1) { stop-color:#ffd6e6; }
+.stage[data-case="capo_velvet"] #cxGold stop:nth-child(2) { stop-color:#ff8fb8; }
+.stage[data-case="capo_velvet"] #cxGold stop:nth-child(3) { stop-color:#a3245a; }
+.stage[data-case="capo_velvet"][data-motif="drip"] .casefx .fx-drip { }
+.mw[data-case="capo_velvet"][data-motif="drip"] .mfx i { background:linear-gradient(#ffd6e6,#ff8fb8 55%,#a3245a); }
+/* ===== Charms on the TOP band (Nov 3): beside the badge on clean gold, away from the credit and drips. Gentle swing, sparkle on Feed, tap reaction.
+   44px tap target. Cosmetic only. Reduced motion = no swing, no bounce. ===== */
+.bandcharm { position:absolute; left:262px; top:4px; width:48px; height:56px; padding:0; margin:0; border:0; background:none; z-index:6; cursor:pointer;
+  transform-origin:24px 4px; animation:charmSwing 2s ease-in-out infinite; -webkit-tap-highlight-color:transparent; }
+.bandcharm[hidden] { display:none; }
+.bandcharm:focus-visible { outline:2px solid var(--cyan,#48D8FC); outline-offset:2px; border-radius:10px; }
+.bandcharm .charmloop { position:absolute; left:19px; top:0; width:10px; height:10px; border:2px solid #ffd65a; border-radius:50%; box-sizing:border-box; box-shadow:0 1px 1px rgba(0,0,0,.5); }
+.bandcharm .charmloop::after { content:""; position:absolute; left:2px; top:8px; width:2px; height:6px; background:#ffd65a; }
+.bandcharm .charmart { position:absolute; left:2px; top:13px; width:44px; height:44px; object-fit:contain; pointer-events:none; filter:drop-shadow(0 2px 2px rgba(0,0,0,.55)); }
+.bandcharm.tapped { animation:charmTip .6s ease-out, charmSwing 2s ease-in-out .6s infinite; }
+.charmspark { position:absolute; left:4px; top:14px; width:40px; height:40px; pointer-events:none; border-radius:50%;
+  background:radial-gradient(circle,#fff 0 6%,rgba(255,245,180,.9) 7% 14%,transparent 15%),conic-gradient(from 0deg,transparent 0 10deg,rgba(255,245,180,.95) 10deg 14deg,transparent 14deg 45deg,rgba(255,245,180,.95) 45deg 49deg,transparent 49deg 90deg,rgba(255,245,180,.95) 90deg 94deg,transparent 94deg 135deg,rgba(255,245,180,.95) 135deg 139deg,transparent 139deg 180deg,rgba(255,245,180,.95) 180deg 184deg,transparent 184deg 225deg,rgba(255,245,180,.95) 225deg 229deg,transparent 229deg 270deg,rgba(255,245,180,.95) 270deg 274deg,transparent 274deg 315deg,rgba(255,245,180,.95) 315deg 319deg,transparent 319deg);
+  -webkit-mask:radial-gradient(circle,#000 0 70%,transparent 71%); mask:radial-gradient(circle,#000 0 70%,transparent 71%); animation:charmSpark .65s ease-out forwards; }
+.charmbubble { position:absolute; left:300px; top:8px; z-index:7; max-width:140px; padding:5px 9px; border-radius:12px; background:#fff; color:#1a1a1f; font:700 12px/1.2 inherit; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,.4); pointer-events:none; }
+.charmbubble[hidden] { display:none; } .charmbubble.show { animation:charmPop .25s ease-out; }
+.gameview.full .bandcharm, .gameview.full .charmbubble { display:none; }
+@keyframes charmSwing { 0%,100% { transform:rotate(8deg); } 50% { transform:rotate(-8deg); } }
+@keyframes charmTip { 0% { transform:rotate(0) translateY(0); } 30% { transform:rotate(-22deg) translateY(-4px); } 60% { transform:rotate(14deg) translateY(0); } 100% { transform:rotate(0); } }
+@keyframes charmSpark { 0% { transform:scale(.4); opacity:1; } 100% { transform:scale(1.5); opacity:0; } }
+@keyframes charmPop { 0% { transform:scale(.6); opacity:0; } 100% { transform:scale(1); opacity:1; } }
+@media (prefers-reduced-motion: reduce) { .bandcharm, .bandcharm.tapped { animation:none; } .charmspark { animation:none; opacity:.8; } .charmbubble.show { animation:none; } }

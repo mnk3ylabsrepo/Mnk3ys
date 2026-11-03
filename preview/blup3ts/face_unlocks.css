@@ -1,0 +1,8 @@
+/* FACE UNLOCKS (preview): confirm sheet */
+.fuprev { display: flex; justify-content: center; margin: 4px 0 8px; }
+.funame { text-align: center; font-weight: 800; margin: 0; }
+.fuprice { text-align: center; font-weight: 900; font-size: 22px; color: #F2C94C; margin: 4px 0 8px; }
+.fushort { text-align: center; font-weight: 800; color: #ffb4c8; }
+.fuconnect { text-align: center; font-weight: 800; color: #9ad7ff; margin: 0 0 8px; }
+.fusolfee { text-align: center; font-weight: 800; color: #9ad7ff; margin: 6px 0 0; }
+.fusolamt { text-align: center; font-size: 13px; opacity: .85; margin: 0 0 8px; }

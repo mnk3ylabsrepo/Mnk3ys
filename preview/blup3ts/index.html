@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <base href="/preview/blup3ts/">
 <meta name="robots" content="noindex, nofollow">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://cdn.discordapp.com https://img-cdn.magiceden.dev https://firebasestorage.googleapis.com https://na-assets.pinit.io https://gateway.pinit.io https://gateway.irys.xyz https://*.datasprite-cdn.com https://arweave.net https://*.arweave.net https://ipfs.io https://nftstorage.link https://*.ipfs.nftstorage.link https://cdn.helius-rpc.com; media-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://cdn.discordapp.com https://img-cdn.magiceden.dev https://firebasestorage.googleapis.com https://na-assets.pinit.io https://we-assets.pinit.io https://gateway.pinit.io https://gateway.irys.xyz https://*.datasprite-cdn.com https://arweave.net https://*.arweave.net https://ipfs.io https://nftstorage.link https://*.ipfs.nftstorage.link https://cdn.helius-rpc.com; media-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#05070d">
 <title>BLUP3TS · MNK3YLabs</title>
-<meta name="description" content="Play BLUP3TS: a pet game for MNK3YS, ZMB3YS and LP Dollz. Feed your pet pretend $BLUNANA bananas, jam to 8-bit music and check its Orbis traits. Free to play with pretend $BLUNANA. Every $BLUNANA spent goes back into building the $BLUNANA and MNK3YLabs ecosystems.">
+<meta name="description" content="Play BLUP3TS: a pet game for MNK3YS, ZMB3YS, Caporegime Del $Empire and LP Dollz. Feed your pet pretend $BLUNANA bananas, jam to 8-bit music and check its Orbis traits. Free to play with pretend $BLUNANA. Every $BLUNANA spent goes back into building the $BLUNANA and MNK3YLabs ecosystems.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MNK3YLabs">
 <meta property="og:title" content="BLUP3TS · MNK3YLabs">
@@ -32,7 +32,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BLUP3TS">
 <meta name="application-name" content="BLUP3TS">
-<link rel="stylesheet" href="style.css?v=34">
+<link rel="stylesheet" href="style.css?v=h20261103e">
+<link rel="stylesheet" href="faces_mock.css?v=h20261103e"><!-- FACES (preview only) -->
+<link rel="stylesheet" href="face_unlocks.css?v=h20261103e"><!-- FACE UNLOCKS (preview only) -->
+<link rel="stylesheet" href="lb_rewards.css?v=h20261103e"><!-- LB REWARDS (preview only) -->
 </head>
 <body>
 
@@ -45,12 +48,14 @@
   <header class="hhead">
     <img class="hlabs" id="homeLogo" src="assets/mnk3ylabs_logo.png" alt="MNK3YLabs logo" role="button" tabindex="0" width="64" height="64">
     <h1 class="hword"><span class="wmark">BLU<b>P3TS</b></span><em class="beta-tag betatap" role="button" tabindex="0" aria-label="Beta: what is coming">BETA</em></h1>
-    <p class="htag">Feed your pet bananas, jam to 8-bit tunes and watch it grow. Starring MNK3YS and ZMB3YS. BABI3S coming soon.</p>
+    <p class="htag">Feed your pet bananas, jam to 8-bit tunes and watch it grow. Starring MNK3YS, ZMB3YS and Caporegime Del $Empire. BABI3S coming soon.</p>
   </header>
   <div class="carwrap">
     <button class="carnav prev" id="carPrev" aria-label="Previous pet">‹</button>
     <div class="carousel" id="carousel" tabindex="-1" role="listbox" aria-label="Pick your pet"></div>
     <button class="carnav next" id="carNext" aria-label="Next pet">›</button>
+    <!-- Credit fix (Nov 1): centred directly under the pet cards -->
+  <a class="wm2 wmlink wmunder" id="homeWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Made by Azgog (@azgog): Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
   </div>
   <div class="homestack">
   <div class="carstatus" id="carStatus" aria-live="polite"></div>
@@ -78,7 +83,6 @@
   <p class="blutest-bal" id="blutestBal" hidden></p>
   <button class="hb boostbtn" id="boostBtn" hidden disabled aria-disabled="true">✨ Burn cNFT for a boost · Coming soon</button>
   <button class="looksrow" id="looksBtn"><span class="lk">🎨</span><span><b>Looks</b><br><small id="looksSub">Watch cases · unlock at Level 3</small></span><span class="soonpill">⌚ Cases</span></button>
-  <a class="wm2 wmlink" id="homeWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Made by Azgog (@azgog): Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
   </div>
 </section>
 
@@ -169,16 +173,17 @@
             <div><div class="row sb"><span id="sLvlL">⭐ Level 1</span><span class="c-gold" id="sLvl"></span></div><div class="bar big"><i class="f-gold" id="sLvlBar"></i></div></div>
           </div>
           <div class="card rarbox" id="rarityBox"></div>
-          <a class="adoptlink extlink" id="adoptLink" href="https://www.orbisonsol.io/marketplace/mnk3ys" target="_blank" rel="noopener noreferrer" hidden>🐾 Adopt on Orbis ↗</a>
+          <a class="adoptlink extlink" id="adoptLink" href="https://www.orbisonsol.io/marketplace/mnk3ys" target="_blank" rel="noopener noreferrer" hidden>🐾 Adopt</a>
           <div class="card">
             <div class="cardh">Traits <span class="dim small">rarity from Orbis</span></div>
             <div id="traitList"></div>
             <button class="btn b-tcyan look" id="lookBtn">🎵 Choose look</button>
             <div class="fine" id="familyNote">Some traits are hidden or swapped to keep BLUP3TS family friendly.</div>
           </div>
+          <div class="card" id="careCard"></div>
           <div class="card facts">
             <div class="row sb"><span class="cap">Bananas eaten</span><span id="sEaten">0</span></div>
-            <div class="row sb"><span class="cap">Hungry again</span><span id="sHungry">in 3 hr</span></div>
+            <div class="row sb"><span class="cap">Hunger</span><span id="sHungry">Hungry in 3h 0m</span></div>
             <div class="row sb"><span class="cap">Jam sessions</span><span id="sJams">0</span></div>
           </div>
         </section>
@@ -195,7 +200,6 @@
           <div class="cap center" id="balCap">Pretend $BLUNANA</div>
           <button class="btn b-tcyan refill" id="refillBtn">Refill to 100,000</button>
           <div class="fine center pad" id="balFine">Play money for Pretend mode. Nothing here touches real tokens.</div>
-          <button class="btn b-ghost small soon2" id="walletSoon2" hidden>👛 Wallet mode</button>
         </section>
 
         <!-- OVERLAYS -->
@@ -203,6 +207,7 @@
           <div class="ovhdr"><button class="close" data-close aria-label="Close">✕</button><span class="baltag"><img class="coin" src="assets/blunana_badge.png" alt=""><span id="feedBal"></span> <span id="feedWord">pretend</span></span></div>
           <div id="foods"></div>
           <div class="fine center" id="feedFine">Pretend $BLUNANA · play money · no real tokens</div>
+          <div class="fine center solfee" id="solFeeFine" hidden>A small SOL fee that supports BLUP3TS development. Snack, Meal and Feast only: Nibble has no SOL fee.</div><!-- PREVIEW MOCK: only while SOL_FEE_ENABLED is on, Wallet-mode feeds only. UI only, no SOL transfer -->
         </div>
 
         <div class="overlay" id="ov-look">
@@ -249,15 +254,13 @@
         <div class="overlay soonov" id="ov-soon">
           <div class="soonicon">👛</div>
           <div class="soont">Wallet mode</div>
-          <div class="fine center pad">Go to Home and pick Wallet mode to play with your own MNK3YS and ZMB3YS. Pretend mode needs no wallet.</div>
+          <div class="fine center pad">Go to Home and pick Wallet mode to play with your own MNK3YS, ZMB3YS and Caporegime Del $Empire. Pretend mode needs no wallet.</div>
           <button class="btn b-cyan" data-close>Got it</button>
         </div>
 
         <div class="foldside" aria-hidden="true"><img id="foldPet" src="assets/mnk3y_1579.png" alt=""></div>
         <div class="foldhinge" aria-hidden="true"><i></i></div>
       </div>
-      <!-- M13: the one watermark, drawn on the bottom of the screen; lives in the case so its 44px tap area can reach into the bezel -->
-      <a class="wm wmlink" id="gameWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Made by Azgog (@azgog): Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
     </div>
     <svg class="casefx" viewBox="0 0 452 660" aria-hidden="true" focusable="false">
       <defs>
@@ -273,6 +276,7 @@
         <path d="M150,24 H302" stroke="url(#cxGold)" stroke-width="2" stroke-dasharray="2 7" stroke-linecap="round" opacity=".9"/>
         <circle class="tw" cx="122" cy="44" r="3" fill="#F2C94C"/>
         <circle class="tw" cx="330" cy="44" r="3" fill="#F2C94C"/>
+        <g class="fxacc" aria-hidden="true"><g class="a-f_blunanaville"><g transform="translate(122,44)"><path d="M-5,-2 Q0,6 6,-3 Q1,2 -5,-2 Z" fill="#F2C94C" stroke="#1E6FD9" stroke-width=".8"/></g><g transform="translate(330,44)"><path d="M-5,-2 Q0,6 6,-3 Q1,2 -5,-2 Z" fill="#F2C94C" stroke="#1E6FD9" stroke-width=".8"/></g></g><g class="a-f_glacier"><g transform="translate(122,44)"><path d="M0,-5 V5 M-4.3,-2.5 L4.3,2.5 M-4.3,2.5 L4.3,-2.5" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round"/></g><g transform="translate(330,44)"><path d="M0,-5 V5 M-4.3,-2.5 L4.3,2.5 M-4.3,2.5 L4.3,-2.5" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round"/></g></g><g class="a-f_pirate"><g transform="translate(122,44)"><path d="M0,-5 L1.3,-1.3 L5,0 L1.3,1.3 L0,5 L-1.3,1.3 L-5,0 L-1.3,-1.3 Z" fill="#f5e3b5" stroke="#9c7a3c" stroke-width=".6"/></g><g transform="translate(330,44)"><path d="M0,-5 L1.3,-1.3 L5,0 L1.3,1.3 L0,5 L-1.3,1.3 L-5,0 L-1.3,-1.3 Z" fill="#f5e3b5" stroke="#9c7a3c" stroke-width=".6"/></g></g><g class="a-f_christmas"><g transform="translate(122,44)"><path d="M-1,0 Q-5,-4 -7,0 Q-5,1 -1,0 Z M1,0 Q5,-4 7,0 Q5,1 1,0 Z" fill="#2e9e44"/><circle r="1.8" fill="#d93636"/></g><g transform="translate(330,44)"><path d="M-1,0 Q-5,-4 -7,0 Q-5,1 -1,0 Z M1,0 Q5,-4 7,0 Q5,1 1,0 Z" fill="#2e9e44"/><circle r="1.8" fill="#d93636"/></g></g><g class="a-f_haunted"><g transform="translate(122,44)"><path d="M-3.5,3 V-1 Q-3.5,-5 0,-5 Q3.5,-5 3.5,-1 V3 L2,1.8 L0.6,3 L-0.8,1.8 L-2.2,3 Z" fill="#f4f0ff"/><circle cx="-1.2" cy="-1.5" r=".6" fill="#2d1b4e"/><circle cx="1.2" cy="-1.5" r=".6" fill="#2d1b4e"/></g><g transform="translate(330,44)"><path d="M-3.5,3 V-1 Q-3.5,-5 0,-5 Q3.5,-5 3.5,-1 V3 L2,1.8 L0.6,3 L-0.8,1.8 L-2.2,3 Z" fill="#f4f0ff"/><circle cx="-1.2" cy="-1.5" r=".6" fill="#2d1b4e"/><circle cx="1.2" cy="-1.5" r=".6" fill="#2d1b4e"/></g></g><g class="a-f_neon"><g transform="translate(122,44)"><path d="M1,-5 L-3,1 H0 L-1,5 L3,-1 H0 Z" fill="#48D8FC"/></g><g transform="translate(330,44)"><path d="M1,-5 L-3,1 H0 L-1,5 L3,-1 H0 Z" fill="#48D8FC"/></g></g></g><!-- FACES MOCK v2 accents -->
       </g>
       <g class="fxbot">
         <path fill="url(#cxMkDrip)" d="M110,582 H342 Q348,582 348,588 Q348,594 342,594 H110 Q104,594 104,588 Q104,582 110,582 Z"/>
@@ -295,6 +299,18 @@
         <circle class="drop" cx="176" cy="628" r="3.4" fill="url(#cxMkDrip)"/>
         <circle class="drop d2" cx="246" cy="636" r="3.8" fill="url(#cxMkDrip)"/>
         <circle class="drop d3" cx="308" cy="622" r="3" fill="url(#cxMkDrip)"/>
+        <!-- GOO MOCK 2 (preview only): more blue MNK3YS goo on the watch face, same colours -->
+        <path class="gx gxd1" fill="url(#cxMkDrip)" d="M155,590 L155,604 A4.0,4.0 0 0 0 163,604 L163,590 Z"/>
+        <circle class="gxdrop gxd1" cx="159.0" cy="615.6" r="3.2" fill="url(#cxMkDrip)"/>
+        <path class="gx gxd2" fill="url(#cxMkDrip)" d="M190,590 L190,610 A5.0,5.0 0 0 0 200,610 L200,590 Z"/>
+        <circle class="gxdrop gxd2" cx="195.0" cy="626.0" r="4.0" fill="url(#cxMkDrip)"/>
+        <path class="gx gxd3" fill="url(#cxMkDrip)" d="M222,590 L222,606 A4.5,4.5 0 0 0 231,606 L231,590 Z"/>
+        <circle class="gxdrop gxd3" cx="226.5" cy="619.2" r="3.6" fill="url(#cxMkDrip)"/>
+        <path class="gx gxd4" fill="url(#cxMkDrip)" d="M259,590 L259,612 A5.0,5.0 0 0 0 269,612 L269,590 Z"/>
+        <circle class="gxdrop gxd4" cx="264.0" cy="629.2" r="4.0" fill="url(#cxMkDrip)"/>
+        <path class="gx gxd5" fill="url(#cxMkDrip)" d="M288,590 L288,602 A4.0,4.0 0 0 0 296,602 L296,590 Z"/>
+        <circle class="gxdrop gxd5" cx="292.0" cy="612.4" r="3.2" fill="url(#cxMkDrip)"/>
+        <g class="fxacc capoflair" aria-hidden="true"><!-- CAPO FLAIR (Nov 3, painted): smooth trait details on the case band/edge only, drawn on top of the drips --><defs><radialGradient id="cfGal" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#ffd6f5"/><stop offset="1" stop-color="#ff7ad9"/></radialGradient><radialGradient id="cfGal2" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#c9f4ff"/><stop offset="1" stop-color="#5fc8f0"/></radialGradient><radialGradient id="cfBead" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#fff7cf"/><stop offset=".5" stop-color="#ffd24a"/><stop offset="1" stop-color="#9a6a0a"/></radialGradient><radialGradient id="cfRad" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#fbffb0"/><stop offset=".6" stop-color="#e6ff3a"/><stop offset="1" stop-color="#8fb10e"/></radialGradient><linearGradient id="cfHorn" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#d8401e"/><stop offset=".6" stop-color="#ff8a3d"/><stop offset="1" stop-color="#ffd23f"/></linearGradient><radialGradient id="cfFl" cx=".5" cy=".75" r=".8"><stop offset="0" stop-color="#f3d9ff"/><stop offset=".4" stop-color="#c77dff"/><stop offset="1" stop-color="#6a1fb0"/></radialGradient></defs><g class="a-capo_galaxy"><g class="ctw"><path d="M126,36 Q127.92,40.08 132,42 Q127.92,43.92 126,48 Q124.08,43.92 120,42 Q124.08,40.08 126,36 Z" fill="url(#cfGal2)" stroke="#2a1260" stroke-width=".8"/><circle cx="125.1" cy="40.8" r="1.08" fill="#ffffff" opacity=".9"/></g><g class="ctw"><path d="M172,29 Q174.88,35.12 181,38 Q174.88,40.88 172,47 Q169.12,40.88 163,38 Q169.12,35.12 172,29 Z" fill="url(#cfGal)" stroke="#2a1260" stroke-width=".8"/><circle cx="170.65" cy="36.2" r="1.6199999999999999" fill="#ffffff" opacity=".9"/></g><g class="ctw"><path d="M200,51 Q201.6,54.4 205,56 Q201.6,57.6 200,61 Q198.4,57.6 195,56 Q198.4,54.4 200,51 Z" fill="url(#cfGal2)" stroke="#2a1260" stroke-width=".8"/><circle cx="199.25" cy="55.0" r="0.8999999999999999" fill="#ffffff" opacity=".9"/></g><g class="ctw"><path d="M258,51 Q259.6,54.4 263,56 Q259.6,57.6 258,61 Q256.4,57.6 253,56 Q256.4,54.4 258,51 Z" fill="url(#cfGal)" stroke="#2a1260" stroke-width=".8"/><circle cx="257.25" cy="55.0" r="0.8999999999999999" fill="#ffffff" opacity=".9"/></g><g class="ctw"><path d="M286,29 Q288.88,35.12 295,38 Q288.88,40.88 286,47 Q283.12,40.88 277,38 Q283.12,35.12 286,29 Z" fill="url(#cfGal2)" stroke="#2a1260" stroke-width=".8"/><circle cx="284.65" cy="36.2" r="1.6199999999999999" fill="#ffffff" opacity=".9"/></g><g class="ctw"><path d="M330,36 Q331.92,40.08 336,42 Q331.92,43.92 330,48 Q328.08,43.92 324,42 Q328.08,40.08 330,36 Z" fill="url(#cfGal)" stroke="#2a1260" stroke-width=".8"/><circle cx="329.1" cy="40.8" r="1.08" fill="#ffffff" opacity=".9"/></g><g class="ctw"><path d="M132,612 Q133.92,616.08 138,618 Q133.92,619.92 132,624 Q130.08,619.92 126,618 Q130.08,616.08 132,612 Z" fill="url(#cfGal2)" stroke="#2a1260" stroke-width=".8"/><circle cx="131.1" cy="616.8" r="1.08" fill="#ffffff" opacity=".9"/></g><g class="ctw"><path d="M192,633 Q194.88,639.12 201,642 Q194.88,644.88 192,651 Q189.12,644.88 183,642 Q189.12,639.12 192,633 Z" fill="url(#cfGal)" stroke="#2a1260" stroke-width=".8"/><circle cx="190.65" cy="640.2" r="1.6199999999999999" fill="#ffffff" opacity=".9"/></g><g class="ctw"><path d="M264,645 Q265.6,648.4 269,650 Q265.6,651.6 264,655 Q262.4,651.6 259,650 Q262.4,648.4 264,645 Z" fill="url(#cfGal2)" stroke="#2a1260" stroke-width=".8"/><circle cx="263.25" cy="649.0" r="0.8999999999999999" fill="#ffffff" opacity=".9"/></g><g class="ctw"><path d="M320,623 Q322.88,629.12 329,632 Q322.88,634.88 320,641 Q317.12,634.88 311,632 Q317.12,629.12 320,623 Z" fill="url(#cfGal)" stroke="#2a1260" stroke-width=".8"/><circle cx="318.65" cy="630.2" r="1.6199999999999999" fill="#ffffff" opacity=".9"/></g></g><g class="a-capo_golden"><circle cx="112" cy="18" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="128" cy="18" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="144" cy="18" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="160" cy="18" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="176" cy="18" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="192" cy="18" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="208" cy="18" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="224" cy="18" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="240" cy="18" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="256" cy="18" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="272" cy="18" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="288" cy="18" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="304" cy="18" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="320" cy="18" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="336" cy="18" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="112" cy="64" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="128" cy="64" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="144" cy="64" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="160" cy="64" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="176" cy="64" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="192" cy="64" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="208" cy="64" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="224" cy="64" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="240" cy="64" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="256" cy="64" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="272" cy="64" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="288" cy="64" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="304" cy="64" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="320" cy="64" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="336" cy="64" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="112" cy="598" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="128" cy="598" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="144" cy="598" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="160" cy="598" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="176" cy="598" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="192" cy="598" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="208" cy="598" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="224" cy="598" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="240" cy="598" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="256" cy="598" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="272" cy="598" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="288" cy="598" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="304" cy="598" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="320" cy="598" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/><circle cx="336" cy="598" r="3.2" fill="url(#cfBead)" stroke="#6e4c08" stroke-width=".6"/></g><g class="a-capo_radiation"><rect x="320" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="330" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="340" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="350" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="360" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="370" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="380" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="390" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="400" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="410" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="420" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="430" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="440" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="450" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="460" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="470" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="480" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="490" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="500" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="510" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="520" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="530" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="540" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><rect x="550" y="584" width="5" height="9" rx="2" transform="skewX(-20)" fill="#1b1b1b" opacity=".85"/><circle cx="176" cy="40" r="10" fill="url(#cfRad)" stroke="#1b1b1b" stroke-width="1.2"/><path d="M177.4,37.6 L180.2,32.6 A8.5,8.5 0 0 0 171.8,32.6 L174.6,37.6 A2.8000000000000003,2.8000000000000003 0 0 1 177.4,37.6 Z" fill="#1b1b1b"/><path d="M173.2,40.0 L167.5,40.0 A8.5,8.5 0 0 0 171.8,47.4 L174.6,42.4 A2.8000000000000003,2.8000000000000003 0 0 1 173.2,40.0 Z" fill="#1b1b1b"/><path d="M177.4,42.4 L180.2,47.4 A8.5,8.5 0 0 0 184.5,40.0 L178.8,40.0 A2.8000000000000003,2.8000000000000003 0 0 1 177.4,42.4 Z" fill="#1b1b1b"/><circle cx="176" cy="40" r="1.8" fill="#1b1b1b"/><circle cx="288" cy="40" r="10" fill="url(#cfRad)" stroke="#1b1b1b" stroke-width="1.2"/><path d="M289.4,37.6 L292.2,32.6 A8.5,8.5 0 0 0 283.8,32.6 L286.6,37.6 A2.8000000000000003,2.8000000000000003 0 0 1 289.4,37.6 Z" fill="#1b1b1b"/><path d="M285.2,40.0 L279.5,40.0 A8.5,8.5 0 0 0 283.8,47.4 L286.6,42.4 A2.8000000000000003,2.8000000000000003 0 0 1 285.2,40.0 Z" fill="#1b1b1b"/><path d="M289.4,42.4 L292.2,47.4 A8.5,8.5 0 0 0 296.5,40.0 L290.8,40.0 A2.8000000000000003,2.8000000000000003 0 0 1 289.4,42.4 Z" fill="#1b1b1b"/><circle cx="288" cy="40" r="1.8" fill="#1b1b1b"/><g class="ctw"><circle cx="128" cy="42" r="4" fill="url(#cfRad)" stroke="#3a6410" stroke-width=".6"/><circle cx="126.8" cy="40.7" r="1.2" fill="#ffffff" opacity=".85"/></g><g class="ctw"><circle cx="330" cy="42" r="4" fill="url(#cfRad)" stroke="#3a6410" stroke-width=".6"/><circle cx="328.8" cy="40.7" r="1.2" fill="#ffffff" opacity=".85"/></g><g class="ctw"><circle cx="144" cy="634" r="4" fill="url(#cfRad)" stroke="#3a6410" stroke-width=".6"/><circle cx="142.8" cy="632.7" r="1.2" fill="#ffffff" opacity=".85"/></g><g class="ctw"><circle cx="204" cy="650" r="4" fill="url(#cfRad)" stroke="#3a6410" stroke-width=".6"/><circle cx="202.8" cy="648.7" r="1.2" fill="#ffffff" opacity=".85"/></g><g class="ctw"><circle cx="272" cy="654" r="4" fill="url(#cfRad)" stroke="#3a6410" stroke-width=".6"/><circle cx="270.8" cy="652.7" r="1.2" fill="#ffffff" opacity=".85"/></g><g class="ctw"><circle cx="322" cy="640" r="4" fill="url(#cfRad)" stroke="#3a6410" stroke-width=".6"/><circle cx="320.8" cy="638.7" r="1.2" fill="#ffffff" opacity=".85"/></g></g><g class="a-capo_demonic"><g class="chn"><path d="M194,56 C192,48 188,42 180,34 C186,44 182,52 184,58 Z" fill="url(#cfHorn)" stroke="#3a0a0a" stroke-width="1.2" stroke-linejoin="round"/><path d="M190,52 C188,46 186,43 183,39" stroke="#fff3c0" stroke-width="1.2" fill="none" stroke-linecap="round" opacity=".8"/></g><g class="chn"><path d="M258,56 C260,48 264,42 272,34 C266,44 270,52 268,58 Z" fill="url(#cfHorn)" stroke="#3a0a0a" stroke-width="1.2" stroke-linejoin="round"/><path d="M262,52 C264,46 266,43 269,39" stroke="#fff3c0" stroke-width="1.2" fill="none" stroke-linecap="round" opacity=".8"/></g><g class="cfl"><path d="M128,36 C132,42 135,46 135,51 C135,55 132,58 128,58 C124,58 121,55 121,51 C121,47 125,44 128,36 Z" fill="url(#cfFl)" stroke="#3a0a5a" stroke-width="1"/><circle cx="126" cy="51" r="1.1" fill="#2a0a3a"/><circle cx="130" cy="51" r="1.1" fill="#2a0a3a"/><path d="M126.4,54 Q128,55.4 129.6,54" stroke="#2a0a3a" stroke-width=".8" fill="none" stroke-linecap="round"/></g><g class="cfl"><path d="M328,36 C332,42 335,46 335,51 C335,55 332,58 328,58 C324,58 321,55 321,51 C321,47 325,44 328,36 Z" fill="url(#cfFl)" stroke="#3a0a5a" stroke-width="1"/><circle cx="326" cy="51" r="1.1" fill="#2a0a3a"/><circle cx="330" cy="51" r="1.1" fill="#2a0a3a"/><path d="M326.4,54 Q328,55.4 329.6,54" stroke="#2a0a3a" stroke-width=".8" fill="none" stroke-linecap="round"/></g><g class="cfl"><path d="M152,620 C156,626 159,630 159,635 C159,639 156,642 152,642 C148,642 145,639 145,635 C145,631 149,628 152,620 Z" fill="url(#cfFl)" stroke="#3a0a5a" stroke-width="1"/><circle cx="150" cy="635" r="1.1" fill="#2a0a3a"/><circle cx="154" cy="635" r="1.1" fill="#2a0a3a"/><path d="M150.4,638 Q152,639.4 153.6,638" stroke="#2a0a3a" stroke-width=".8" fill="none" stroke-linecap="round"/></g><g class="cfl"><path d="M224,634 C228,640 231,644 231,649 C231,653 228,656 224,656 C220,656 217,653 217,649 C217,645 221,642 224,634 Z" fill="url(#cfFl)" stroke="#3a0a5a" stroke-width="1"/><circle cx="222" cy="649" r="1.1" fill="#2a0a3a"/><circle cx="226" cy="649" r="1.1" fill="#2a0a3a"/><path d="M222.4,652 Q224,653.4 225.6,652" stroke="#2a0a3a" stroke-width=".8" fill="none" stroke-linecap="round"/></g><g class="cfl"><path d="M302,620 C306,626 309,630 309,635 C309,639 306,642 302,642 C298,642 295,639 295,635 C295,631 299,628 302,620 Z" fill="url(#cfFl)" stroke="#3a0a5a" stroke-width="1"/><circle cx="300" cy="635" r="1.1" fill="#2a0a3a"/><circle cx="304" cy="635" r="1.1" fill="#2a0a3a"/><path d="M300.4,638 Q302,639.4 303.6,638" stroke="#2a0a3a" stroke-width=".8" fill="none" stroke-linecap="round"/></g></g></g>
       </g>
       </g>
       <g class="fx-slime">
@@ -337,10 +353,23 @@
         <path d="M96,606 l14,10 l-4,12 l12,9 M356,604 l-12,12 l6,10 l-10,12" fill="none" stroke="#7CFF3A" stroke-width=".8" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
         <circle class="bub b2" cx="200" cy="626" r="2.6" fill="#b6ff5c" opacity=".7"/>
         <circle class="bub b3" cx="314" cy="618" r="3.2" fill="#7CFF3A" opacity=".65"/>
+        <!-- GOO MOCK 2 (preview only): more green ZMB3YS goo on the watch face, same colours -->
+        <path class="gx gxd1" fill="url(#cxZbSlime)" d="M152,590 L152,606 A4.5,4.5 0 0 0 161,606 L161,590 Z"/>
+        <circle class="gxdrop gxd1" cx="156.5" cy="619.2" r="3.6" fill="url(#cxZbSlime)"/>
+        <path class="gx gxd2" fill="url(#cxZbSlime)" d="M178,590 L178,603 A4.5,4.5 0 0 0 187,603 L187,590 Z"/>
+        <circle class="gxdrop gxd2" cx="182.5" cy="614.4" r="3.6" fill="url(#cxZbSlime)"/>
+        <path class="gx gxd3" fill="url(#cxZbSlime)" d="M209,590 L209,612 A5.5,5.5 0 0 0 220,612 L220,590 Z"/>
+        <circle class="gxdrop gxd3" cx="214.5" cy="629.6" r="4.4" fill="url(#cxZbSlime)"/>
+        <path class="gx gxd4" fill="url(#cxZbSlime)" d="M248,590 L248,608 A5.0,5.0 0 0 0 258,608 L258,590 Z"/>
+        <circle class="gxdrop gxd4" cx="253.0" cy="622.8" r="4.0" fill="url(#cxZbSlime)"/>
+        <path class="gx gxd5" fill="url(#cxZbSlime)" d="M310,590 L310,605 A4.5,4.5 0 0 0 319,605 L319,590 Z"/>
+        <circle class="gxdrop gxd5" cx="314.5" cy="617.6" r="3.6" fill="url(#cxZbSlime)"/>
       </g>
       </g>
     </svg>
   </div>
+  <!-- Credit fix (Nov 1): the one credit sits centred directly under the watch / phone, outside the scaled stage -->
+  <a class="wm wmlink wmunder" id="gameWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Made by Azgog (@azgog): Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
   </div>
 
   <div class="sidecol">
@@ -352,7 +381,6 @@
   </nav>
 
   <div class="controls">
-    <button id="speedBtn">⏩ Speed: 1s = 10 min</button>
     <button id="hungryBtn">😋 Make hungry</button>
     <button id="resetBtn">↺ Reset progress</button>
   </div>
@@ -370,23 +398,29 @@
   <div class="muted">BLUP3TS by MNK3YLabs · Just a game: Pretend mode uses no real tokens.</div>
 </footer>
 
-<script src="config.js?v=5"></script>
-<script src="data.js"></script>
-<script src="starters.js?v=2"></script>
-<script src="art.js"></script>
-<script src="filter.js"></script>
-<script src="rarity.js"></script>
-<script src="tiers.js"></script>
-<script src="eat.js"></script>
-<script src="app.js?v=12"></script>
-<script src="faq.js?v=4"></script>
-<script src="home.js?v=10"></script>
-<script src="fullscreen.js?v=1"></script>
-<script src="vendor/blup3ts-sol.js"></script>
-<script src="boost.js"></script>
-<script src="wallet.js?v=13"></script>
-<script src="leaderboard.js?v=4"></script>
-<script src="discord.js?v=4"></script>
-<script src="live.js?v=1"></script>
+<script src="config.js?v=h20261103e"></script>
+<script src="faces_mock.js?v=h20261103e"></script><!-- FACES (preview only) -->
+<script src="lb_face.js?v=h20261103e"></script><!-- LB REWARDS (preview only) -->
+<script src="data.js?v=h20261103e"></script>
+<script src="starters.js?v=h20261103e"></script>
+<script src="art.js?v=h20261103e"></script>
+<script src="filter.js?v=h20261103e"></script>
+<script src="rarity.js?v=h20261103e"></script>
+<script src="tiers.js?v=h20261103e"></script>
+<script src="eat.js?v=h20261103e"></script>
+<script src="app.js?v=h20261103e"></script>
+<script src="faq.js?v=h20261103e"></script>
+<script src="home.js?v=h20261103e"></script>
+<script src="fullscreen.js?v=h20261103e"></script>
+<script src="vendor/blup3ts-sol.js?v=h20261103e"></script>
+<script src="boost.js?v=h20261103e"></script>
+<script src="wallet.js?v=h20261103e"></script>
+<script src="face_unlocks.js?v=h20261103e"></script><!-- FACE UNLOCKS (preview only) -->
+<script src="empire_store.js?v=h20261103e"></script><!-- $EMPIRE feeds + Store + free unlock SOL fee (flags) -->
+<script src="lb_auth.js?v=h20261103e"></script><!-- RANKS SECURITY: wallet proof + feed receipts -->
+<script src="lb_rewards.js?v=h20261103e"></script><!-- LB REWARDS (preview only) -->
+<script src="leaderboard.js?v=h20261103e"></script>
+<script src="discord.js?v=h20261103e"></script>
+<script src="live.js?v=h20261103e"></script>
 </body>
 </html>

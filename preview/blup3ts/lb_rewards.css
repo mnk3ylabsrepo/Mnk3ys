@@ -1,0 +1,73 @@
+/* ===== LB REWARDS TOP 3 (preview only, Nov 2 2026): Champion / 2nd Place / 3rd Place winner-only faces.
+   New goo motifs gold / silver / bronze live under .stage[data-goo] only, so MNK3YS blue (#cxMkDrip default) and ZMB3YS green goo are unchanged.
+   Screen UI and the credit tag are not touched. Sparkles stop with prefers-reduced-motion. ===== */
+.t3orn { display:none; }
+.stage[data-goo] .t3orn { display:block; position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:4; }
+.stage[data-goo] .casefx .fx-drip .fxtop { display:none; }
+.t3rib { position:absolute; left:50%; top:-6px; width:150px; height:24px; margin-left:-75px; display:flex; align-items:center; justify-content:center; border-radius:4px;
+  box-shadow:0 2px 6px rgba(0,0,0,.5); }
+.t3rib::before, .t3rib::after { content:''; position:absolute; top:6px; width:18px; height:22px; z-index:-1; }
+.t3rib::before { left:-12px; clip-path:polygon(0 0,100% 0,100% 100%,0 100%,40% 50%); } .t3rib::after { right:-12px; clip-path:polygon(0 0,100% 0,60% 50%,100% 100%,0 100%); }
+.t3rib span::before { font:900 12px/1 Georgia,'Times New Roman',serif; letter-spacing:1.6px; }
+.t3em { position:absolute; left:50%; top:12px; width:132px; height:70px; margin-left:-66px; overflow:visible; filter:drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
+.t3em .t3lau path { fill:none; } .t3em .t3pt { stroke-width:1; }
+.t3sp { position:absolute; width:14px; height:14px; clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%); opacity:.9; animation:t3tw 2.6s ease-in-out infinite; }
+.t3sp.s1 { left:-6px; top:120px; } .t3sp.s2 { right:-8px; top:250px; width:10px; height:10px; animation-delay:-.9s; } .t3sp.s3 { left:8px; top:470px; width:10px; height:10px; animation-delay:-1.6s; }
+.t3sp.s4 { right:2px; top:520px; animation-delay:-.4s; } .t3sp.s5 { left:60px; top:44px; width:9px; height:9px; animation-delay:-2.1s; } .t3sp.s6 { right:56px; top:40px; width:11px; height:11px; animation-delay:-1.2s; }
+@keyframes t3tw { 0%,100% { transform:scale(.35) rotate(0); opacity:.25; } 50% { transform:scale(1) rotate(45deg); opacity:1; } }
+.stage[data-goo] .case::before { content:''; position:absolute; inset:4px; border-radius:92px; border:3.5px dotted var(--t3-dots); pointer-events:none; z-index:3; filter:drop-shadow(0 0 2px var(--t3-dots)); }
+.stage[data-goo] .crown::after { content:''; position:absolute; right:3px; top:50%; width:13px; height:13px; margin-top:-6.5px; border-radius:50%; background:var(--t3-gem); box-shadow:0 0 0 2px var(--t3-em1), 0 0 6px var(--t3-glow); }
+.stage[data-goo] .caseglow { box-shadow:0 0 40px 10px var(--t3-glow), inset 0 0 0 3px var(--case-rim,transparent); }
+.stage[data-goo][data-motif="drip"] .casefx .fx-drip { filter:drop-shadow(0 0 4px var(--t3-glow)) drop-shadow(0 3px 3px rgba(0,0,0,.4)); }
+.gameview.full .stage[data-goo] .case::before { border-radius:58px; }
+.gameview.full .t3rib { display:none; } .gameview.full .t3em { top:14px; width:84px; height:44px; margin-left:-42px; } /* Duo: no band on top, so the emblem sits on the bezel and the ribbon hides (it would cover the Watch | Duo switch) */
+@media (prefers-reduced-motion: reduce) { .t3sp { animation:none !important; opacity:.8; transform:none; } }
+
+/* gold */
+.stage[data-goo="gold"] { --t3-dots:rgba(255,255,255,.95); --t3-glow:rgba(255,205,60,.85); --t3-em1:#fff1a8; --t3-gem:radial-gradient(circle at 35% 30%,#cfe6ff,#2f6fe0 50%,#0b2f8a); }
+.stage[data-goo="gold"] #cxMkDrip stop:nth-child(1) { stop-color:#fff6c2; }
+.stage[data-goo="gold"] #cxMkDrip stop:nth-child(2) { stop-color:#ffd54a; }
+.stage[data-goo="gold"] #cxMkDrip stop:nth-child(3) { stop-color:#b8860b; }
+.stage[data-goo="gold"] .t3em .t3lau path { stroke:#c8901a; } .stage[data-goo="gold"] .t3em .t3lau ellipse { fill:#fff1a8; stroke:#7a5410; stroke-width:1; }
+.stage[data-goo="gold"] .t3em .t3cr { fill:#fff1a8; stroke:#7a5410; stroke-width:1.5; } .stage[data-goo="gold"] .t3em .t3pt { fill:#fff8d6; stroke:#7a5410; } .stage[data-goo="gold"] .t3em .t3gem { fill:#2f6fe0; stroke:#fff8d6; stroke-width:1; }
+.stage[data-goo="gold"] .t3rib, .stage[data-goo="gold"] .t3rib::before, .stage[data-goo="gold"] .t3rib::after { background:#5b2a8c; } .stage[data-goo="gold"] .t3rib { border:1.5px solid #d4a017; }
+.stage[data-goo="gold"] .t3rib span::before { content:'CHAMPION'; color:#fff1a8; } .stage[data-goo="gold"] .t3sp { background:#fff4c0; filter:drop-shadow(0 0 3px #fff4c0); }
+.mw[data-goo="gold"] .mfx i { background:linear-gradient(#fff6c2,#ffd54a 55%,#b8860b); box-shadow:0 0 4px rgba(255,205,60,.85); }
+
+/* silver */
+.stage[data-goo="silver"] { --t3-dots:rgba(255,255,255,.95); --t3-glow:rgba(200,225,255,.8); --t3-em1:#ffffff; --t3-gem:radial-gradient(circle at 35% 30%,#cfe6ff,#2f6fe0 50%,#0b2f8a); }
+.stage[data-goo="silver"] #cxMkDrip stop:nth-child(1) { stop-color:#ffffff; }
+.stage[data-goo="silver"] #cxMkDrip stop:nth-child(2) { stop-color:#d5dce6; }
+.stage[data-goo="silver"] #cxMkDrip stop:nth-child(3) { stop-color:#7c8796; }
+.stage[data-goo="silver"] .t3em .t3lau path { stroke:#9aa5b4; } .stage[data-goo="silver"] .t3em .t3lau ellipse { fill:#ffffff; stroke:#4d5866; stroke-width:1; }
+.stage[data-goo="silver"] .t3em .t3cr { fill:#ffffff; stroke:#4d5866; stroke-width:1.5; } .stage[data-goo="silver"] .t3em .t3pt { fill:#ffffff; stroke:#4d5866; } .stage[data-goo="silver"] .t3em .t3gem { fill:#2f6fe0; stroke:#ffffff; stroke-width:1; }
+.stage[data-goo="silver"] .t3rib, .stage[data-goo="silver"] .t3rib::before, .stage[data-goo="silver"] .t3rib::after { background:#1c2f5e; } .stage[data-goo="silver"] .t3rib { border:1.5px solid #c9d1dc; }
+.stage[data-goo="silver"] .t3rib span::before { content:'2ND PLACE'; color:#ffffff; } .stage[data-goo="silver"] .t3sp { background:#ffffff; filter:drop-shadow(0 0 3px #ffffff); }
+.mw[data-goo="silver"] .mfx i { background:linear-gradient(#ffffff,#d5dce6 55%,#7c8796); box-shadow:0 0 4px rgba(200,225,255,.8); }
+
+/* bronze */
+.stage[data-goo="bronze"] { --t3-dots:rgba(243,217,168,.95); --t3-glow:rgba(230,140,80,.8); --t3-em1:#f2c29a; --t3-gem:radial-gradient(circle at 35% 30%,#ffb3b3,#b0102a 50%,#5a0612); }
+.stage[data-goo="bronze"] #cxMkDrip stop:nth-child(1) { stop-color:#ffd9b8; }
+.stage[data-goo="bronze"] #cxMkDrip stop:nth-child(2) { stop-color:#cd7f45; }
+.stage[data-goo="bronze"] #cxMkDrip stop:nth-child(3) { stop-color:#7a3a17; }
+.stage[data-goo="bronze"] .t3em .t3lau path { stroke:#a8572a; } .stage[data-goo="bronze"] .t3em .t3lau ellipse { fill:#f2c29a; stroke:#5a2a10; stroke-width:1; }
+.stage[data-goo="bronze"] .t3em .t3cr { fill:#f2c29a; stroke:#5a2a10; stroke-width:1.5; } .stage[data-goo="bronze"] .t3em .t3pt { fill:#ffe6cf; stroke:#5a2a10; } .stage[data-goo="bronze"] .t3em .t3gem { fill:#b0102a; stroke:#ffe6cf; stroke-width:1; }
+.stage[data-goo="bronze"] .t3rib, .stage[data-goo="bronze"] .t3rib::before, .stage[data-goo="bronze"] .t3rib::after { background:#6b1626; } .stage[data-goo="bronze"] .t3rib { border:1.5px solid #c27a45; }
+.stage[data-goo="bronze"] .t3rib span::before { content:'3RD PLACE'; color:#ffe6cf; } .stage[data-goo="bronze"] .t3sp { background:#ffd9b8; filter:drop-shadow(0 0 3px #ffd9b8); }
+.mw[data-goo="bronze"] .mfx i { background:linear-gradient(#ffd9b8,#cd7f45 55%,#7a3a17); box-shadow:0 0 4px rgba(230,140,80,.8); }
+
+.lbr { margin:12px 0 4px; padding:12px 12px 10px; border-radius:18px; background:linear-gradient(160deg,rgba(255,213,74,.18),rgba(224,36,94,.10)); border:2px solid rgba(255,213,74,.55); text-align:center; }
+.lbr .lbrh { margin:0; font-size:15px; font-weight:1000; color:#ffd54a; letter-spacing:.3px; }
+.lbr .lbrm { margin:4px 0 0; font-size:20px; font-weight:1000; color:#fff; }
+.lbr .lbrc { margin:2px 0 8px; font-size:13px; font-weight:800; color:var(--dim); font-variant-numeric:tabular-nums; }
+.lbr .lbrrow { display:flex; align-items:flex-start; justify-content:center; gap:6px; margin:6px 0; }
+.lbr .lbrplace { font-size:15px; color:#ffd54a; } .lbr .lbrprev[data-rank="2"] .lbrplace { color:#dfe5ee; } .lbr .lbrprev[data-rank="3"] .lbrplace { color:#e8a06a; }
+.lbr .lbrprev { flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:11px; font-weight:800; color:#fff; text-align:center; }
+.lbr .lbrprev .mw { transform:scale(.8); }
+.lbr .lbritem { width:42px; height:42px; display:flex; align-items:center; justify-content:center; font-size:26px; border-radius:16px; background:rgba(255,213,74,.18); border:2px dashed #ffd54a; }
+.lbr .lbrtag { display:inline-block; margin:2px 0 0; padding:1px 8px; border-radius:10px; background:#3a2a00; color:#ffd54a; font-size:10px; font-weight:1000; letter-spacing:.6px; }
+.lbr .lbrstate { margin:6px 0 0; font-size:13px; font-weight:900; }
+.lbr .lbrstate.won { color:#7CFFB2; } .lbr .lbrstate.lock { color:#ffd54a; }
+.lbr p.lbrfine { margin:6px 0 0; font-size:12px; font-weight:700; color:var(--dim); }
+.lbr .sbtn { height:44px; font-size:15px; }
+.lbrmsg { white-space:pre-wrap; text-align:left; font-size:12px; font-weight:700; padding:10px; border-radius:12px; background:rgba(255,255,255,.06); color:#fff; margin:8px 0; word-break:break-all; }

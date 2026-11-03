@@ -13,6 +13,8 @@
     { id: 'level', label: 'Level', unit: 'Level' }
   ];
   var PERIODS = [{ id: 'week', label: 'Weekly' }, { id: 'all', label: 'Overall' }];
+  var LBR = function () { var r = window.BLUP3TS_LBREWARDS; return r && r.enabled ? r : null; }; // LB REWARDS (preview)
+  if (CFG.LB_REWARDS_ENABLED === true) PERIODS.splice(1, 0, { id: 'month', label: 'Monthly' });
   var CACHE_MS = 60000, TIMEOUT_MS = 25000;
   var cache = {}, box = null, board = 'str', period = 'all', reqId = 0;
 
@@ -32,6 +34,7 @@
   }
   function weekText(w) {
     if (period === 'all') return 'Overall · saved progress for everyone who has played';
+    if (period === 'month' && LBR()) { var cm = LBR().current(); return LBR().monthName(cm.key) + ' · the top 3 win monthly rewards'; }
     if (!w || !w.start) return 'This week · resets Sunday. Overall keeps your full total.';
     var s = String(w.start), d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(s) ? s + 'T00:00:00Z' : s);
     if (isNaN(d)) return 'This week · resets Sunday. Overall keeps your full total.';
@@ -82,11 +85,13 @@
     return d;
   }
   function render(data) {
-    if (!box) return;
+    if (!box) return; lastData = data;
     var info = boardInfo(board);
     box.textContent = '';
     box.appendChild(seg(PERIODS, period, 'period', function (id) { period = id; show(board); }));
     box.appendChild(seg(BOARDS, board, 'board', function (id) { show(id); }));
+    var LA = window.BLUP3TS_LBAUTH; if (LA && LA.enabled) { var ab = LA.bar(); if (ab) box.appendChild(ab); } // wallet proof bar (lb_auth.js)
+    if (LBR()) { var rc = LBR().card(); if (rc) box.appendChild(rc); } // Monthly #1 reward card
     box.appendChild(el('p', 'ranknote', weekText(data && data.week)));
     if (data === 'loading') { box.appendChild(note('Loading ranks…')); return; }
     if (data === 'error') { box.appendChild(note('Could not load ranks. Try again.', true)); return; }
@@ -137,5 +142,7 @@
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+  var lastData = null; // redraw the open sheet when the wallet proof changes (no new network call)
+  if (window.BLUP3TS_LBAUTH) BLUP3TS_LBAUTH.onChange(function () { if (box && box.isConnected && lastData) render(lastData); });
   window.BLUP3TS_LEADERBOARD = { open: open, close: close, enabled: ENABLED, refresh: function () { cache = {}; if (box && box.isConnected) show(board); } };
 })();

@@ -30,7 +30,7 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
 
   // BLUTEST only. This wallet is the test-token mint authority. BLUTEST feeds are sent here.
   RESERVE_WALLET: '5eZ3Qt1jKCGdXkCES791W68T87bGG62j9ZHcmBaMUtTP',
-  // Real $BLUNANA community reserve. The top ticker reads its balance. BLUNANA play feeds are sent here.
+  // Real $BLUNANA community wallet. The top ticker reads its balance. BLUNANA play feeds are sent here.
   BLUNANA_RESERVE_WALLET: 'B3HziYmuE9Wx42FULYZLTBRNg5WNBj6UH32Vb5kfacBN',
 
   // $BLUNANA (pinned). Classic SPL token, 6 decimals. REAL_BLUNANA_MINT stays the community token.
@@ -46,15 +46,25 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   //    (Shared/Core/CollectionGate.swift, re-read on mainnet Oct 22 2026).
   //  - LP Dollz: 4 Magic Eden 'lp_doll' listings (LP Doll #3946, #2983, #1324, #1200) all carry a VERIFIED
   //    Token Metadata collection GiAuA3e7...; that collection NFT is named 'LP Dollz'. Checked Oct 22 2026.
+  // Adopt chooser (Azgog, Nov 3): tapping Adopt shows Orbis + Magic Eden; each opens that pet's own page in a new tab
+  // (per pet: {mint}), else the collection page (COLLECTIONS[].adopt). Nothing is ever bought in the game.
+  ADOPT_ITEM_URLS: { orbis: 'https://www.orbisonsol.io/marketplace/item/{mint}', me: 'https://magiceden.io/item-details/{mint}' },
   CORE_PROGRAM: 'CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d',
   COLLECTIONS: [
-    { id: 'mnk3ys', name: 'MNK3YS', one: 'MNK3Y', standard: 'core', address: 'HJfPjNV3AeDGRRyJfmYrQhsQaTkoct4novtBj4Nq4atU', verified: true, supply: 5000, partner: null, enabled: true },
-    { id: 'zmb3ys', name: 'ZMB3YS', one: 'ZMB3Y', standard: 'core', address: 'GtR8jyrwDvhmCi1oLG1dtErFU2xb8YpbM8Xtot8yagbq', verified: true, supply: 5555, partner: null, enabled: true },
+    { id: 'mnk3ys', name: 'MNK3YS', one: 'MNK3Y', standard: 'core', address: 'HJfPjNV3AeDGRRyJfmYrQhsQaTkoct4novtBj4Nq4atU', verified: true, supply: 5000, partner: null, enabled: true,
+      adopt: { orbis: 'https://www.orbisonsol.io/marketplace/mnk3ys', me: 'https://magiceden.io/marketplace/mnk3ys' } },
+    { id: 'zmb3ys', name: 'ZMB3YS', one: 'ZMB3Y', standard: 'core', address: 'GtR8jyrwDvhmCi1oLG1dtErFU2xb8YpbM8Xtot8yagbq', verified: true, supply: 5555, partner: null, enabled: true,
+      adopt: { orbis: 'https://www.orbisonsol.io/marketplace/zmb3ys', me: 'https://magiceden.io/marketplace/zmb3ys' } },
     { id: 'ldz', name: 'LP Dollz', one: 'LP Doll', standard: 'token-metadata', address: 'GiAuA3e7E3onswrPnMqgtErTX4oQeQuoF9Cy1Sg2fJ8b', verified: true, supply: 4443, partner: 'ldz', enabled: true,
-      marketplace: 'https://www.orbisonsol.io/marketplace/lp-dollz' }
+      marketplace: 'https://www.orbisonsol.io/marketplace/lp-dollz' },
+    // Caporegime Del $Empire (Nov 2 2026): Core CollectionV1 BzJea2jN..., name + 500/500 read on mainnet Nov 2 2026;
+    // Magic Eden listing mints (Capo # 182, # 298, # 353) resolve to it. Magic Eden is also used for data lookups.
+    { id: 'capo', name: 'Caporegime Del $Empire', one: 'Capo', standard: 'core', address: 'BzJea2jNqDByBjg99ZaopGYKngK5DnnvuYM1NtkhXmw4', verified: true, supply: 500, partner: null, enabled: true,
+      marketplace: 'https://www.orbisonsol.io/marketplace/caporegime-del-empire',
+      adopt: { orbis: 'https://www.orbisonsol.io/marketplace/caporegime-del-empire', me: 'https://magiceden.io/marketplace/caporegime_del_empire' } }
   ],
 
-  // Partner communities. Money fields (poolShare, joinFee, reserveMatch) are COS numbers; real payments are OFF.
+  // Partner communities. Money fields (poolShare, joinFee, reserveMatch) are COS numbers. Real feeds are ON (REAL_PAYMENTS_ENABLED below); partner join fees are not charged in the app.
   // joinFee is a CAD-equivalent amount. tokenMint / pool are public on-chain addresses.
   //  - LDZ token mint E5ZV... read from the Raydium CPMM pool account 5agA... (token_1 next to $BLUNANA),
   //    DexScreener lists it as symbol LDZ. Checked Oct 22 2026.
@@ -73,7 +83,7 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   ],
 
   // Where NFT pictures and metadata may come from (https only). Also written into the CSP by the build.
-  IMAGE_HOSTS: ['firebasestorage.googleapis.com', 'na-assets.pinit.io', 'gateway.pinit.io', 'gateway.irys.xyz', '*.datasprite-cdn.com', 'arweave.net', '*.arweave.net', 'ipfs.io', 'nftstorage.link', '*.ipfs.nftstorage.link', 'cdn.helius-rpc.com'],
+  IMAGE_HOSTS: ['firebasestorage.googleapis.com', 'na-assets.pinit.io', 'we-assets.pinit.io', 'gateway.pinit.io', 'gateway.irys.xyz', '*.datasprite-cdn.com', 'arweave.net', '*.arweave.net', 'ipfs.io', 'nftstorage.link', '*.ipfs.nftstorage.link', 'cdn.helius-rpc.com'],
   METADATA_HOSTS: ['firebasestorage.googleapis.com', 'gateway.pinit.io', 'gateway.irys.xyz', '*.datasprite-cdn.com', 'arweave.net', '*.arweave.net', 'ipfs.io', 'nftstorage.link'],
 
   // $BLUNANA per feed. Same numbers in Pretend and Wallet mode. The transfer builder has these pinned too
@@ -115,14 +125,20 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   // Wallet connect master switch (read-only: public address + NFT check only). false = Pretend mode only.
   WALLET_CONNECT_ENABLED: true,
   // M10 go-live: the NFT check gives back ONLY these collections (LP Dollz left out for now; the LP Doll starter pet stays).
-  NFT_CHECK_COLLECTIONS: ['mnk3ys', 'zmb3ys'],
+  NFT_CHECK_COLLECTIONS: ['mnk3ys', 'zmb3ys', 'capo'],
   // Wallets offered (Wallet Standard). Read-only connect, public address only.
   WALLETS: ['Phantom', 'Solflare', 'Backpack'],
   // Optional 'sign a message' proof. OFF for launch: P1 never asks the wallet to sign anything.
   SIGN_IN_ENABLED: false,
 
-  // Preview only: on so Wallet mode can feed with the BLUTEST test token. This does not spend real $BLUNANA.
+  // ON: Wallet mode feeds for real. The BLUTEST/BLUNANA switch picks the token: BLUTEST goes to RESERVE_WALLET,
+  // real $BLUNANA goes to BLUNANA_RESERVE_WALLET.
   REAL_PAYMENTS_ENABLED: true,
+  // PREVIEW MOCK (Nov 2 2026): SOL fee per feed. UI line only, NO SOL transfer is wired. Stays false until the real-mode checklist is done and Azgog says build it.
+  SOL_FEE_ENABLED: false,
+  SOL_FEE_USD_PER_FEED: 0.05,
+  // Azgog, Nov 3: the feed SOL fee is for Snack, Meal and Feast only. Nibble never has a SOL fee (every pet, $BLUNANA and $EMPIRE).
+  SOL_FEE_TIERS: ['snack', 'meal', 'feast'],
   // Daily limits per wallet: total $BLUNANA (and $BLUNANA-equivalent) across feeds + Store, and feeds per day.
   DAILY_CAP: 25000,
   DAILY_FEEDS_MAX: 10,
@@ -134,6 +150,9 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   // ===== Rarity (P2 prep). Tiers by percent of each collection's size (number of NFTs), best first. =====
   // While RARITY_PERKS_ENABLED is false, perks change nothing. Feed costs are the same for everyone.
   RARITY_PERKS_ENABLED: false,
+  // CAPO_WALLET_ENABLED (Azgog, Nov 3): false = Caporegime Del $Empire is Pretend-only. In Wallet mode the Capo row is locked
+  // ('Coming soon'): no Capo NFT check, no Capo floor / starter pets, no $EMPIRE feeds, no Capo Store buys. Old saves fall back to the default pet.
+  CAPO_WALLET_ENABLED: false,
   // Hunger: how much food (%) every pet loses per hour. Rarer pets can get hungry a bit slower (hungerDecayReduction
   // below, clamped to 0..0.25), only when RARITY_PERKS_ENABLED is true. With the flag off it is exactly this for every pet.
   BASE_HUNGER_DECAY_PER_HOUR: 4,
@@ -167,8 +186,102 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
       caseBg: 'radial-gradient(40% 30% at 18% 22%,rgba(124,255,58,.16) 0,transparent 70%),radial-gradient(35% 25% at 82% 78%,rgba(124,255,58,.12) 0,transparent 70%),linear-gradient(150deg,#2b3a22,#11180d 50%,#0a0f08 70%,#25331b)',
       bandBg: 'repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 3px,transparent 3px 9px),linear-gradient(#1f2b17,#0d140a)',
       rim: '#7CFF3A', accent: '#B6FF5C', glow: 'rgba(124,255,58,.40)', crown: 'repeating-linear-gradient(#b6ff5c 0 3px,#2f6b12 3px 6px)',
-      logo: 'assets/zmb3ys.png', motif: 'slime' }
+      logo: 'assets/zmb3ys.png', motif: 'slime' },
+    // Caporegime Del $Empire: basic Capo Drip + 4 faces from standout traits. ALL 5 are Capo pets only (app.js capoOnly) (Magic Eden / collection metadata, Nov 2 2026). Same drip
+    // style as MNK3YLabs Drip, only the colours change (style.css 'CAPO FACES'). Free once a Capo reaches Level 3.
+    capo: { name: 'Capo Drip', collection: 'Caporegime Del $Empire', // basic Capo face (Azgog, Nov 3), like MNK3YLabs Drip / ZMB3YS Toxic
+      caseBg: 'radial-gradient(120% 80% at 25% 10%,#ff6b6b 0,rgba(255,107,107,0) 45%),linear-gradient(150deg,#d9302c,#7a1412 48%,#1a1a1f 72%,#b82522)',
+      bandBg: 'repeating-linear-gradient(135deg,rgba(255,255,255,.08) 0 2px,transparent 2px 12px),linear-gradient(#232329,#0e0e12)',
+      rim: '#ffffff', accent: '#ff4d4d', glow: 'rgba(255,77,77,.40)', crown: 'repeating-linear-gradient(#ffffff 0 3px,#1a1a1f 3px 6px)',
+      logo: 'capo/capo_logo.png', motif: 'drip' },
+    capo_galaxy: { name: 'Galaxy Glow', collection: 'Caporegime Del $Empire',
+      caseBg: 'radial-gradient(120% 80% at 25% 10%,#b98cff 0,rgba(185,140,255,0) 45%),linear-gradient(150deg,#5b2bb5,#24104f 48%,#120830 70%,#4a22a0)',
+      bandBg: 'repeating-linear-gradient(135deg,rgba(255,255,255,.10) 0 2px,transparent 2px 12px),linear-gradient(#2a1260,#120830)',
+      rim: '#9fe8ff', accent: '#ff7ad9', glow: 'rgba(159,232,255,.50)', crown: 'repeating-linear-gradient(#e3d1ff 0 3px,#6a3bd1 3px 6px)',
+      logo: 'capo/capo_logo.png', motif: 'drip' },
+    capo_golden: { name: 'Golden Robe', collection: 'Caporegime Del $Empire',
+      caseBg: 'radial-gradient(120% 80% at 25% 10%,#fff1a8 0,rgba(255,241,168,0) 45%),linear-gradient(150deg,#f2c230,#b78512 48%,#6e4c08 70%,#e0ad22)',
+      bandBg: 'repeating-linear-gradient(135deg,rgba(255,255,255,.14) 0 2px,transparent 2px 12px),linear-gradient(#8a5f0c,#4a3205)',
+      rim: '#ffe27a', accent: '#ffffff', glow: 'rgba(255,214,90,.50)', crown: 'repeating-linear-gradient(#fff1a8 0 3px,#b78512 3px 6px)',
+      logo: 'capo/capo_logo.png', motif: 'drip' },
+    capo_radiation: { name: 'Radiation Zone', collection: 'Caporegime Del $Empire',
+      caseBg: 'radial-gradient(120% 80% at 25% 10%,#d8ff6a 0,rgba(216,255,106,0) 45%),linear-gradient(150deg,#7fbf1f,#3a6410 48%,#1c3308 70%,#6aa818)',
+      bandBg: 'repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 3px,transparent 3px 9px),linear-gradient(#2d4a0d,#132205)',
+      rim: '#e6ff3a', accent: '#1b1b1b', glow: 'rgba(214,255,58,.50)', crown: 'repeating-linear-gradient(#e6ff3a 0 3px,#1b1b1b 3px 6px)',
+      logo: 'capo/capo_logo.png', motif: 'drip' },
+    capo_night: { name: 'Empire Night', collection: 'Caporegime Del $Empire', store: true, // STORE face ($EMPIRE)
+      caseBg: 'radial-gradient(120% 80% at 25% 10%,#3a4a8a 0,rgba(58,74,138,0) 45%),linear-gradient(150deg,#1b2350,#0b0f2a 48%,#05071a 72%,#151d46)',
+      bandBg: 'repeating-linear-gradient(90deg,rgba(255,214,90,.14) 0 2px,transparent 2px 10px),linear-gradient(#12183a,#070a1e)',
+      rim: '#ffd65a', accent: '#9fe8ff', glow: 'rgba(255,214,90,.40)', crown: 'repeating-linear-gradient(#ffd65a 0 3px,#1b2350 3px 6px)',
+      logo: 'capo/capo_logo.png', motif: 'drip' },
+    capo_velvet: { name: 'Velvet Rose', collection: 'Caporegime Del $Empire', store: true, // STORE face ($EMPIRE)
+      caseBg: 'radial-gradient(120% 80% at 25% 10%,#ff8fb8 0,rgba(255,143,184,0) 45%),linear-gradient(150deg,#a3245a,#5a0f30 48%,#2e0618 72%,#8a1d4c)',
+      bandBg: 'repeating-linear-gradient(135deg,rgba(255,255,255,.08) 0 2px,transparent 2px 12px),linear-gradient(#4a0c28,#22040f)',
+      rim: '#ffc2d8', accent: '#ffffff', glow: 'rgba(255,143,184,.45)', crown: 'repeating-linear-gradient(#ffc2d8 0 3px,#8a1d4c 3px 6px)',
+      logo: 'capo/capo_logo.png', motif: 'drip' },
+    capo_demonic: { name: 'Spooky Ember', collection: 'Caporegime Del $Empire', // Skins: Demonic, spooky-cute (Azgog, Nov 3)
+      caseBg: 'radial-gradient(120% 80% at 25% 10%,#ff9a7a 0,rgba(255,154,122,0) 45%),linear-gradient(150deg,#c8321e,#6e1410 48%,#3a0a0a 70%,#a82818)',
+      bandBg: 'repeating-linear-gradient(135deg,rgba(255,170,60,.12) 0 2px,transparent 2px 12px),linear-gradient(#5a1010,#2a0606)',
+      rim: '#ff8a3d', accent: '#ffd23f', glow: 'rgba(255,110,50,.50)', crown: 'repeating-linear-gradient(#ffd23f 0 3px,#a82818 3px 6px)',
+      logo: 'capo/capo_logo.png', motif: 'drip' }
   },
+
+  // ===== Extra watch faces (faces.js WATCH faces f_*), PREVIEW =====
+  // FACE_UNLOCKS_ENABLED false = no prices anywhere and the paid faces show 'Coming soon' (Christmas still follows its date).
+  // FACE_PRICES: whole $BLUNANA, one-time per wallet (Pretend mode: pretend $BLUNANA). Real amounts also use COST_SCALE x LIVE_COST_SCALE.
+  // FACE_FREE_FROM: free for everyone from this moment (UTC). Dec 1 2026 00:00 America/Halifax = 2026-12-01T04:00:00Z.
+  // FACE_UNLOCK_ENDPOINT: empty = no server record yet. The dev adds /api/blup3ts-faces (see API_FACES.md).
+  FACE_UNLOCKS_ENABLED: true,
+  FACE_PRICES: { f_blunanaville: 100000, f_neon: 75000, f_haunted: 50000, f_pirate: 50000, f_glacier: 35000 }, // FINAL (Azgog via COS, Nov 3)
+  FACE_FREE_FROM: { f_christmas: '2026-12-01T04:00:00Z' },
+  FACE_UNLOCK_ENDPOINT: '',
+  // Face SOL fee (PREVIEW, Azgog Nov 2 2026 1:37/1:38 AM AT): the same small SOL fee as feeds, 0.05 USD worth of SOL per face unlock.
+  // Real $BLUNANA unlocks only (no SOL fee on BLUTEST). Its own switch.
+  // ON HOLD (build Nov 2 2026): OFF until the dev's quote endpoint exists. While it is OFF, real $BLUNANA face unlocks are
+  // paused too (never charged without the fee Azgog approved). BLUTEST unlocks work. Turn ON together with FACE_SOL_FEE_QUOTE_ENDPOINT.
+  // The dev's server turns USD into lamports from the live SOL price and answers FACE_SOL_FEE_QUOTE_ENDPOINT (see API_FACES.md).
+  // FAIL CLOSED: empty endpoint or no price = the paid unlock is blocked ('Price unavailable, try again shortly'), no tx is sent.
+  // SOL_FEE_RECIPIENT: the community wallet (Azgog, Nov 2 2026 2:31 AM AT), also planned for the feed SOL fee. MIN/MAX: client sanity range in lamports.
+  // Nov 3 (Azgog via COS): paid $BLUNANA face unlocks KEEP the 5-cent SOL fee. The no-SOL-fee rule covers only the new Store items.
+  // Real $BLUNANA paid face unlocks stay paused until PAID_FACE_REAL_UNLOCKS_ENABLED is true (after the dev's SOL quote endpoint exists).
+  PAID_FACE_REAL_UNLOCKS_ENABLED: false,
+  FACE_SOL_FEE_ENABLED: false,
+  SOL_FEE_USD_PER_FACE: 0.05,
+  FACE_SOL_FEE_QUOTE_ENDPOINT: '',
+  SOL_FEE_RECIPIENT: 'B3HziYmuE9Wx42FULYZLTBRNg5WNBj6UH32Vb5kfacBN',
+  SOL_FEE_MIN_LAMPORTS: 1000,
+  SOL_FEE_MAX_LAMPORTS: 5000000,
+
+  // ===== FREE UNLOCK SOL FEE (Azgog, Nov 3): faces/items that are free today (MNK3YLabs Drip, ZMB3YS Toxic, the 5 Capo
+  // faces, Christmas Morning from Dec 1, any free Store item) cost a ONE-TIME 0.10 USD worth of SOL per wallet to unlock,
+  // in Wallet mode. BLUP3TS Classic stays fully free. Live SOL price from the dev's server (FREE_UNLOCK_FEE_QUOTE_ENDPOINT,
+  // lamports only, never worked out in the browser); no quote = no unlock ('Price unavailable, try again shortly').
+  // Paid to SOL_FEE_RECIPIENT. OFF until the server price check exists. Pretend mode: nothing is paid, faces work as before.
+  FREE_UNLOCK_SOL_FEE_ENABLED: false,
+  FREE_UNLOCK_SOL_FEE_USD: 0.10,
+  FREE_UNLOCK_FEE_QUOTE_ENDPOINT: '',
+
+  // ===== $EMPIRE FEEDS (Azgog via COS, Nov 3): Capo pets can also be fed with $EMPIRE. Same community wallet as $BLUNANA.
+  // Meal sizes match the $BLUNANA feed value from a LIVE quote (EMPIRE_QUOTE_ENDPOINT on the dev's server, nothing
+  // hardcoded here). No quote = no feed. Decimals read on-chain Nov 3 2026 (public RPC): 5. OFF by default.
+  EMPIRE_FEEDS_ENABLED: false,
+  EMPIRE: { mint: 'EmpirdtfUMfBQXEjnNmTngeimjfizfuSBD3TN9zqzydj', symbol: '$EMPIRE', decimals: 5, recipient: 'B3HziYmuE9Wx42FULYZLTBRNg5WNBj6UH32Vb5kfacBN', collection: 'Caporegime Del $Empire' },
+  EMPIRE_QUOTE_ENDPOINT: '/api/blup3ts-empire-quote',
+
+  // ===== STORE (Azgog via COS, Nov 3): one-time buys per connected wallet, like face unlocks. Capo items are Capo only,
+  // MNK3YS / ZMB3YS items are for that collection's pets. Real buys stay OFF (STORE_REAL_BUYS_ENABLED) until the server
+  // record + checks exist (HANDOFF.md). Store items have NO SOL fee. Items with price 0 use the free unlock SOL fee above.
+  // FINAL prices (Azgog via COS, Nov 3): Capo faces 10,000 $EMPIRE each, Capo charms 5,000 $EMPIRE each, MNK3YS / ZMB3YS charms 50,000 $BLUNANA each.
+  STORE_ENABLED: true,
+  STORE_REAL_BUYS_ENABLED: false,
+  STORE_ITEMS: [
+    { id: 'capo_night', kind: 'face', name: 'Empire Night', collection: 'Caporegime Del $Empire', token: 'empire', price: 10000, art: 'store/capo_night.png' }, // FINAL
+    { id: 'capo_velvet', kind: 'face', name: 'Velvet Rose', collection: 'Caporegime Del $Empire', token: 'empire', price: 10000, art: 'store/capo_velvet.png' }, // FINAL
+    { id: 'charm_fedora', kind: 'item', name: 'Fedora', collection: 'Caporegime Del $Empire', token: 'empire', price: 5000, art: 'store/charm_fedora.png' }, // FINAL
+    { id: 'charm_rose', kind: 'item', name: 'Rose', collection: 'Caporegime Del $Empire', token: 'empire', price: 5000, art: 'store/charm_rose.png' }, // FINAL
+    { id: 'charm_banana', kind: 'item', name: 'Blunana Buddy', collection: 'MNK3YS', token: 'blunana', price: 50000, art: 'store/charm_banana.png' }, // FINAL
+    { id: 'charm_bone', kind: 'item', name: 'Glow Bone', collection: 'ZMB3YS', token: 'blunana', price: 50000, art: 'store/charm_bone.png' } // FINAL
+  ],
 
   // How long to wait for the RPC before showing a friendly error.
   RPC_TIMEOUT_MS: 15000,
@@ -178,6 +291,20 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   MAX_PETS: 60,
 
   // Ranks screen. Scores come from saved pet progress on the server.
+  // LB REWARDS (PREVIEW, Nov 2 2026). LB_REWARDS_ENABLED false = no reward card, no Monthly tab, no winner face anywhere.
+  // First Monthly #1: November 2026, picked at the end of November Atlantic time (2026-12-01T04:00:00Z), then every month.
+  // LB_AUTH_ENDPOINT: wallet proof (signMessage). Empty = off. The dev adds /api/blup3ts-auth (/nonce, /verify, /session). See API_LB_SECURITY.md.
+  // LB_REWARDS_ENDPOINT: empty = no winner list yet, so the winner face stays locked for everyone. The dev adds /api/blup3ts-rewards.
+  LB_REWARDS_ENABLED: false,
+  // RANKS SECURITY (build Nov 2 2026, Azgog): LB_SECURE_ENABLED true = the Ranks sheet asks a connected wallet to prove it is theirs
+  // (signMessage with a server nonce, never a transaction), and real feeds are sent to FEED_RECEIPT_ENDPOINT with their tx signature.
+  // The server counts a feed only for a proved wallet and only after the tx is FINALIZED on chain and matches (see docs/API_LB_SECURITY.md).
+  // Needs the dev's /api/blup3ts-auth (nonce, verify, session) and the new /api/blup3ts-feeds checks. Set false to go back to the old flow.
+  LB_SECURE_ENABLED: false,
+  FEED_RECEIPT_ENDPOINT: '/api/blup3ts-feeds',
+  LB_REWARDS_FIRST_MONTH: '2026-11',
+  LB_AUTH_ENDPOINT: '/api/blup3ts-auth',
+  LB_REWARDS_ENDPOINT: '',
   LEADERBOARD_ENABLED: true,
   LEADERBOARD_ENDPOINT: '/api/blup3ts-leaderboard',
   LEADERBOARD_DISCORD_LOGIN_URL: '/api/discord/auth?next=/preview/blup3ts/'

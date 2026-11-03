@@ -129,6 +129,45 @@ window.BLUP3TS_DATA = {
    ]
   },
   {
+   "id": "capo-demo",
+   "name": "Capo #353",
+   "collection": "Caporegime Del $Empire",
+   "img": "capo/capo_353.webp",
+   "round": false,
+   "number": 353,
+   "mint": "2V4H8tV5HiWnpH3R59brPUHBosUjaUcDUm5uTJVT2jtN",
+   "mouth": [
+    0.55,
+    0.74
+   ],
+   "traits": [
+    {
+     "type": "Backgrounds",
+     "value": "Bright Red"
+    },
+    {
+     "type": "Skins",
+     "value": "Galaxy"
+    },
+    {
+     "type": "Head",
+     "value": "White Flow"
+    },
+    {
+     "type": "Eyes",
+     "value": "Icy Glow"
+    },
+    {
+     "type": "Outfit",
+     "value": "Black Suit"
+    },
+    {
+     "type": "Mouth",
+     "value": "Mustache Handles + White Teeth"
+    }
+   ]
+  },
+  {
    "id": "mnk3y-4182",
    "name": "MNK3Y #4182",
    "collection": "MNK3YS",

@@ -105,6 +105,7 @@
   function unlockAudio() { // call inside a tap
     if (!Ctx) return;
     try { if (!ctx) ctx = new Ctx(); if (ctx.state === 'suspended') ctx.resume(); } catch (e) { ctx = null; }
+    if (ctx) loadSamples();
     if (ctx && !noiseBuf) { noiseBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * .08), ctx.sampleRate); var ch = noiseBuf.getChannelData(0); for (var i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1; }
   }
   function tone(type, f0, f1, t0, dur, vol) {
@@ -242,8 +243,34 @@
 
   // 8-bit placeholder note per instrument, played on each Jam tap
   var lastInst = null, instN = 0;
+  // JAM SOUNDS (preview): real one-shot samples per instrument, decoded once with WebAudio, tuned to the Jam loop (E minor, 120 BPM).
+  // Each tap walks a short riff; drums play kick, hat, snare, hat. If a sample is not ready yet the 8-bit note below plays instead.
+  var SAMP = {
+    bass: ['bass_e2', 'bass_g2', 'bass_a2', 'bass_b2', 'bass_d3'],
+    guitar: ['guitar_e3', 'guitar_g3', 'guitar_a3', 'guitar_b3', 'guitar_d4'],
+    drumsticks: ['drums_kick', 'drums_hat', 'drums_snare', 'drums_hat_open'],
+    mic: ['mic_ooh_e4', 'mic_ah_g4', 'mic_ooh_a4', 'mic_ah_b4', 'mic_ooh_d5'],
+    keytar: ['keytar_e4', 'keytar_g4', 'keytar_a4', 'keytar_b4', 'keytar_d5']
+  };
+  var RIFF = { bass: [0, 0, 1, 2, 0, 0, 3, 4], guitar: [0, 1, 2, 1, 0, 3, 2, 4], drumsticks: [0, 1, 2, 1, 0, 0, 2, 3], mic: [0, 1, 2, 1, 3, 2, 4, 3], keytar: [0, 1, 2, 3, 4, 3, 2, 1] };
+  var SGAIN = { bass: .7, guitar: .7, drumsticks: .7, mic: .7, keytar: .7 }; // EQ pass: files are now level-matched, so one even gain
+  var sbuf = {}, sLoading = false, sStep = {}, sLast = null;
+  function loadSamples() { // once, after the first sound-on tap creates the AudioContext
+    if (sLoading || !ctx || !window.fetch) return; sLoading = true;
+    Object.keys(SAMP).forEach(function (k) { SAMP[k].forEach(function (n) {
+      fetch('audio/inst/' + n + '.mp3').then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); })
+        .then(function (a) { return new Promise(function (res, rej) { ctx.decodeAudioData(a, res, rej); }); })
+        .then(function (b) { sbuf[n] = b; }).catch(function () {});
+    }); });
+  }
+  function playSample(kind) {
+    var list = SAMP[kind], riff = RIFF[kind]; if (!list) return false;
+    var step = sStep[kind] || 0, name = list[riff[step % riff.length]], b = sbuf[name]; if (!b) return false;
+    sStep[kind] = step + 1;
+    try { var s = ctx.createBufferSource(), g = ctx.createGain(); s.buffer = b; g.gain.value = SGAIN[kind] || .6; s.connect(g); g.connect(out()); s.start(ctx.currentTime); sLast = name; return true; } catch (e) { return false; }
+  }
   function inst(kind) {
-    lastInst = kind || null; if (!ready() || !kind) return; var t = ctx.currentTime + .005, k = instN++ % 4;
+    lastInst = kind || null; if (!ready() || !kind) return; if (playSample(kind)) return; var t = ctx.currentTime + .005, k = instN++ % 4;
     var sc = [0, 3, 5, 7], up = function (f) { return f * Math.pow(2, sc[k] / 12); };
     if (kind === 'bass') { tone('triangle', up(82), 0, t, .22, .2); tone('square', up(82), 0, t, .06, .05); }
     else if (kind === 'guitar') { tone('square', up(196), up(194), t, .2, .07); tone('square', up(294), 0, t + .01, .16, .04); }
@@ -251,5 +278,5 @@
     else if (kind === 'mic') { tone('sine', up(440), up(452), t, .24, .12); tone('sine', up(880), 0, t, .1, .03); }
     else if (kind === 'keytar') { tone('sawtooth', up(523), 0, t, .14, .05); tone('square', up(659), 0, t + .07, .12, .04); }
   }
-  window.BLUP3TS_EAT = { inst: inst, lastInst: function () { return lastInst; }, run: run, cancel: cancel, icon: icon, plan: PLAN, unlockAudio: unlockAudio, setVolume: setVolume, volume: function () { return { set: vol, node: master ? master.gain.value : null }; }, setEnabled: function (on) { enabled = !!on; }, audioState: function () { return ctx ? ctx.state : 'none'; } };
+  window.BLUP3TS_EAT = { inst: inst, lastInst: function () { return lastInst; }, run: run, cancel: cancel, icon: icon, plan: PLAN, unlockAudio: unlockAudio, setVolume: setVolume, volume: function () { return { set: vol, node: master ? master.gain.value : null }; }, setEnabled: function (on) { enabled = !!on; }, audioState: function () { return ctx ? ctx.state : 'none'; }, samples: function () { return { loaded: Object.keys(sbuf), last: sLast }; } };
 })();

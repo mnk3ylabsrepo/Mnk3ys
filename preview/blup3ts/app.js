@@ -17,7 +17,8 @@
     FOODS.forEach(function (f) { var base = Number.isInteger(c[f.id]) && c[f.id] > 0 ? c[f.id] : f.cost; f.cost = Math.max(1, Math.round(base * k)); });
   })();
   var START = 100000;
-  var SPEEDS = [[600, '1s = 10 min'], [3600, '1s = 1 hr'], [1, 'real time']];
+  // REAL TIME ONLY (NEXT BATCH, Nov 2): the game always runs at real speed. The Speed control is gone; any old saved 'speed' value is ignored (never rewritten).
+  var REAL_SPEED = 1;
   // total strength needed to reach level n (n >= 1), from config.js LEVEL_STRENGTH (L2..L10), then +LEVEL_STEP_AFTER per level
   var LV = (function () {
     var c = window.BLUP3TS_CONFIG || {}, t = c.LEVEL_STRENGTH, d = [50, 150, 350, 700, 1000, 1500, 2300, 3500, 5000], step = c.LEVEL_STEP_AFTER;
@@ -32,11 +33,11 @@
   // 'Show original traits': 18+ confirmed, switched on, and ONLY for the holder's own connected NFT (never starters)
   function origOn(d) { var c = window.BLUP3TS_CONFIG || {}; return c.ORIGINAL_TRAITS_SETTING === true && !!S && S.adult === true && S.orig === true && S.mode === 'wallet' && !!(d && d.owned); }
   function walletOn() { var c = window.BLUP3TS_CONFIG; return !!c && c.WALLET_CONNECT_ENABLED === true; }
-  var P = 'blup3ts.web.', KEYS = ['balance', 'pets', 'swaps', 'active', 'sound', 'speed', 'started', 'mode', 'orig', 'adult', 'layout', 'vol', 'fold'], store = null;
+  var P = 'blup3ts.web.', KEYS = ['balance', 'pets', 'swaps', 'active', 'sound', 'speed', 'started', 'mode', 'orig', 'adult', 'layout', 'vol', 'fold', 'care', 'seen'], store = null;
   try { store = window.localStorage; } catch (e) {}
   function clamp(n) { n = +n; return isFinite(n) ? Math.max(0, Math.min(100, n)) : 0; }
   function newPet() { return { full: 80, joy: 70, str: 0, eaten: 0, jams: 0 }; }
-  function fresh() { var s = { active: DATA.pets[0].id, bal: START, speed: 0, pets: {}, looks: {}, started: false, sound: false, mode: 'pretend', orig: false, adult: false, layout: 'watch', vol: 0, fold: 'auto' }; DATA.pets.forEach(function (p) { s.pets[p.id] = newPet(); }); var zs = DATA.pets.filter(function (p) { return p.collection === 'ZMB3YS'; })[0]; if (zs) { s.pets[zs.id].full = 26; s.pets[zs.id].joy = 55; } return s; } // NEXT BATCH: the ZMB3Y starter may be a live floor pick
+  function fresh() { var s = { active: DATA.pets[0].id, bal: START, pets: {}, looks: {}, started: false, sound: false, mode: 'pretend', orig: false, adult: false, layout: 'watch', vol: 0, fold: 'auto' }; DATA.pets.forEach(function (p) { s.pets[p.id] = newPet(); }); var zs = DATA.pets.filter(function (p) { return p.collection === 'ZMB3YS'; })[0]; if (zs) { s.pets[zs.id].full = 26; s.pets[zs.id].joy = 55; } return s; } // NEXT BATCH: the ZMB3Y starter may be a live floor pick
   function get(k) { try { var v = store && store.getItem(P + k); return v == null ? undefined : JSON.parse(v); } catch (e) { return undefined; } }
   function clearKeys() { try { if (!store) return; KEYS.forEach(function (k) { store.removeItem(P + k); }); for (var i = store.length - 1; i >= 0; i--) { var k = store.key(i); if (k && k.indexOf(P) === 0 && k !== P + 'floorlast') store.removeItem(k); } } catch (e) {} } // keeps floorlast (starters.js 'never the same pet twice'; not progress) - the live list can land before app.js runs
   // spoken name = the visible text first, then what a tap does (data-al), so voice control and screen readers match what you see
@@ -51,7 +52,7 @@
     if (!DATA.pets.some(function (p) { return p.id === s.active; }) && !(walletOn() && /^own-/.test(s.active))) s.active = DATA.pets[0].id;
     s.mode = get('mode') === 'wallet' && walletOn() ? 'wallet' : 'pretend'; // wallet connect off -> Pretend
     s.sound = get('sound') === true;
-    v = get('speed'); if (v === 0 || v === 1 || v === 2) s.speed = v;
+    // old saved 'speed' (0/1/2) is read by nothing now: everyone plays in real time. Progress keys are untouched.
     s.started = get('started') === true;
     s.adult = get('adult') === true; s.orig = s.adult && get('orig') === true; // 'Show original traits' needs the 18+ confirm
     // M13: exactly two views, Watch and Phone. Any older saved view ('full' or anything else) becomes Phone.
@@ -62,18 +63,25 @@
   }
   if (/[?&]fresh=1/.test(location.search)) clearKeys(); // starts over (starters.js picks fresh floor pets on every Pretend load anyway)
   var S = load();
+  var SEEN0 = get('seen'); // AWAY CATCH-UP: read before anything saves again
   function save() {
     try { if (!store) return;
       store.setItem(P + 'balance', JSON.stringify(S.bal)); store.setItem(P + 'pets', JSON.stringify(S.pets));
       store.setItem(P + 'swaps', JSON.stringify(S.looks)); store.setItem(P + 'active', JSON.stringify(S.active));
-      store.setItem(P + 'sound', JSON.stringify(!!S.sound)); store.setItem(P + 'speed', JSON.stringify(S.speed));
+      store.setItem(P + 'sound', JSON.stringify(!!S.sound));
       store.setItem(P + 'started', JSON.stringify(!!S.started)); store.setItem(P + 'mode', JSON.stringify(S.mode));
       store.setItem(P + 'orig', JSON.stringify(!!S.orig)); store.setItem(P + 'adult', JSON.stringify(!!S.adult)); store.setItem(P + 'layout', JSON.stringify(S.layout)); store.setItem(P + 'vol', JSON.stringify(S.vol));       store.setItem(P + 'fold', JSON.stringify(S.fold));
+      store.setItem(P + 'seen', JSON.stringify(Date.now())); // AWAY CATCH-UP: last time the game was on screen
       if (window.BLUP3TS_WALLET && BLUP3TS_WALLET.persist) BLUP3TS_WALLET.persist();
     } catch (e) {}
   }
-  var simClock = new Date(2026, 9, 22, 10, 9).getTime();
-  function petDef() { return DATA.pets.filter(function (p) { return p.id === S.active; })[0] || DATA.pets[0]; }
+  var simClock = Date.now(); // real time: the watch clock is the real clock
+  // CAPO_WALLET_ENABLED (Azgog, Nov 3): Capos are Pretend-only for now. In Wallet mode they are locked ('Coming soon').
+  var CAPO_NAME = 'Caporegime Del $Empire';
+  function isCapo(d) { return !!d && d.collection === CAPO_NAME; }
+  function capoWalletLocked() { var c = window.BLUP3TS_CONFIG || {}; return !!S && S.mode === 'wallet' && c.CAPO_WALLET_ENABLED !== true; }
+  function noLockedCapo(list) { return capoWalletLocked() ? list.filter(function (d) { return !isCapo(d); }) : list; }
+  function petDef() { var d = DATA.pets.filter(function (p) { return p.id === S.active; })[0]; if (d && isCapo(d) && capoWalletLocked()) d = null; /* old save: Capo in Wallet mode -> default pet */ return d || noLockedCapo(DATA.pets)[0] || DATA.pets[0]; }
   function pet() { var id = petDef().id; if (!S.pets[id]) S.pets[id] = newPet(); return S.pets[id]; }
 
   // food lost per hour for one pet: config BASE_HUNGER_DECAY_PER_HOUR; rarer pets a bit slower ONLY when RARITY_PERKS_ENABLED
@@ -92,6 +100,18 @@
       p.joy = Math.max(0, p.joy - normalH * RULES.joyDecay - hungryH * RULES.joyDecayHungry);
       p.full = Math.max(0, p.full - rate * hours);
     });
+  }
+  // ===== Away catch-up (build Nov 2 2026, Azgog): hunger catches up for the time the game was closed or in the background,
+  // but never takes a pet below AWAY.floor (30% = the Hungry line). A pet already below 30% stays where it was. Joy, STR, Level
+  // and Care XP are not touched. While the game is on screen, hunger drops exactly as before (decay above, no floor).
+  // Saved data: one NEW key blup3ts.web.seen (a timestamp). Old saves have no 'seen', so the first load just starts the clock (no catch-up).
+  var AWAY = { floor: RULES.hungry, maxHours: 24 * 60 };
+  var awayH = 0, awayServer = {};
+  function awayFull(full, rate, hours) { return full > AWAY.floor ? Math.max(AWAY.floor, full - rate * hours) : full; }
+  function catchUp(hours) {
+    hours = Math.min(AWAY.maxHours, +hours || 0); if (!(hours > 0)) return 0;
+    var n = 0; Object.keys(S.pets).forEach(function (id) { var p = S.pets[id], was = p.full; p.full = awayFull(p.full, decayRate(id), hours); if (was - p.full >= 1) n++; });
+    return n;
   }
   function mood(p) {
     if (p.full <= 5) return ['😵', 'Starving', 1];
@@ -154,6 +174,58 @@
   $('crown').onclick = function () { play('tap'); var i = PAGES.indexOf(page); showPage(PAGES[(i + 1) % PAGES.length]); };
   [].forEach.call(document.querySelectorAll('#tabs button[data-go]'), function (b) { b.onclick = function () { play('tap'); if (!S.started) start(); showPage(b.dataset.go); }; });
 
+  // ===== Hunger countdown (real time): 'Hungry in 3h 20m' / 'Hungry now' =====
+  function hungryIn(p, id) {
+    var hrs = (p.full - RULES.hungry) / decayRate(id);
+    if (!(hrs > 0)) return 'Hungry now 🍌';
+    var mins = Math.max(1, Math.ceil(hrs * 60)), h = Math.floor(mins / 60), m = mins % 60;
+    return 'Hungry in ' + (h ? h + 'h ' + m + 'm' : m + 'm');
+  }
+  // ===== Care XP, daily check-in and streak (NEXT BATCH preview). One NEW key: blup3ts.web.care =====
+  // Care XP lives ONLY here. It never touches pet STR, level or hunger, is never sent to the server, and never counts on the leaderboard (feeds only).
+  var CARE = { patXp: 1, patCooldownMs: 60000, patDailyCap: 20, checkinXp: 10 };
+  var STICKERS = [[3, '🌱', 'Sprout sticker'], [7, '⭐', 'Star sticker'], [14, '🏅', 'Buddy badge'], [30, '👑', 'Crown badge']];
+  function dayKey(t) { var d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function prevDay(t) { var d = new Date(t); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - 1); return dayKey(d.getTime()); }
+  function loadCare() {
+    var c = get('care'), o = { xp: 0, patDay: '', patToday: 0, patAt: 0, last: '', streak: 0, best: 0, stickers: [] };
+    if (c && typeof c === 'object') {
+      o.xp = Math.max(0, Math.floor(+c.xp || 0)); o.patDay = typeof c.patDay === 'string' ? c.patDay : ''; o.patToday = Math.max(0, Math.floor(+c.patToday || 0)); o.patAt = Math.max(0, +c.patAt || 0);
+      o.last = typeof c.last === 'string' ? c.last : ''; o.streak = Math.max(0, Math.floor(+c.streak || 0)); o.best = Math.max(0, Math.floor(+c.best || 0));
+      o.stickers = Array.isArray(c.stickers) ? c.stickers.filter(function (n) { return STICKERS.some(function (q) { return q[0] === n; }); }) : [];
+    }
+    return o;
+  }
+  var C = loadCare();
+  function saveCare() { try { if (store) store.setItem(P + 'care', JSON.stringify(C)); } catch (e) {} }
+  function liveStreak(now) { return C.last === dayKey(now) || C.last === prevDay(now) ? C.streak : 0; } // a missed day shows 0 until the next check-in
+  function carePat() { // +1 Care XP per pat, at most once a minute and 20 a day
+    var now = Date.now(), t = dayKey(now);
+    if (C.patDay !== t) { C.patDay = t; C.patToday = 0; }
+    if (C.patToday >= CARE.patDailyCap || now - C.patAt < CARE.patCooldownMs) return 0;
+    C.patAt = now; C.patToday += CARE.patXp; C.xp += CARE.patXp; saveCare(); return CARE.patXp;
+  }
+  function checkIn() {
+    var now = Date.now(), t = dayKey(now);
+    if (C.last === t) { toast('Already checked in today. See you tomorrow! 👋'); return null; }
+    C.streak = C.last === prevDay(now) ? C.streak + 1 : 1; C.last = t; C.best = Math.max(C.best, C.streak); C.xp += CARE.checkinXp;
+    var got = null; STICKERS.forEach(function (q) { if (C.streak === q[0] && C.stickers.indexOf(q[0]) < 0) { C.stickers.push(q[0]); got = q; } });
+    saveCare(); play('tap');
+    if (got) toast(got[1] + ' New ' + got[2] + '! ' + C.streak + ' days in a row'); else toast('✅ Checked in! +' + CARE.checkinXp + ' Care XP · ' + C.streak + ' day streak 🔥');
+    renderCare(); return { streak: C.streak, sticker: got && got[0] };
+  }
+  function renderCare() {
+    var box = $('careCard'); if (!box) return;
+    var now = Date.now(), done = C.last === dayKey(now), st = liveStreak(now), next = STICKERS.filter(function (q) { return C.stickers.indexOf(q[0]) < 0; })[0];
+    var sig = [done, st, C.xp, C.patToday, C.stickers.join(',')].join('|'); if (box.dataset.sig === sig) return; box.dataset.sig = sig;
+    box.textContent = '';
+    var h = el('div', 'cardh'); h.appendChild(el('span', null, '📅 Daily check-in')); h.appendChild(el('span', 'dim small', '🔥 ' + st + ' day' + (st === 1 ? '' : 's'))); box.appendChild(h);
+    var b = el('button', 'btn b-tcyan look', done ? '✅ Checked in today' : '👋 Check in (+' + CARE.checkinXp + ' Care XP)'); b.id = 'checkinBtn'; b.disabled = done; b.onclick = function () { checkIn(); }; box.appendChild(b);
+    var r = el('div', 'row sb carexp'); r.appendChild(el('span', 'cap', 'Care XP')); r.appendChild(el('span', null, fmt(C.xp))); box.appendChild(r);
+    box.appendChild(el('div', 'fine', 'Pats give +' + CARE.patXp + ' Care XP, once a minute, up to ' + CARE.patDailyCap + ' a day (' + C.patToday + ' today). Care XP is just for fun and is not on the leaderboard.'));
+    var row = el('div', 'stickers'); STICKERS.forEach(function (q) { var on = C.stickers.indexOf(q[0]) >= 0, i = el('span', 'sticker' + (on ? ' on' : ''), q[1]); i.title = q[2] + ' · ' + q[0] + ' days'; i.setAttribute('role', 'img'); i.setAttribute('aria-label', q[2] + ', ' + q[0] + ' day streak, ' + (on ? 'earned' : 'locked')); row.appendChild(i); }); box.appendChild(row);
+    box.appendChild(el('div', 'fine', next ? 'Next: ' + next[2] + ' at ' + next[0] + ' days in a row.' : 'You earned every sticker! 🎉'));
+  }
   // ===== Render =====
   function render() {
     applyCase();
@@ -166,6 +238,7 @@
     var shown = eating ? dispFull : p.full;
     syncAl(); $('hFull').textContent = Math.round(eating ? dispText : p.full) + '%'; $('hFullBar').style.width = shown + '%';
     $('feedBtn').disabled = eating; $('jamBtn').disabled = eating;
+    (function () { var fi = document.querySelector('#feedBtn img.ico'); if (!fi) return; var emp = isCapo(petDef()), want = emp ? 'capo/empire_logo.png' : 'assets/banana.png'; /* Capo pets: $EMPIRE logo on Feed; MNK3YS / ZMB3YS keep the banana */ if (fi.getAttribute('src') !== want) { fi.setAttribute('src', want); fi.alt = emp ? '$EMPIRE token logo' : ''; } })();
     var lo = strNeeded(lvl), hi = strNeeded(lvl + 1), lvlPct = (p.str - lo) / (hi - lo) * 100;
     $('hStr').textContent = fmt(p.str); $('hStrBar').style.width = Math.min(100, p.str / hi * 100) + '%';
     $('hLvl').textContent = lvl; $('hLvlBar').style.width = lvlPct + '%';
@@ -174,8 +247,7 @@
     $('sJoy').textContent = Math.round(p.joy) + '%'; $('sJoyBar').style.width = p.joy + '%';
     $('sLvlL').textContent = '⭐ Level ' + lvl; $('sLvl').textContent = fmt(p.str) + ' / ' + fmt(hi) + ' STR'; $('sLvlBar').style.width = lvlPct + '%';
     $('sEaten').textContent = p.eaten; $('sJams').textContent = p.jams;
-    var hrs = (p.full - RULES.hungry) / decayRate(petDef().id);
-    bluText($('sHungry'), hrs > 0 ? 'in ' + (hrs < 1 ? Math.round(hrs * 60) + ' min' : hrs.toFixed(1) + ' hr') : 'now! 🍌');
+    bluText($('sHungry'), hungryIn(p, petDef().id)); renderCare();
     $('bal').textContent = fmt(S.bal);
     if (API && API.paintPlay) API.paintPlay();
     var fi = $('fullInfo'); if (fi && S.layout === 'phone') { var ri = rarityInfo(d); fi.textContent = '⭐ Lv ' + lvl + ' · ' + fmt(p.str) + ' / ' + fmt(hi) + ' STR' + (ri && ri.tier ? ' · ' + ri.tier.name + ' (preview)' : ''); }
@@ -185,7 +257,7 @@
     var d = petDef();
     var fb = d.fallbackImg || (window.BLUP3TS_ART ? BLUP3TS_ART.collection(d.collection) : null);
     ['petImg', 'jamImg', 'lvPet', 'launchPet'].forEach(function (id) { var im = $(id); im.onerror = function () { if (fb && im.src.indexOf(fb) < 0) im.src = fb; }; im.src = d.img; });
-    $('verified').textContent = d.owned ? '✔ ' + d.collection + ' · in your wallet' : '✔ ' + d.collection + ' · starter pet';
+    $('verified').textContent = ''; $('verified').appendChild(el('span', 'vtxt', d.owned ? '✔ ' + d.collection + ' · in your wallet' : '✔ ' + d.collection + ' · starter pet')); paintFavHome();
     var fp = $('fullPet'); if (fp) fp.textContent = d.name + ' · ' + d.collection;
   }
 
@@ -198,12 +270,32 @@
     return rarCache[d.id];
   }
   function featStr(d, base) { var r = rarityInfo(d); return TIERS ? TIERS.featStr(CFG, r && r.tier, base) : base; }
+  // ----- Adopt chooser (Azgog, Nov 3): MNK3YS, ZMB3YS, Caporegime Del $Empire starters (not your own pets).
+  // Shows the Orbis + Magic Eden badges; each opens this pet's own page there (by mint) in a new tab, else the collection page.
+  // Links only: nothing is bought, signed or sent in the game.
+  var MKT = [{ id: 'orbis', name: 'Orbis' }, { id: 'me', name: 'Magic Eden' }];
+  function adoptLinks(d) {
+    if (!d || d.owned || (isCapo(d) && capoWalletLocked())) return null; var C = window.BLUP3TS_CONFIG || {}, coll = (C.COLLECTIONS || []).filter(function (c) { return c.name === d.collection && c.adopt && c.enabled !== false; })[0];
+    if (!coll) return null; var mintOk = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(d.mint || ''), capo = coll.id === 'capo';
+    if (!capo && !(d.floor && mintOk)) return null; // MNK3YS / ZMB3YS: live floor pets only (as before); Capo: every Capo starter
+    var T = C.ADOPT_ITEM_URLS || {};
+    return MKT.map(function (m) { var t = T[m.id], u = mintOk && typeof t === 'string' ? t.replace('{mint}', encodeURIComponent(d.mint)) : coll.adopt[m.id];
+      return /^https:\/\/(www\.orbisonsol\.io|magiceden\.io)\//.test(u || '') ? { id: m.id, name: m.name, url: u } : null; }).filter(Boolean);
+  }
+  function adoptChooser(d) {
+    var H = window.BLUP3TS_HOME, L = adoptLinks(d); if (!H || !H.openSheet || !L || !L.length) return false; play('tap');
+    var wrap = el('div', 'adoptpick'), nodes = [el('p', 'fine', 'Pick a marketplace to see ' + d.name + '. It opens in a new tab. Nothing is bought in the game.'), wrap];
+    L.forEach(function (m) { var a = el('a', 'adoptmkt'); a.href = m.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.dataset.mkt = m.id;
+      a.setAttribute('aria-label', 'See ' + d.name + ' on ' + m.name + ' (opens a new tab)'); a.appendChild(el('span', 'mktbadge mkt-' + m.id)); a.appendChild(el('span', 'mktname', m.name + ' ↗'));
+      a.onclick = function () { setTimeout(function () { H.closeSheet(); }, 0); }; wrap.appendChild(a); });
+    H.openSheet('Adopt ' + d.name, nodes); return true;
+  }
   function renderRarity() {
     var box = $('rarityBox'); if (!box) return; box.textContent = '';
     var r = rarityInfo(), d = petDef();
     // M13 batch: a live floor starter (never a wallet pet) gets a small 'Adopt on Orbis' link to its own Orbis item page
-    var ad = $('adoptLink'); if (ad) { var okm = d && d.floor && !d.owned && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(d.mint || '');
-      ad.hidden = !okm; if (okm) { ad.href = 'https://www.orbisonsol.io/marketplace/item/' + d.mint; ad.setAttribute('aria-label', 'Adopt ' + d.name + ' on Orbis (opens a new tab)'); } }
+    var ad = $('adoptLink'); if (ad) { var okm = !!adoptLinks(d); ad.hidden = !okm; // Adopt chooser (Nov 3): Orbis or Magic Eden, this pet's own page
+      if (okm) { ad.textContent = '🐾 Adopt'; ad.href = adoptLinks(d)[0].url; ad.setAttribute('aria-label', 'Adopt ' + d.name + ': pick Orbis or Magic Eden'); ad.onclick = function (e) { e.preventDefault(); adoptChooser(d); }; } }
     var h = el('div', 'cardh'); h.appendChild(document.createTextNode('Rarity ')); h.appendChild(el('span', 'dim small', 'preview')); box.appendChild(h);
     var row = el('div', 'trow'); row.appendChild(el('span', 'tk', 'Tier'));
     var tv = el('span', 'tv'); tv.appendChild(document.createTextNode(r && r.tier ? r.tier.name : 'Coming soon'));
@@ -234,17 +326,28 @@
   function petLevel(id) { var p = S.pets[id || petDef().id]; return levelFor(p ? p.str : 0); }
   // ----- watch cases (config.js WATCH_CASES): cosmetic only, free. A project case unlocks for its collection once any
   // of the player's pets from that collection reaches CASE_UNLOCK_LEVEL. Choice saved per pet in looks[petId].case.
+  var GOO = { gold: 1, silver: 1, bronze: 1 }; // TOP 3 faces only: liquid metal goo drawn on the drip layer (data-goo)
   var CASE_SAFE = /^[#(),.%\s\w-]*$/; // colours / gradients only: no url(), no ';' -> nothing can load from outside
-  function caseCfg() { var c = window.BLUP3TS_CONFIG || {}, m = c.WATCH_CASES || {}; return { map: m, def: m[c.DEFAULT_WATCH_CASE] ? c.DEFAULT_WATCH_CASE : 'default', lvl: (c.CASE_UNLOCK_LEVEL >= 1 && c.CASE_UNLOCK_LEVEL <= 99) ? Math.floor(c.CASE_UNLOCK_LEVEL) : 3 }; }
+  function caseCfg() { var c = window.BLUP3TS_CONFIG || {}, m = c.WATCH_CASES || {}; if (window.BLUP3TS_FACES) m = Object.assign({}, m, window.BLUP3TS_FACES); /* FACES: preview faces */ return { map: m, def: m[c.DEFAULT_WATCH_CASE] ? c.DEFAULT_WATCH_CASE : 'default', lvl: (c.CASE_UNLOCK_LEVEL >= 1 && c.CASE_UNLOCK_LEVEL <= 99) ? Math.floor(c.CASE_UNLOCK_LEVEL) : 3 }; }
   function allPets() { return (API && API.pets) ? API.pets() : DATA.pets; }
-  function casesFor(d) { var K = caseCfg(), out = []; Object.keys(K.map).forEach(function (id) { var c = K.map[id]; if (id === K.def || (c && c.collection && d && c.collection === d.collection)) out.push(id); }); return out; }
+  // Capo faces (Azgog, Nov 3): every case whose collection is Caporegime Del $Empire is for Capo pets ONLY: never listed,
+  // previewed, wearable or kept for any other pet (MNK3YS, ZMB3YS, BABI3S, LP Dollz...), even if it is ever marked face:true.
+  var CAPO_COLL = 'Caporegime Del $Empire';
+  function capoOnly(c, d) { return !!c && c.collection === CAPO_COLL && !(d && d.collection === CAPO_COLL); }
+  function casesFor(d) { var K = caseCfg(), out = []; Object.keys(K.map).forEach(function (id) { var c = K.map[id]; if (capoOnly(c, d)) return; if (id === K.def || (c && c.face === true) || (c && c.collection && d && c.collection === d.collection)) out.push(id); }); return out; }
   function caseUnlocked(id) {
-    var K = caseCfg(), c = K.map[id]; if (!c) return false; if (id === K.def || !c.collection) return true;
+    var K = caseCfg(), c = K.map[id], FF = window.BLUP3TS_FREEFEE; if (!c) return false;
+    if (c.store === true) return !!(window.BLUP3TS_STORE && BLUP3TS_STORE.owns(id)); /* STORE faces: bought once per wallet */
+    return caseBase(id) && !(id !== K.def && FF && FF.needs(id)); /* Nov 3: free faces may need the one-time SOL unlock (Classic never) */
+  }
+  function caseBase(id) { // the usual rule: Classic free, project cases at Level 3, extra faces owned / free by date
+    var K = caseCfg(), c = K.map[id]; if (!c || c.store === true) return false;
+    if (c.face === true) return !!(window.BLUP3TS_FACEPAY && BLUP3TS_FACEPAY.open(id)); /* FACE UNLOCKS: owned, free by date, else locked */ if (id === K.def || !c.collection) return true;
     return allPets().some(function (q) { return q.collection === c.collection && petLevel(q.id) >= K.lvl; });
   }
-  function caseOf(d) { d = d || petDef(); var K = caseCfg(), want = (S.looks[d.id] || {}).case; return want && casesFor(d).indexOf(want) >= 0 && caseUnlocked(want) ? want : K.def; }
+  function caseOf(d) { d = d || petDef(); var K = caseCfg(), want = (S.looks[d.id] || {}).case; if (want && capoOnly(K.map[want], d)) want = null; /* old save: Capo face on a non-Capo pet -> default */ return want && casesFor(d).indexOf(want) >= 0 && caseUnlocked(want) ? want : K.def; }
   function setCase(id, d) {
-    d = d || petDef(); if (casesFor(d).indexOf(id) < 0 || !caseUnlocked(id)) return false;
+    d = d || petDef(); if (capoOnly(caseCfg().map[id], d) || casesFor(d).indexOf(id) < 0 || !caseUnlocked(id)) return false;
     var lk = S.looks[d.id] = S.looks[d.id] || {}; if (id === caseCfg().def) delete lk.case; else lk.case = id; save(); applyCase(); return true;
   }
   function caseList(d) { d = d || petDef(); var K = caseCfg(), cur = caseOf(d); return casesFor(d).map(function (id) { var c = K.map[id]; return { id: id, name: c.name || id, on: id === cur, locked: !caseUnlocked(id), level: K.lvl, collection: c.collection || null, swatch: c.caseBg, rim: c.rim }; }); }
@@ -255,24 +358,33 @@
   function caseLogoSrc(c) { return typeof c.logo === 'string' && /^[\w\/.-]+$/.test(c.logo) && c.logo.indexOf('..') < 0 ? c.logo : null; }
   function casePreviews(d) {
     d = d || petDef(); var K = caseCfg(), cur = caseOf(d), mine = casesFor(d);
-    return Object.keys(K.map).map(function (id) {
+    return Object.keys(K.map).filter(function (id) { return !capoOnly(K.map[id], d); }).map(function (id) { // Capo faces: hidden for non-Capo pets
       var c = K.map[id] || {}, applies = mine.indexOf(id) >= 0, art = d.img;
       if (!applies && c.collection) { var pool = visiblePets().filter(function (x) { return x.collection === c.collection && x.img; }), q = pool.filter(function (x) { return x.owned; })[0] || pool[0]; if (q) art = q.img; } // M12: your own wallet pets first
       return { id: id, name: c.name || id, on: id === cur, applies: applies, locked: !applies || !caseUnlocked(id), level: K.lvl, collection: c.collection || null,
-        vars: caseVars(c), logo: caseLogoSrc(c), motif: c.motif === 'drip' || c.motif === 'slime' ? c.motif : null, art: art };
+        vars: caseVars(c), logo: caseLogoSrc(c), motif: c.motif === 'drip' || c.motif === 'slime' ? c.motif : GOO[c.motif] ? 'drip' : null, goo: GOO[c.motif] ? c.motif : null, art: art };
     });
   }
   function applyCase() {
     var st = $('stage'); if (!st) return; var K = caseCfg(), id = caseOf(), c = K.map[id] || {};
     [['--case-bg', c.caseBg], ['--case-band', c.bandBg], ['--case-rim', c.rim], ['--case-accent', c.accent], ['--case-glow', c.glow], ['--case-crown', c.crown]].forEach(function (v) {
       if (typeof v[1] === 'string' && CASE_SAFE.test(v[1]) && v[1].indexOf('url') < 0) st.style.setProperty(v[0], v[1]); else st.style.removeProperty(v[0]); });
-    st.dataset.case = id; if (c.motif === 'drip' || c.motif === 'slime') st.dataset.motif = c.motif; else delete st.dataset.motif;
+    st.dataset.case = id; if (c.motif === 'drip' || c.motif === 'slime') st.dataset.motif = c.motif; else if (GOO[c.motif]) st.dataset.motif = 'drip'; else delete st.dataset.motif;
+    if (GOO[c.motif]) st.dataset.goo = c.motif; else delete st.dataset.goo; /* TOP 3 faces */
     var lg = $('caseLogo'), src = typeof c.logo === 'string' && /^[\w\/.-]+$/.test(c.logo) && c.logo.indexOf('..') < 0 ? c.logo : null; // local files only
     if (lg) { if (src) { if (lg.getAttribute('src') !== src) lg.src = src; lg.hidden = false; } else lg.hidden = true; }
+    if (window.BLUP3TS_STORE && BLUP3TS_STORE.paintCharm) BLUP3TS_STORE.paintCharm(petDef()); /* STORE: the pet's charm on the band */
   }
   function instOpen(k, id) { return !INST[k] || petLevel(id) >= INST[k]; } // not an instrument = always open; else by level (retroactive)
   function hasHand(d) { return (d || petDef()).traits.some(function (t) { return t.slot === 'hand'; }); }
-  function lookFor(slot) { var opts = DATA.swaps[slot].options, id = (S.looks[petDef().id] || {})[slot]; return opts.filter(function (o) { return o[0] === id && instOpen(o[0]); })[0] || opts[0]; }
+  function lookFor(slot) {
+    var opts = DATA.swaps[slot].options, lk = S.looks[petDef().id] || {}, id = lk[slot];
+    function pick(k) { return opts.filter(function (o) { return o[0] === k && instOpen(o[0]); })[0]; }
+    // Nov 2 2026 (Azgog): weapon pets hold the instrument picked in Choose look (lk.inst), respecting level unlocks.
+    // An Extras pick (foam sword, wrench, Blunana) or an older hand pick still wins when it is open. Nothing picked or open: bass.
+    if (slot === 'hand') return (id && !INST[id] && pick(id)) || (INST[lk.inst] && pick(lk.inst)) || (id && pick(id)) || opts[0];
+    return pick(id) || opts[0];
+  }
   function equippedInst() { // what the pet plays in Jam
     var d = petDef(), id = hasHand(d) ? lookFor('hand')[0] : (S.looks[d.id] || {}).inst;
     return INST[id] && instOpen(id) ? id : null;
@@ -317,7 +429,9 @@
     caseList(d).forEach(function (c) {
       var b = el('button', 'lopt' + (c.on ? ' on' : '') + (c.locked ? ' locked' : '')); b.dataset.case = c.id;
       b.appendChild(el('span', 'le', c.locked ? '🔒' : '⌚')); b.appendChild(el('span', 'ln', c.name));
-      if (c.locked) { b.appendChild(el('span', 'lul', 'Unlocks at L' + c.level)); b.setAttribute('aria-disabled', 'true'); b.onclick = function () { play('tap'); toast('Unlocks at Level ' + c.level + ' 🔒'); }; }
+      var FP = window.BLUP3TS_FACEPAY, fc = FP && FP.isFace(c.id); /* FACE UNLOCKS */
+      if (c.locked && fc) { b.appendChild(el('span', 'lul', FP.label(c.id))); b.onclick = function () { play('tap'); FP.tap(c.id, openLooks); }; }
+      else if (c.locked) { b.appendChild(el('span', 'lul', 'Unlocks at L' + c.level)); b.setAttribute('aria-disabled', 'true'); b.onclick = function () { play('tap'); toast('Unlocks at Level ' + c.level + ' 🔒'); }; }
       else { if (c.on) b.appendChild(el('span', 'lc', '✓')); b.onclick = function () { play('tap'); setCase(c.id, d); openLooks(); }; }
       cg.appendChild(b);
     });
@@ -336,7 +450,7 @@
         grp.appendChild(el('div', 'lgh', (g === 'Music' ? '🎵 MUSIC · ' : 'EXTRAS · ') + sw.title.toUpperCase()));
         sw.options.filter(function (o) { return o[3] === g; }).forEach(function (o) {
           // the pet's own swapped trait (first option) always shows; other instruments unlock by level
-          var b = o[0] === cur[0] ? optBtn(['__cur'].concat(o.slice(1)), true, function () {}) : optBtn(o, false, function () { S.looks[petDef().id] = S.looks[petDef().id] || {}; S.looks[petDef().id][t.slot] = o[0]; });
+          var b = o[0] === cur[0] ? optBtn(['__cur'].concat(o.slice(1)), true, function () {}) : optBtn(o, false, function () { var lk = S.looks[petDef().id] = S.looks[petDef().id] || {}; if (t.slot === 'hand' && INST[o[0]]) { lk.inst = o[0]; delete lk.hand; } else lk[t.slot] = o[0]; });
           b.dataset.opt = o[0]; grp.appendChild(b);
         });
         box.appendChild(grp);
@@ -348,21 +462,60 @@
   }
   $('lookBtn').onclick = function () { play('tap'); openLooks(); };
 
+  // ===== Favorites (NEXT BATCH preview) =====
+  // Own key per wallet: blup3ts_favs_v1:<wallet address> (or :pretend). A list of NFT mints (starters: their id).
+  // Never reads or writes progress (blup3ts.web.pets), looks (blup3ts.web.swaps) or settings keys, and a game reset leaves it alone.
+  var FAVP = 'blup3ts_favs_v1:', FAVOK = /^[A-Za-z0-9-]{3,48}$/;
+  function favOwner() { var Wf = window.BLUP3TS_WALLET && BLUP3TS_WALLET.state ? BLUP3TS_WALLET.state() : null; return Wf && Wf.pubkey && S.mode === 'wallet' ? Wf.pubkey : 'pretend'; }
+  function favOf(d) { return d ? String(d.mint || d.id) : ''; }
+  function favList(owner) { try { var v = store && JSON.parse(store.getItem(FAVP + (owner || favOwner())) || '[]'); return Array.isArray(v) ? v.filter(function (x) { return typeof x === 'string' && FAVOK.test(x); }).slice(0, 500) : []; } catch (e) { return []; } }
+  function isFav(d) { return favList().indexOf(favOf(d)) >= 0; }
+  function toggleFav(d) {
+    var k = favOf(d), owner = favOwner(), l = favList(owner), i = l.indexOf(k), on = i < 0; if (!FAVOK.test(k)) return false;
+    if (on) l.push(k); else l.splice(i, 1);
+    try { if (store) { if (l.length) store.setItem(FAVP + owner, JSON.stringify(l)); else store.removeItem(FAVP + owner); } } catch (e) {}
+    play('tap'); toast(on ? '⭐ ' + d.name + ' is a favorite' : d.name + ' is off your favorites');
+    if (page === 'pets') renderPets(); paintFavHome(); if (window.BLUP3TS_HOME && BLUP3TS_HOME.renderCarousel) BLUP3TS_HOME.renderCarousel(false);
+    return on;
+  }
+  // favorites first, then the same order as before (stable)
+  function favSort(list) { var f = favList(); if (!f.length) return list; var a = [], b = []; list.forEach(function (d) { (f.indexOf(favOf(d)) >= 0 ? a : b).push(d); }); return a.concat(b); }
+  function favBtn(d, cls) {
+    var on = isFav(d), b = el('button', 'favstar' + (cls ? ' ' + cls : '') + (on ? ' on' : ''), on ? '★' : '☆'); b.type = 'button';
+    b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.setAttribute('aria-label', on ? 'Remove from favorites' : 'Add to favorites'); b.dataset.fav = favOf(d);
+    b.onclick = function (e) { e.preventDefault(); e.stopPropagation(); toggleFav(d); };
+    ['pointerdown', 'keydown'].forEach(function (t) { b.addEventListener(t, function (e) { e.stopPropagation(); }); }); // never reaches the row / carousel (select, drag, arrows)
+    return b;
+  }
+  function paintFavHome() { var v = $('verified'), d = petDef(); if (!v) return; var old = v.querySelector('.favstar'); if (old) old.remove(); v.appendChild(favBtn(d, 'home')); }
+
   // ===== Pets =====
   var hideStarters = function () { return false; };
   function visiblePets() { var h = false; try { h = hideStarters() === true; } catch (e) {} return h ? DATA.pets.filter(function (p) { return p.owned; }) : DATA.pets; }
   function renderPets() {
     var list = $('petList'); list.textContent = '';
-    visiblePets().forEach(function (d) {
+    var Wn = window.BLUP3TS_WALLET && BLUP3TS_WALLET.state ? BLUP3TS_WALLET.state() : null;
+    if (Wn && Wn.pubkey && Wn.skipped > 0 && Wn.pets.length) list.appendChild(el('div', 'favnote', 'Showing ' + Wn.pets.length + ' of ' + (Wn.pets.length + Wn.skipped) + '. Star a pet to keep it in your ' + Wn.pets.length + '.'));
+    favSort(noLockedCapo(visiblePets())).forEach(function (d) {
       if (!S.pets[d.id]) S.pets[d.id] = newPet();
       var p = S.pets[d.id], m = mood(p), on = d.id === petDef().id;
       var b = el('button', 'prow' + (on ? ' on' : ''));
       var av = el('div', 'pav'); var im = el('img'); im.onerror = function () { if (d.fallbackImg && im.src.indexOf(d.fallbackImg) < 0) im.src = d.fallbackImg; }; im.src = d.img; im.alt = ''; av.appendChild(im); b.appendChild(av);
-      var tx = el('div', 'ptext'); tx.appendChild(el('div', 'pn', d.name)); tx.appendChild(el('div', 'ps', d.collection + ' · Lv ' + levelFor(p.str) + ' · ' + m[0] + ' ' + m[1])); b.appendChild(tx);
+      var tx = el('div', 'ptext'); tx.appendChild(el('div', 'pn', d.name)); tx.appendChild(el('div', 'ps', d.collection + ' · Lv ' + levelFor(p.str) + ' · ' + m[0] + ' ' + m[1])); tx.appendChild(el('div', 'ps hcount', hungryIn(p, d.id))); b.appendChild(tx);
       if (on) b.appendChild(el('div', 'pcheck', '✓'));
       b.onclick = function () { if (eating) return; play('tap'); S.active = d.id; save(); setPetArt(); showPage('home'); toast('Hi, ' + d.name + '!'); };
-      list.appendChild(b);
+      var wr = el('div', 'prowwrap' + (on ? ' on' : '')); wr.appendChild(b); wr.appendChild(favBtn(d, 'row')); // star is a sibling of the row button, never inside it
+      list.appendChild(wr);
     });
+    // Capos in Wallet mode: locked, 'Coming soon' (CAPO_WALLET_ENABLED false). Same pattern as BABI3S. Pretend mode keeps them playable.
+    if (capoWalletLocked()) {
+      var cr = el('div', 'prow locked'); var cav = el('div', 'pav lockbg'); var ci = el('img'); ci.src = 'capo/capo_logo.png'; ci.alt = ''; cav.appendChild(ci);
+      var ck = el('div', 'lock'); ck.innerHTML = '<svg width="28" height="32" viewBox="0 0 30 34" aria-hidden="true"><path d="M8 15V10a7 7 0 0 1 14 0v5" fill="none" stroke="#F2C94C" stroke-width="3.5" stroke-linecap="round"/><rect x="3" y="14" width="24" height="18" rx="5" fill="#F2C94C"/><circle cx="15" cy="22" r="2.6" fill="#3a2c00"/><rect x="13.8" y="23" width="2.4" height="5" rx="1.2" fill="#3a2c00"/></svg>'; cav.appendChild(ck); cr.appendChild(cav);
+      var ct = el('div', 'ptext'); ct.appendChild(el('div', 'pn', 'Capos')); ct.appendChild(el('div', 'ps', 'Coming soon')); cr.appendChild(ct); list.appendChild(cr);
+      ck.classList.add('pclock'); cr.id = 'capoRow'; cr.setAttribute('role', 'button'); cr.tabIndex = 0; cr.setAttribute('aria-label', 'Capos: coming soon in Wallet mode');
+      cr.onclick = function () { play('tap'); var s = ck.querySelector('svg'); ck.classList.remove('jig'); void ck.offsetWidth; ck.classList.add('jig'); if (s) s.addEventListener('animationend', function () { ck.classList.remove('jig'); }, { once: true }); setTimeout(function () { ck.classList.remove('jig'); }, 900); toast('Capos are coming soon in Wallet mode! Try them in Pretend mode. 🔒', false, cr); };
+      cr.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cr.click(); } };
+    }
     // BABI3S: locked, dark silhouette with a gold lock
     var lb = el('div', 'prow locked'); var lav = el('div', 'pav lockbg'); var li = el('img'); li.src = 'assets/babi3s_silhouette.png'; li.alt = ''; lav.appendChild(li);
     var lk = el('div', 'lock'); lk.innerHTML = '<svg width="28" height="32" viewBox="0 0 30 34" aria-hidden="true"><path d="M8 15V10a7 7 0 0 1 14 0v5" fill="none" stroke="#F2C94C" stroke-width="3.5" stroke-linecap="round"/><rect x="3" y="14" width="24" height="18" rx="5" fill="#F2C94C"/><circle cx="15" cy="22" r="2.6" fill="#3a2c00"/><rect x="13.8" y="23" width="2.4" height="5" rx="1.2" fill="#3a2c00"/></svg>';
@@ -450,8 +603,13 @@
     if (live && API.feedNote) box.insertBefore(API.feedNote(), box.firstChild);
     if (live && API.paintClaim) API.paintClaim();
     else if (S.mode === 'wallet' && API.realFeedSection) box.insertBefore(API.realFeedSection(petDef(), FOODS), box.firstChild);
+    var sf = $('solFeeFine'); if (sf) sf.hidden = !(live && (window.BLUP3TS_CONFIG || {}).SOL_FEE_ENABLED === true); // PREVIEW MOCK: fee line only, no SOL is sent
+    if (window.BLUP3TS_EMPIRE && BLUP3TS_EMPIRE.feedSection) BLUP3TS_EMPIRE.feedSection(box, petDef(), FOODS); /* $EMPIRE feeds: Capo pets, flag EMPIRE_FEEDS_ENABLED */
+    if (live) box.querySelectorAll('button[data-tier]').forEach(function (b) { if (solFeeFor(b.dataset.tier)) b.appendChild(el('i', 'solfeetag', '+ SOL fee')); }); // Nov 3: Snack, Meal, Feast only
     show('ov-feed');
   }
+  // Feed SOL fee (Azgog, Nov 3): Snack, Meal and Feast only (SOL_FEE_TIERS). Nibble never has one, for every pet and token.
+  function solFeeFor(tier) { var c = window.BLUP3TS_CONFIG || {}, t = Array.isArray(c.SOL_FEE_TIERS) ? c.SOL_FEE_TIERS : ['snack', 'meal', 'feast']; return c.SOL_FEE_ENABLED === true && tier !== 'nibble' && t.indexOf(tier) >= 0; }
   // the real eating sequence lives in eat.js; this part only handles the game numbers
   var eating = false, dispFull = 0, dispText = 0, eatLog = null, textTween = null;
   var MOUTH = { 'mnk3y-1579': [.67, .68] }; // other pets: art.js mouth / data.js mouth
@@ -474,7 +632,7 @@
     S.bal -= f.cost; p.full = Math.min(100, p.full + f.full); p.joy = Math.min(100, p.joy + f.joy); p.str += gainXp(petDef().id, featStr(petDef(), f.str)); p.eaten += f.n;
     if (real) S.bal += f.cost; // real feeds don't touch the pretend balance
     var endFull = p.full, petId = petDef().id;
-    eating = true; dispFull = startFull; dispText = startFull; save();
+    eating = true; dispFull = startFull; dispText = startFull; save(); try { document.dispatchEvent(new CustomEvent('blup3ts:fed')); } catch (e) {} /* charm sparkle */
     eatLog = { tier: f.id, bites: 0, planned: BLUP3TS_EAT.plan[f.id].bites, startFull: startFull, endFull: endFull, fills: [], startedAt: performance.now(), done: false, balAfter: S.bal };
     render();
     var pd = petDef(), m = MOUTH[petId] || (Array.isArray(pd.mouth) && pd.mouth.length === 2 ? pd.mouth : null) || (pd.collection === 'ZMB3YS' ? [.5, .62] : [.6, .68]);
@@ -598,9 +756,9 @@
   // ===== Other buttons =====
   function start() { S.started = true; save(); showPage('home'); }
   $('startBtn').onclick = function () { play('tap'); start(); };
-  ['walletSoon', 'walletSoon2'].forEach(function (id) { var b = $(id); if (b) { b.hidden = !walletOn(); b.style.display = walletOn() ? '' : 'none'; } }); // only with wallet connect on
-  $('walletSoon').onclick = $('walletSoon2').onclick = function () { play('tap'); var Wm = window.BLUP3TS_WALLET; if (walletOn() && Wm && Wm.addOwnTap) Wm.addOwnTap(); else show('ov-soon'); };
-  if (!walletOn()) { var sn = document.querySelector('#ov-soon .fine'); if (sn) sn.textContent = 'Wallet connect is coming soon. Then you can play with your own MNK3YS and ZMB3YS. Pretend mode works now and needs no wallet.'; }
+  ['walletSoon'].forEach(function (id) { var b = $(id); if (b) { b.hidden = !walletOn(); b.style.display = walletOn() ? '' : 'none'; } }); // only with wallet connect on
+  if ($('walletSoon')) $('walletSoon').onclick = function () { play('tap'); var Wm = window.BLUP3TS_WALLET; if (walletOn() && Wm && Wm.addOwnTap) Wm.addOwnTap(); else show('ov-soon'); };
+  if (!walletOn()) { var sn = document.querySelector('#ov-soon .fine'); if (sn) sn.textContent = 'Wallet connect is coming soon. Then you can play with your own MNK3YS and ZMB3YS. Capos are coming soon in Wallet mode. Pretend mode works now and needs no wallet.'; }
   $('refillBtn').onclick = function () { play('tap'); S.bal = START; save(); render(); };
 
   // ---------- Quick tap fixes (Azgog, Oct 29): little reactions so taps never feel dead ----------
@@ -610,7 +768,7 @@
   var patAt = 0;
   $('petImg').addEventListener('click', function () { // pat the pet: bounce + a heart + a toast
     if (eating || jamTimer || page !== 'home') return; var now = Date.now(); if (now - patAt < 450) return; patAt = now;
-    play('tap'); trick('hop', 900); toast(petDef().name + ' loves pats! 💛');
+    play('tap'); trick('hop', 900); var cx = carePat(); toast(petDef().name + ' loves pats! 💛' + (cx ? ' +' + cx + ' Care XP' : ''));
     var fx = $('fx'), pw = $('petWrap'), h = el('span', 'patheart', '💛');
     h.style.left = (pw.offsetLeft + pw.offsetWidth / 2) + 'px'; h.style.top = (pw.offsetTop + pw.offsetHeight * .2) + 'px';
     fx.appendChild(h); setTimeout(function () { if (h.parentNode) h.parentNode.removeChild(h); }, 1100);
@@ -620,7 +778,7 @@
   $('moodPill').onclick = function () { play('tap'); var m = mood(pet()); toast(m[0] + ' ' + (MOOD_TIP[m[1]] || 'Tap Feed or Jam to play together.')); };
   $('tileHunger').onclick = function () { play('tap'); toast('Hunger shows how full your pet is. Tap Feed to fill it up.'); };
   $('tileStr').onclick = $('tileLvl').onclick = function () { play('tap'); showPage('stats'); };
-  $('balCoin').onclick = function () { play('tap'); bump(this, 'spin', 900); toast(S.mode === 'wallet' && API.payWord ? API.payWord() + (API.playToken && API.playToken() === 'blunana' ? ' · community reserve' : ' · test token') : 'Pretend $BLUNANA, play money'); };
+  $('balCoin').onclick = function () { play('tap'); bump(this, 'spin', 900); toast(S.mode === 'wallet' && API.payWord ? API.payWord() + (API.playToken && API.playToken() === 'blunana' ? ' · community wallet' : ' · test token') : 'Pretend $BLUNANA, play money'); };
   $('sideBtn').onclick = function () { play('tap'); hideOverlays(); if (!S.started) start(); showPage('home'); };
   [].forEach.call(document.querySelectorAll('#screen .betatap'), function (n) { n.onclick = function () { play('tap'); toast('New stuff on the way, share ideas on Discord'); }; });
   if ($('soundBtn')) $('soundBtn').onclick = function () { setSound(!soundOn); };
@@ -635,16 +793,32 @@
     r.addEventListener('keydown', function (e) { if (e.key === 'Escape') { open(false); b.focus(); } });
     document.addEventListener('click', function (e) { if (!r.hidden && !box.contains(e.target)) open(false); }, true); // close on the click (not pointerdown): the bar re-lays out after the tap has found its button
   })();
-  function speedLabel() { $('speedBtn').textContent = '⏩ Speed: ' + SPEEDS[S.speed][1]; }
-  $('speedBtn').onclick = function () { S.speed = (S.speed + 1) % SPEEDS.length; speedLabel(); save(); };
   $('hungryBtn').onclick = function () { var p = pet(); p.full = 22; p.joy = Math.min(p.joy, 45); if (page === 'launch') start(); render(); save(); };
   function resetSandbox() {
-    clearKeys(); endJam(true); BLUP3TS_EAT.cancel(); eating = false; S = fresh(); setSound(false, true); simClock = new Date(2026, 9, 22, 10, 9).getTime();
-    S.started = true; save(); setPetArt(); speedLabel(); showPage('home'); toast('Progress reset ✨'); if (API.onReset) API.onReset();
+    clearKeys(); endJam(true); BLUP3TS_EAT.cancel(); eating = false; S = fresh(); C = loadCare(); setSound(false, true); simClock = Date.now();
+    S.started = true; save(); setPetArt(); showPage('home'); toast('Progress reset ✨'); if (API.onReset) API.onReset();
   }
-  $('resetBtn').onclick = function () {
-    if (window.confirm('Reset progress? This clears your pretend balance, pets and looks on this device and starts fresh with MNK3Y #1579.')) resetSandbox();
-  };
+  // Reset double check (Azgog, Nov 2 2026): two confirms before resetSandbox(). Cancel, the X, the backdrop or Escape changes nothing.
+  function resetAsk() {
+    var H = window.BLUP3TS_HOME;
+    if (!H || !H.openSheet) { // fallback: two browser confirms
+      if (window.confirm('Reset progress? This clears your pretend balance, pets and looks on this device and starts fresh with MNK3Y #1579.') &&
+          window.confirm('Are you sure? This can\'t be undone.')) resetSandbox();
+      return;
+    }
+    function btn(cls, txt, id, fn) { var b = el('button', cls, txt); b.type = 'button'; b.id = id; b.onclick = fn; return b; }
+    var keep1 = btn('sbtn primary', 'Keep my pet', 'resetKeep1', function () { play('tap'); H.closeSheet(); });
+    var next = btn('sbtn', 'Reset progress', 'resetStep1', function () { play('tap'); step2(); });
+    H.openSheet('Reset progress?', [H.p('This clears your pretend balance, pets and looks on this device and starts fresh with MNK3Y #1579.'), keep1, next]);
+    keep1.focus();
+    function step2() {
+      var keep2 = btn('sbtn primary', 'Keep my pet', 'resetKeep2', function () { play('tap'); H.closeSheet(); });
+      var yes = btn('sbtn danger', 'Yes, reset', 'resetYes', function () { yes.disabled = true; H.closeSheet(); resetSandbox(); });
+      H.openSheet('Are you sure?', [H.p('This can\'t be undone. Your pet\'s food, mood, strength, levels and looks on this device will be gone.'), keep2, yes]);
+      keep2.focus();
+    }
+  }
+  $('resetBtn').onclick = function () { play('tap'); resetAsk(); };
   document.addEventListener('pointerdown', function () { if (soundOn) unlock(); }, true);
 
   // ===== Fit the watch to the screen =====
@@ -712,7 +886,7 @@
     var box = gv.getBoundingClientRect(); if (box.width < 200 || box.height < 200) return null;
     var side = gv.querySelector('.sidecol'), sw = side ? side.getBoundingClientRect().width : 0;
     var bar = gv.querySelector('.gamebar'), barH = bar ? bar.getBoundingClientRect().height + 20 : 0;
-    return { w: Math.max(200, box.width - (sw > 40 ? sw + 36 : 420)), h: Math.max(200, box.height - barH) };
+    return { w: Math.max(200, box.width - (sw > 40 ? sw + 36 : 420)), h: Math.max(200, box.height - barH - 48) }; // credit fix: room for the credit under the device
   }
   function deskFrame() {
     var vv = window.visualViewport, h = vv && vv.height ? vv.height : window.innerHeight;
@@ -749,6 +923,7 @@
   var wmScale = 1, wmLast = '';
   function wmFit() {
     var a = $('gameWm'); if (!a) return;
+    if (a.classList.contains('wmunder')) { a.style.height = ''; a.style.bottom = ''; wmLast = ''; return; } // credit fix: under the device now, fixed 44px tap area in CSS
     var full = isFull(), side = full && foldSide(), roomy = page === 'home' && !ovOpen, need = 44 / (wmScale || 1), h, b;
     if (!full) { var top = roomy ? 35 : 22; h = Math.max(44, need, top + 19); b = 16 + top - h; } // box top sits `top` px above the screen bottom
     else { var room = side ? 128 : 96, t = roomy ? Math.max(32, Math.min(need - 16, room)) : 24; h = 16 + t; b = 0; }
@@ -762,14 +937,14 @@
   // hooks for automated checks
   // ===== API for home.js and wallet.js =====
   var API = window.BLUP3TS_APP = {
-    cases: caseList, casePreviews: casePreviews, setCase: function (id, d) { var ok = setCase(id, d); if (ok) render(); return ok; }, caseOf: caseOf, caseUnlocked: caseUnlocked,
+    cases: caseList, casePreviews: casePreviews, setCase: function (id, d) { var ok = setCase(id, d); if (ok) render(); return ok; }, caseOf: caseOf, caseUnlocked: caseUnlocked, caseBase: caseBase, caseCfg: caseCfg,
     state: function () { return S; }, save: save, render: render, toast: toast, el: el, fmt: fmt, play: play, mood: mood, levelFor: levelFor, foods: FOODS,
     isEating: function () { return eating; }, petDef: petDef, petState: function (id) { if (!S.pets[id]) S.pets[id] = newPet(); return S.pets[id]; },
     pets: function () { return DATA.pets; },
     // M11: while a wallet is connected (Wallet mode) only the wallet's own pets are shown; starters stay in DATA.pets (hidden) and come back on disconnect
     refreshPets: function () { if (page === 'pets') renderPets(); }, // M13: wallet state changed -> redraw the pet list (Add my own row)
-    visiblePets: visiblePets, setStarterFilter: function (fn) { hideStarters = typeof fn === 'function' ? fn : function () { return false; }; },
-    setActive: function (id) { if (eating) return false; if (!DATA.pets.some(function (p) { return p.id === id; })) return false; S.active = id; save(); setPetArt(); render(); if (page === 'pets') renderPets(); if (page === 'stats') renderTraits(); return true; },
+    visiblePets: visiblePets, shownPets: function () { return noLockedCapo(visiblePets()); }, capoWalletLocked: capoWalletLocked, isCapo: isCapo, setStarterFilter: function (fn) { hideStarters = typeof fn === 'function' ? fn : function () { return false; }; },
+    setActive: function (id) { if (eating) return false; if (!noLockedCapo(DATA.pets).some(function (p) { return p.id === id; })) return false; S.active = id; save(); setPetArt(); render(); if (page === 'pets') renderPets(); if (page === 'stats') renderTraits(); return true; },
     addPets: function (list) { rarCache = {}; DATA.pets = DATA.pets.filter(function (p) { return !p.owned; }).concat(list); list.forEach(function (p) { if (!S.pets[p.id]) S.pets[p.id] = newPet(); }); setPetArt(); render(); save(); },
     // A pet's progress belongs to the wallet holding it. A different holder starts again at zero.
     noteHolder: function (wallet, ids) {
@@ -781,7 +956,8 @@
       });
       save();
     },
-    applyProgress: function (rows) { if (!Array.isArray(rows)) return; rows.forEach(function (q) { if (!q || !/^own-[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(q.id)) return; var cur = S.pets[q.id], str = Math.max(0, +q.str || 0); if (!q.reset && cur && cur.str > str) return; S.pets[q.id] = { full: clamp(q.full), joy: clamp(q.joy), str: str, eaten: Math.max(0, +q.eaten || 0), jams: Math.max(0, +q.jams || 0), holder: typeof q.holder === 'string' && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(q.holder) ? q.holder : (cur && cur.holder) }; if (q.reset && S.looks[q.id]) delete S.looks[q.id]; }); save(); render(); },
+    applyProgress: function (rows) { if (!Array.isArray(rows)) return; rows.forEach(function (q) { if (!q || !/^own-[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(q.id)) return; var cur = S.pets[q.id], str = Math.max(0, +q.str || 0); if (!q.reset && cur && cur.str > str) return; S.pets[q.id] = { full: clamp(q.full), joy: clamp(q.joy), str: str, eaten: Math.max(0, +q.eaten || 0), jams: Math.max(0, +q.jams || 0), holder: typeof q.holder === 'string' && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(q.holder) ? q.holder : (cur && cur.holder) };
+      if (awayH > 0 && !q.reset && !awayServer[q.id]) S.pets[q.id].full = awayFull(S.pets[q.id].full, decayRate(q.id), awayH); awayServer[q.id] = 1; /* the first server copy is from before the time away */ if (q.reset && S.looks[q.id]) delete S.looks[q.id]; }); save(); render(); },
     removeOwnedPets: function () { DATA.pets = DATA.pets.filter(function (p) { return !p.owned; }); setPetArt(); render(); },
     setMode: function (m) { var was = S.mode; S.mode = m === 'wallet' && walletOn() ? 'wallet' : 'pretend'; save(); if (was === 'wallet' && S.mode === 'pretend' && window.BLUP3TS_FLOOR) BLUP3TS_FLOOR.reroll(); }, /* back to Pretend: fresh random floor pets */
     refreshStarters: function () { rarCache = {}; setPetArt(); render(); if (page === 'pets') renderPets(); }, /* starters.js put new floor pets in the starter slots (same ids, same progress) */ walletOn: walletOn,
@@ -793,13 +969,29 @@
     setLayout: function (l) { S.layout = l === 'watch' ? 'watch' : 'phone'; save(); fit(); render(); }, layout: function () { return S.layout; }, fit: fit, // 'full' (older name) = Phone
     MODES: ['watch', 'phone'], setFold: function (f) { S.fold = f === 'v' || f === 'h' ? f : 'auto'; save(); fit(); }, fold: function () { return S.fold; },
     rarity: rarityInfo, origOn: origOn, setOrig: function (on, adult) { if (adult === true) S.adult = true; S.orig = !!on && S.adult === true; save(); if (page === 'stats') renderTraits(); },
-    renderTraits: renderTraits
+    renderTraits: renderTraits,
+    adoptLinks: adoptLinks, adoptChooser: adoptChooser, solFeeFor: solFeeFor, applyCase: applyCase, el: el,
+    favs: { list: favList, isFav: isFav, toggle: toggleFav, sort: favSort, button: favBtn, key: function (o) { return FAVP + (o || favOwner()); }, paint: paintFavHome }
   };
-  window.blup3tsSandbox = { decay: function (h) { decay(h); render(); }, decayRate: decayRate, levelUp: levelUp, trick: trick, burst: burst, rarity: rarityInfo, featStr: featStr, setStr: function (n) { pet().str = n; save(); render(); }, jamInfo: function () { var bc = jamTimer ? beatClock() : null; return { on: !!jamTimer, long: jamLong, taps: jamTaps, msLeft: jamTimer ? jamEnd - Date.now() : 0, cfg: JAM, beat: BEAT, clock: bc, points: beatPts, bonus: jamBonus(), judged: judged, last: lastJudge, bars: [].map.call(document.querySelectorAll('#eq i'), function (b) { return parseFloat(b.style.height) || 0; }) }; }, jamJudge: function (tt) { return judgeAt(tt); }, jamHoldBars: function (on) { barHold = !!on; }, /* screenshots only: pause the bar settle */ jamTapAt: function (offMs, beatsAhead) { if (!jamTimer) return null; var bc = beatClock(), P = BEAT.period, idx = Math.round((bc.t - bc.lat) / P) + (beatsAhead || 0); return jamTapAt(idx * P + (offMs || 0)); }, openJam: openJam, instruments: function () { return { levels: INST, open: INST_OPTS.filter(function (o) { return instOpen(o[0]); }).map(function (o) { return o[0]; }), equipped: equippedInst() }; }, reset: resetSandbox, eating: function () { return eating; }, eatLog: function () { return eatLog; },  state: function () { return S; }, showPage: showPage, openFeed: openFeed, feed: function (i) { feed(typeof i === 'string' ? FOODS.filter(function (f) { return f.id === i; })[0] : FOODS[i]); }, startJam: startJam, openLooks: openLooks };
+  window.blup3tsSandbox = { decay: function (h) { decay(h); render(); }, away: function (h) { var n = catchUp(h); save(); render(); return n; }, awayFloor: AWAY.floor, awayHours: function () { return awayH; }, decayRate: decayRate, levelUp: levelUp, trick: trick, burst: burst, rarity: rarityInfo, featStr: featStr, setStr: function (n) { pet().str = n; save(); render(); }, jamInfo: function () { var bc = jamTimer ? beatClock() : null; return { on: !!jamTimer, long: jamLong, taps: jamTaps, msLeft: jamTimer ? jamEnd - Date.now() : 0, cfg: JAM, beat: BEAT, clock: bc, points: beatPts, bonus: jamBonus(), judged: judged, last: lastJudge, bars: [].map.call(document.querySelectorAll('#eq i'), function (b) { return parseFloat(b.style.height) || 0; }) }; }, jamJudge: function (tt) { return judgeAt(tt); }, jamHoldBars: function (on) { barHold = !!on; }, /* screenshots only: pause the bar settle */ jamTapAt: function (offMs, beatsAhead) { if (!jamTimer) return null; var bc = beatClock(), P = BEAT.period, idx = Math.round((bc.t - bc.lat) / P) + (beatsAhead || 0); return jamTapAt(idx * P + (offMs || 0)); }, openJam: openJam, instruments: function () { return { levels: INST, open: INST_OPTS.filter(function (o) { return instOpen(o[0]); }).map(function (o) { return o[0]; }), equipped: equippedInst() }; }, reset: resetSandbox, eating: function () { return eating; }, eatLog: function () { return eatLog; },  state: function () { return S; }, care: function () { return JSON.parse(JSON.stringify(C)); }, checkIn: checkIn, hungryIn: function () { return hungryIn(pet(), petDef().id); }, showPage: showPage, openFeed: openFeed, feed: function (i) { feed(typeof i === 'string' ? FOODS.filter(function (f) { return f.id === i; })[0] : FOODS[i]); }, startJam: startJam, openLooks: openLooks };
 
-  setPetArt(); speedLabel(); if (S.vol > 0) lastVol = S.vol; setVolume(S.vol, true); showPage(page);
-  var last = performance.now();
-  setInterval(function () { var now = performance.now(), sec = (now - last) / 1000; last = now; if (!S.started) return; var ps = sec * SPEEDS[S.speed][0]; decay(ps / 3600); simClock += ps * 1000; render(); }, 250);
+  setPetArt(); if (S.vol > 0) lastVol = S.vol; setVolume(S.vol, true); showPage(page);
+  var last = performance.now(), hiddenAt = 0;
+  (function () { // AWAY CATCH-UP on load: time since the game was last on screen
+    var seen = SEEN0, now = Date.now();
+    if (S.started && typeof seen === 'number' && isFinite(seen) && seen > 0 && seen < now) {
+      awayH = Math.min(AWAY.maxHours, (now - seen) / 3600000);
+      if (catchUp(awayH) && awayH >= 0.25) setTimeout(function () { toast('Welcome back! Your pets got a little hungry while you were away 🍌'); }, 900);
+    }
+    save(); render();
+  })();
+  document.addEventListener('visibilitychange', function () { // in the background counts as away (floor applies), on screen = normal decay
+    if (document.hidden) { hiddenAt = Date.now(); save(); return; }
+    var gap = hiddenAt ? (Date.now() - hiddenAt) / 3600000 : 0; hiddenAt = 0; last = performance.now(); simClock = Date.now();
+    if (S.started && gap > 0) { catchUp(gap); save(); render(); }
+  });
+  window.addEventListener('pagehide', function () { save(); });
+  setInterval(function () { var now = performance.now(), sec = (now - last) / 1000; last = now; if (!S.started || document.hidden) return; var ps = sec * REAL_SPEED; decay(ps / 3600); simClock += ps * 1000; render(); }, 250);
   setInterval(save, 3000);
   // M13: the single "Made by Azgog (@azgog)" watermark links to @BluP3ts on X. Opens a new tab / the system browser;
   // wallet in-app browsers (Solflare, Phantom) sometimes ignore target=_blank, so fall back to opening it in place.

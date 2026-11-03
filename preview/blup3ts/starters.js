@@ -9,15 +9,16 @@
 //   arrive, unless the player has already tapped something on this load (then the bundled pets stay until next time).
 (function () {
   var C = window.BLUP3TS_CONFIG || {}, D = window.BLUP3TS_DATA; if (!D || !D.pets) return;
-  var LAST = 'blup3ts.web.floorlast', COLS = ['MNK3YS', 'ZMB3YS'];
+  var LAST = 'blup3ts.web.floorlast', COLS = ['MNK3YS', 'ZMB3YS'], CAPO = 'Caporegime Del $Empire'; // Nov 2: + Capo slot (optional in the floor reply)
   D.allStarters = D.pets.slice(); // everything kept for later
   function common(p) { return !(p.rank && p.rank <= 100); } // the Legendary (rank 16) is never a 'floor' pet
   function keepExtra(p) { return (C.LPDOLLZ_ENABLED && p.collection === 'LP Dollz') || (C.LEGENDARY_STARTER_ENABLED && !common(p)); }
   if (!C.FLOOR_STARTERS) { D.pets = D.pets.filter(function (p) { return (C.LPDOLLZ_ENABLED || p.collection !== 'LP Dollz') && (C.LEGENDARY_STARTER_ENABLED || common(p)); }); return; }
   function first(col) { return D.pets.filter(function (p) { return p.collection === col && common(p); })[0]; }
-  var bundled = [first('MNK3YS'), first('ZMB3YS')].filter(Boolean), extra = D.pets.filter(keepExtra);
+  var capo = first(CAPO), bundled = [first('MNK3YS'), first('ZMB3YS')].filter(Boolean), extra = D.pets.filter(keepExtra);
   if (bundled.length !== 2) return;
   var SLOT = { MNK3YS: bundled[0].id, ZMB3YS: bundled[1].id }; // progress lives here, whatever picture fills the slot
+  if (capo) { bundled.push(capo); SLOT[CAPO] = capo.id; }
   D.pets = bundled.concat(extra); D.floorSource = 'bundled';
   try { localStorage.removeItem('blup3ts.web.floorpick'); } catch (e) {} // older 'same pets on this device' pick: no longer used
   function okRow(x) { return !!x && /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(String(x.mint || '')) && typeof x.image === 'string' && /^https:\/\/img-cdn\.magiceden\.dev\/[^\s"'<>]+$/.test(x.image) &&
@@ -35,9 +36,11 @@
     var L = last(), shown = {}; D.pets.forEach(function (p) { if (p.floor) shown[p.collection] = p.mint; });
     var got = {}; COLS.forEach(function (col) { var x = pick(list[col], shown[col] || L[col]); if (x) got[col] = slotPet(x, col); });
     if (!got.MNK3YS || !got.ZMB3YS) return false;
-    D.pets = D.pets.map(function (p) { return !p.owned && p.id === SLOT.MNK3YS ? got.MNK3YS : !p.owned && p.id === SLOT.ZMB3YS ? got.ZMB3YS : p; });
+    if (SLOT[CAPO] && list[CAPO]) { var xc = pick(list[CAPO], shown[CAPO] || L[CAPO]); if (xc) got[CAPO] = slotPet(xc, CAPO); } // Capo: only when the server sends 'capo'; else the bundled Capo stays
+    D.pets = D.pets.map(function (p) { if (p.owned) return p; for (var k in SLOT) if (p.id === SLOT[k] && got[k]) return got[k]; return p; });
     D.floorSource = list.source;
-    try { localStorage.setItem(LAST, JSON.stringify({ MNK3YS: got.MNK3YS.mint, ZMB3YS: got.ZMB3YS.mint })); } catch (e) {}
+    var keep = { MNK3YS: got.MNK3YS.mint, ZMB3YS: got.ZMB3YS.mint }; if (got[CAPO]) keep[CAPO] = got[CAPO].mint;
+    try { localStorage.setItem(LAST, JSON.stringify(keep)); } catch (e) {}
     var A = window.BLUP3TS_APP, H = window.BLUP3TS_HOME;
     if (A && A.refreshStarters) A.refreshStarters(); if (H && H.renderCarousel) H.renderCarousel();
     return true;
@@ -46,7 +49,9 @@
     if (!C.FLOOR_ENDPOINT || !/^\/[\w\/.-]+$/.test(C.FLOOR_ENDPOINT) || location.protocol === 'file:' || !window.fetch) return Promise.resolve(null);
     return fetch(C.FLOOR_ENDPOINT, { headers: { accept: 'application/json' } }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
       if (!j || !j.live || !Array.isArray(j.mnk3ys) || !Array.isArray(j.zmb3ys) || !j.mnk3ys.length || !j.zmb3ys.length) return null;
-      list = { MNK3YS: j.mnk3ys, ZMB3YS: j.zmb3ys, source: j.source || 'live' }; return list;
+      list = { MNK3YS: j.mnk3ys, ZMB3YS: j.zmb3ys, source: j.source || 'live' };
+      if (Array.isArray(j.capo) && j.capo.length) list[CAPO] = j.capo; // optional third list (HANDOFF.md: floor-pets 'capo')
+      return list;
     }).catch(function () { return null; });
   }
   // a tap or key before the live pets arrive = the player already chose; don't swap the picture under them on this load

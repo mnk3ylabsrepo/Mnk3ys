@@ -12,10 +12,11 @@
       'zmb3y-demo': 'pets/zmb3y_1885.webp', // ZMB3Y #1885 (random pick, M8)
       'mnk3y-4182': 'pets/mnk3y_4182.webp',
       // retired starters (data.js "retired", not shown): mnk3y-2662, -37, -237, -1616, -3602 -> pets/mnk3y_<n>.webp
-      'ldz-demo': 'pets/lpdoll_3282.webp' // LP Doll #3282 (random pick, M8)
+      'ldz-demo': 'pets/lpdoll_3282.webp', // LP Doll #3282 (random pick, M8)
+      'capo-demo': 'capo/capo_353.webp' // Capo # 353 (Magic Eden listing, Nov 2 2026)
     },
-    collections: { mnk3ys: 'assets/mnk3ys.png', zmb3ys: 'assets/zmb3ys.png', ldz: 'assets/ldz_demo.png' },
-    byName: { MNK3YS: 'mnk3ys', ZMB3YS: 'zmb3ys', 'LP Dollz': 'ldz' },
+    collections: { mnk3ys: 'assets/mnk3ys.png', zmb3ys: 'assets/zmb3ys.png', ldz: 'assets/ldz_demo.png', capo: 'capo/capo_logo.png' },
+    byName: { MNK3YS: 'mnk3ys', ZMB3YS: 'zmb3ys', 'LP Dollz': 'ldz', 'Caporegime Del $Empire': 'capo' },
     mouth: { 'zmb3y-demo': [0.66, 0.68], 'ldz-demo': [0.52, 0.62] },
     locked: 'assets/babi3s_silhouette.png'
   };

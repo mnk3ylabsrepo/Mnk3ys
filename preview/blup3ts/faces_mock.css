@@ -1,0 +1,83 @@
+/* ===== FACES MOCK v2 (preview only, Nov 2 2026): the 6 faces are watch cases like MNK3YS / ZMB3YS.
+   Same case-art SVG layer, drip shapes, count and motion (motif "drip" + goo_mock2 extras). Only colours change here.
+   The screen background is not touched. ===== */
+.casefx .fxacc > g { display:none; }
+.stage[data-case="f_blunanaville"] #cxMkDrip stop:nth-child(1) { stop-color:#fff3a0; }
+.stage[data-case="f_blunanaville"] #cxMkDrip stop:nth-child(2) { stop-color:#F2C94C; }
+.stage[data-case="f_blunanaville"] #cxMkDrip stop:nth-child(3) { stop-color:#c8901a; }
+.stage[data-case="f_blunanaville"] #cxBlu stop:nth-child(1) { stop-color:#B9F3FF; }
+.stage[data-case="f_blunanaville"] #cxBlu stop:nth-child(2) { stop-color:#48D8FC; }
+.stage[data-case="f_blunanaville"] #cxBlu stop:nth-child(3) { stop-color:#1E6FD9; }
+.stage[data-case="f_blunanaville"] #cxGold stop:nth-child(1) { stop-color:#B9F3FF; }
+.stage[data-case="f_blunanaville"] #cxGold stop:nth-child(2) { stop-color:#48D8FC; }
+.stage[data-case="f_blunanaville"] #cxGold stop:nth-child(3) { stop-color:#1E6FD9; }
+.stage[data-case="f_blunanaville"] .casefx .fx-drip .fxtop .tw path:first-child { stroke:#7a5410; } .stage[data-case="f_blunanaville"] .casefx .fx-drip .fxtop .tw path + path { fill:#0B2E5C; }
+.stage[data-case="f_blunanaville"] .casefx .fx-drip .fxtop > circle.tw { display:none; } .stage[data-case="f_blunanaville"] .casefx .fxacc > g.a-f_blunanaville { display:inline; }
+.stage[data-case="f_blunanaville"][data-motif="drip"] .casefx .fx-drip { filter:drop-shadow(0 3px 4px rgba(0,0,0,.45)); }
+.mw[data-case="f_blunanaville"][data-motif="drip"] .mfx i { background:linear-gradient(#fff3a0,#F2C94C 55%,#c8901a); }
+.stage[data-case="f_glacier"] #cxMkDrip stop:nth-child(1) { stop-color:#ffffff; }
+.stage[data-case="f_glacier"] #cxMkDrip stop:nth-child(2) { stop-color:#cfefff; }
+.stage[data-case="f_glacier"] #cxMkDrip stop:nth-child(3) { stop-color:#7cc8f0; }
+.stage[data-case="f_glacier"] #cxBlu stop:nth-child(1) { stop-color:#ffffff; }
+.stage[data-case="f_glacier"] #cxBlu stop:nth-child(2) { stop-color:#cfefff; }
+.stage[data-case="f_glacier"] #cxBlu stop:nth-child(3) { stop-color:#8fc6e6; }
+.stage[data-case="f_glacier"] #cxGold stop:nth-child(1) { stop-color:#ffffff; }
+.stage[data-case="f_glacier"] #cxGold stop:nth-child(2) { stop-color:#dff6ff; }
+.stage[data-case="f_glacier"] #cxGold stop:nth-child(3) { stop-color:#9fdcff; }
+.stage[data-case="f_glacier"] .casefx .fx-drip .fxtop .tw path:first-child { stroke:#3d7fae; } .stage[data-case="f_glacier"] .casefx .fx-drip .fxtop .tw path + path { fill:#24506f; }
+.stage[data-case="f_glacier"] .casefx .fx-drip .fxtop > circle.tw { display:none; } .stage[data-case="f_glacier"] .casefx .fxacc > g.a-f_glacier { display:inline; }
+.stage[data-case="f_glacier"][data-motif="drip"] .casefx .fx-drip { filter:drop-shadow(0 0 4px rgba(191,234,255,.7)); }
+.mw[data-case="f_glacier"][data-motif="drip"] .mfx i { background:linear-gradient(#ffffff,#cfefff 55%,#7cc8f0); }
+.stage[data-case="f_pirate"] #cxMkDrip stop:nth-child(1) { stop-color:#9ff5e6; }
+.stage[data-case="f_pirate"] #cxMkDrip stop:nth-child(2) { stop-color:#1fb5a6; }
+.stage[data-case="f_pirate"] #cxMkDrip stop:nth-child(3) { stop-color:#0b6f6a; }
+.stage[data-case="f_pirate"] #cxBlu stop:nth-child(1) { stop-color:#f5e3b5; }
+.stage[data-case="f_pirate"] #cxBlu stop:nth-child(2) { stop-color:#d9b26b; }
+.stage[data-case="f_pirate"] #cxBlu stop:nth-child(3) { stop-color:#9c7a3c; }
+.stage[data-case="f_pirate"] #cxGold stop:nth-child(1) { stop-color:#f5e3b5; }
+.stage[data-case="f_pirate"] #cxGold stop:nth-child(2) { stop-color:#d9b26b; }
+.stage[data-case="f_pirate"] #cxGold stop:nth-child(3) { stop-color:#9c7a3c; }
+.stage[data-case="f_pirate"] .casefx .fx-drip .fxtop .tw path:first-child { stroke:#5c4524; } .stage[data-case="f_pirate"] .casefx .fx-drip .fxtop .tw path + path { fill:#3a2b14; }
+.stage[data-case="f_pirate"] .casefx .fx-drip .fxtop > circle.tw { display:none; } .stage[data-case="f_pirate"] .casefx .fxacc > g.a-f_pirate { display:inline; }
+.stage[data-case="f_pirate"][data-motif="drip"] .casefx .fx-drip { filter:drop-shadow(0 3px 4px rgba(0,0,0,.45)); }
+.mw[data-case="f_pirate"][data-motif="drip"] .mfx i { background:linear-gradient(#9ff5e6,#1fb5a6 55%,#0b6f6a); }
+.stage[data-case="f_christmas"] #cxMkDrip stop:nth-child(1) { stop-color:#ffffff; }
+.stage[data-case="f_christmas"] #cxMkDrip stop:nth-child(2) { stop-color:#eef6ff; }
+.stage[data-case="f_christmas"] #cxMkDrip stop:nth-child(3) { stop-color:#c9d9ea; }
+.stage[data-case="f_christmas"] #cxBlu stop:nth-child(1) { stop-color:#7be08a; }
+.stage[data-case="f_christmas"] #cxBlu stop:nth-child(2) { stop-color:#2e9e44; }
+.stage[data-case="f_christmas"] #cxBlu stop:nth-child(3) { stop-color:#1b6b2c; }
+.stage[data-case="f_christmas"] #cxGold stop:nth-child(1) { stop-color:#ff9a9a; }
+.stage[data-case="f_christmas"] #cxGold stop:nth-child(2) { stop-color:#d93636; }
+.stage[data-case="f_christmas"] #cxGold stop:nth-child(3) { stop-color:#8f1d1d; }
+.stage[data-case="f_christmas"] .casefx .fx-drip .fxtop .tw path:first-child { stroke:#0f3d1a; } .stage[data-case="f_christmas"] .casefx .fx-drip .fxtop .tw path + path { fill:#8f1d1d; }
+.stage[data-case="f_christmas"] .casefx .fx-drip .fxtop > circle.tw { display:none; } .stage[data-case="f_christmas"] .casefx .fxacc > g.a-f_christmas { display:inline; }
+.stage[data-case="f_christmas"][data-motif="drip"] .casefx .fx-drip { filter:drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+.mw[data-case="f_christmas"][data-motif="drip"] .mfx i { background:linear-gradient(#ffffff,#eef6ff 55%,#c9d9ea); }
+.stage[data-case="f_haunted"] #cxMkDrip stop:nth-child(1) { stop-color:#ffffff; }
+.stage[data-case="f_haunted"] #cxMkDrip stop:nth-child(2) { stop-color:#e8dcff; }
+.stage[data-case="f_haunted"] #cxMkDrip stop:nth-child(3) { stop-color:#9b7fd1; }
+.stage[data-case="f_haunted"] #cxBlu stop:nth-child(1) { stop-color:#e8dcff; }
+.stage[data-case="f_haunted"] #cxBlu stop:nth-child(2) { stop-color:#9b7fd1; }
+.stage[data-case="f_haunted"] #cxBlu stop:nth-child(3) { stop-color:#4a2f7a; }
+.stage[data-case="f_haunted"] #cxGold stop:nth-child(1) { stop-color:#f4f0ff; }
+.stage[data-case="f_haunted"] #cxGold stop:nth-child(2) { stop-color:#c9b3ff; }
+.stage[data-case="f_haunted"] #cxGold stop:nth-child(3) { stop-color:#6b4aa8; }
+.stage[data-case="f_haunted"] .casefx .fx-drip .fxtop .tw path:first-child { stroke:#2d1b4e; } .stage[data-case="f_haunted"] .casefx .fx-drip .fxtop .tw path + path { fill:#1a0f2e; }
+.stage[data-case="f_haunted"] .casefx .fx-drip .fxtop > circle.tw { display:none; } .stage[data-case="f_haunted"] .casefx .fxacc > g.a-f_haunted { display:inline; }
+.stage[data-case="f_haunted"][data-motif="drip"] .casefx .fx-drip { filter:drop-shadow(0 0 5px rgba(201,179,255,.55)); }
+.mw[data-case="f_haunted"][data-motif="drip"] .mfx i { background:linear-gradient(#ffffff,#e8dcff 55%,#9b7fd1); }
+.stage[data-case="f_neon"] #cxMkDrip stop:nth-child(1) { stop-color:#ffc2f1; }
+.stage[data-case="f_neon"] #cxMkDrip stop:nth-child(2) { stop-color:#ff4fd8; }
+.stage[data-case="f_neon"] #cxMkDrip stop:nth-child(3) { stop-color:#a3168a; }
+.stage[data-case="f_neon"] #cxBlu stop:nth-child(1) { stop-color:#c9f8ff; }
+.stage[data-case="f_neon"] #cxBlu stop:nth-child(2) { stop-color:#48D8FC; }
+.stage[data-case="f_neon"] #cxBlu stop:nth-child(3) { stop-color:#1E6FD9; }
+.stage[data-case="f_neon"] #cxGold stop:nth-child(1) { stop-color:#c9f8ff; }
+.stage[data-case="f_neon"] #cxGold stop:nth-child(2) { stop-color:#48D8FC; }
+.stage[data-case="f_neon"] #cxGold stop:nth-child(3) { stop-color:#1E6FD9; }
+.stage[data-case="f_neon"] .casefx .fx-drip .fxtop .tw path:first-child { stroke:#ff4fd8; } .stage[data-case="f_neon"] .casefx .fx-drip .fxtop .tw path + path { fill:#08030f; }
+.stage[data-case="f_neon"] .casefx .fx-drip .fxtop > circle.tw { display:none; } .stage[data-case="f_neon"] .casefx .fxacc > g.a-f_neon { display:inline; }
+.stage[data-case="f_neon"][data-motif="drip"] .casefx .fx-drip { filter:drop-shadow(0 0 5px rgba(255,79,216,.75)); }
+.mw[data-case="f_neon"][data-motif="drip"] .mfx i { background:linear-gradient(#ffc2f1,#ff4fd8 55%,#a3168a); }
+.mw[data-case="f_neon"] .mfx i { box-shadow:0 0 4px rgba(255,79,216,.7); }
