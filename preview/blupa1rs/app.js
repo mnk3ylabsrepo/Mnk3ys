@@ -899,7 +899,9 @@
   }
 
   function frame() {
-    var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    // Use layout viewport height so the fixed ticker / header stay on screen.
+    // visualViewport.height alone can clip the top when offsetTop > 0 (tablet / iOS).
+    var h = window.innerHeight || (window.visualViewport && window.visualViewport.height) || 0;
     document.documentElement.style.setProperty('--vvh', Math.round(h) + 'px');
     var desk = window.matchMedia('(min-width: 700px) and (min-height: 600px)').matches;
     document.body.classList.toggle('desk', desk);
