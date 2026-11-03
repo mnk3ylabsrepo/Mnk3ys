@@ -335,6 +335,45 @@ body.p2 {
 
 .p2-kicker { margin: 0 0 1em; }
 
+/* ——— Utility: Pets + Pairs play links ——— */
+.p2-play {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: max(1.1em, calc(1.6 * var(--u)));
+  margin: 1.1em 0 0.2em;
+  max-width: 34ch;
+  text-align: center;
+}
+
+.p2-play__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45em;
+}
+
+.p2-play__name {
+  margin: 0;
+  font-family: var(--p2-display);
+  font-weight: 700;
+  font-size: max(0.95rem, calc(1.55 * var(--u)));
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+}
+
+.p2-play__item .p2-desc {
+  margin: 0;
+  max-width: 32ch;
+  line-height: 1.25;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
+}
+
+.p2-play__item .p2-pill { margin-top: 0.15em; }
+
+.p2-page--utility .p2-pills { margin-top: 1.35em; }
+
 /* ——— Buttons ——— */
 .p2-socials {
   display: flex;
@@ -1368,6 +1407,10 @@ body.p2 {
     gap: 10px;
     margin-top: 0.9em;
   }
+
+  .p2-play { max-width: min(88vw, 34ch); }
+
+  .p2-play__item .p2-desc { max-width: min(88vw, 32ch); }
 
   .p2-pill {
     width: min(62vw, 240px);
