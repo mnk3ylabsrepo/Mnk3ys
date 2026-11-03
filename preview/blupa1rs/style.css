@@ -26,7 +26,7 @@ button:disabled { cursor:default; }
 
 .homeview { width:100%; max-width:720px; flex:1 1 auto; min-height:0; display:flex; flex-direction:column; align-items:center; gap:10px; overflow:auto; }
 .hhead { text-align:center; display:flex; flex-direction:column; align-items:center; padding:0 8px; flex:none; }
-.hlabs { width:52px; height:52px; border-radius:12px; object-fit:cover; filter:brightness(1.9) grayscale(1); }
+.hlabs { width:52px; height:52px; object-fit:contain; filter:drop-shadow(0 0 14px rgba(72,216,252,.45)); }
 .hword { display:flex; align-items:center; gap:10px; margin-top:4px; }
 .wmark { font-weight:1000; font-size:40px; letter-spacing:-1px; line-height:1; }
 .wmark b { color:var(--cyan); font-weight:1000; text-shadow:0 0 22px rgba(72,216,252,.5); }
@@ -82,7 +82,7 @@ a.wm2:hover { color:#fff; }
 .card.flip .inner, .card.matched .inner { transform:rotateY(180deg); }
 .face { position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; }
 .back { background:linear-gradient(180deg,#1c2633,#101820); border:1px solid #2c3a52; }
-.back img { width:58%; aspect-ratio:1; max-height:70%; object-fit:cover; border-radius:14px; filter:brightness(1.9) grayscale(1); }
+.back img { width:62%; height:auto; max-height:70%; object-fit:contain; }
 .front { transform:rotateY(180deg); background:#141b28; border:2px solid #2c3a52; padding:4px 2px 6px; justify-content:space-between; gap:2px; }
 .card.tok .front { border-color:rgba(72,216,252,.7); }
 .card.nft .front { border-color:var(--gold); }

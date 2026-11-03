@@ -51,8 +51,7 @@ body.p2 {
   display: block;
   width: 44px;
   height: 44px;
-  object-fit: cover;
-  filter: brightness(1.9) grayscale(1);
+  object-fit: contain;
 }
 
 .p2-nav__links {
