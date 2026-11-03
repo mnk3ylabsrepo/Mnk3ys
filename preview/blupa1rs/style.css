@@ -27,11 +27,11 @@ button:disabled { cursor:default; }
 .homeview { width:100%; max-width:720px; flex:1 1 auto; min-height:0; display:flex; flex-direction:column; align-items:center; gap:10px; overflow:auto; }
 .hhead { text-align:center; display:flex; flex-direction:column; align-items:center; padding:0 8px; flex:none; }
 .hlabs { width:48px; height:48px; flex:none; object-fit:contain; filter:drop-shadow(0 0 14px rgba(72,216,252,.45)); cursor:pointer; }
-.hword { display:flex; align-items:center; justify-content:center; gap:10px; margin:0; flex-wrap:wrap; }
+.hword { display:flex; align-items:center; justify-content:center; gap:12px; margin:0; flex-wrap:wrap; }
 .wmark { font-weight:1000; font-size:40px; letter-spacing:-1px; line-height:1; }
 .wmark b { color:var(--cyan); font-weight:1000; text-shadow:0 0 22px rgba(72,216,252,.5); }
 .beta-tag { font-style:normal; font-size:12px; letter-spacing:1.5px; background:var(--gold); color:#000; padding:3px 8px; border-radius:7px; font-weight:900; }
-.htag { margin-top:6px; font-size:14px; line-height:1.35; color:#cdd6e1; font-weight:700; max-width:460px; }
+.htag { margin-top:14px; font-size:14px; line-height:1.45; color:#cdd6e1; font-weight:700; max-width:460px; }
 .homestack { width:100%; display:flex; flex-direction:column; align-items:center; gap:8px; flex:none; }
 .stats { display:flex; gap:8px; width:min(360px, 100%); }
 .stat { flex:1; background:var(--card); border:1px solid #2c3a52; border-radius:16px; padding:8px 12px; text-align:center; }
@@ -125,7 +125,8 @@ body.desk .leftcol { grid-column:1; grid-row:1; min-height:0; height:100%; displ
 body.desk .hhead { flex:none; align-self:stretch; }
 body.desk .wmark { font-size:36px; }
 body.desk .hlabs { width:40px; height:40px; }
-body.desk .htag { font-size:14px; }
+body.desk .hword { gap:12px; justify-content:flex-start; }
+body.desk .htag { margin-top:14px; font-size:14px; }
 body.desk .homestack { flex:1 1 auto; min-height:0; width:100%; display:flex; flex-direction:column; justify-content:space-evenly; align-items:stretch; gap:10px; overflow:auto; padding:0; }
 body.desk .playbtn { width:100%; min-width:0; height:48px; }
 body.desk .stats, body.desk .toolrow { width:100%; }
@@ -140,7 +141,7 @@ body.desk .face b { font-size:clamp(10px, 1.1vw, 14px); }
   body.desk .wmark { font-size:30px; }
   body.desk .leftcol { gap:12px; }
   body.desk .hhead { padding-bottom:0; }
-  body.desk .hword { gap:8px; }
+  body.desk .hword { gap:12px; }
   body.desk .homestack { gap:8px; }
   body.desk .playbtn { height:44px; }
   body.desk .discordrow, body.desk #connectBtn { height:40px; min-height:40px; }
