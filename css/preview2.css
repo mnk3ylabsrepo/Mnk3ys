@@ -397,11 +397,11 @@ body.p2 {
 
 .p2-game__shot {
   display: block;
-  width: auto;
-  max-width: 100%;
+  width: min(100%, 440px);
   height: auto;
-  max-height: min(28vh, 250px);
+  aspect-ratio: 16 / 10;
   object-fit: contain;
+  object-position: center;
   border: 2px solid rgba(34, 245, 58, 0.35);
   border-radius: 14px;
   background: #05070d;
@@ -428,9 +428,9 @@ body.p2 {
 }
 
 .p2-game__mark {
-  font-family: var(--p2-display);
-  font-weight: 800;
-  font-size: max(1.7rem, calc(3.4 * var(--u)));
+  font-family: Nunito, var(--p2-display);
+  font-weight: 1000;
+  font-size: max(1.85rem, calc(3.6 * var(--u)));
   letter-spacing: -1px;
   line-height: 1;
   color: #fff;
@@ -440,7 +440,7 @@ body.p2 {
 
 .p2-game__mark b {
   color: #48D8FC;
-  font-weight: 800;
+  font-weight: 1000;
   text-shadow: 0 0 22px rgba(72, 216, 252, 0.5);
 }
 
@@ -1529,8 +1529,7 @@ body.p2 {
   }
 
   .p2-game__shot {
-    max-width: min(100%, 520px);
-    max-height: 34vh;
+    width: min(100%, 480px);
     margin-inline: auto;
     border-radius: 12px;
   }
@@ -1540,7 +1539,7 @@ body.p2 {
   }
 
   .p2-game__mark {
-    font-size: clamp(1.5rem, 7vw, 2.2rem);
+    font-size: clamp(1.7rem, 8vw, 2.4rem);
   }
 
   .p2-pill {
