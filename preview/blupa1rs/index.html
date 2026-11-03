@@ -11,38 +11,40 @@
 <title>BLUPA1RS · MNK3YLabs</title>
 <meta name="description" content="BLUPA1RS: flip two cards, match a pair, and win an NFT or $BLUNANA. Five turns cost 100,000 $BLUNANA.">
 <link rel="icon" type="image/png" href="../blup3ts/assets/favicon-32.png">
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 <div class="bgfx" aria-hidden="true"><i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="stars"></i></div>
 <div class="ticker" id="ecoTicker"><div class="tickertrack" id="tickerTrack"></div></div>
 
 <section class="homeview" id="homeView" role="main" aria-label="BLUPA1RS">
-  <header class="hhead">
-    <h1 class="hword">
-      <img class="hlabs" id="homeLogo" src="/assets/preview2/gorilla-logo.png" alt="MNK3YLabs" width="64" height="64">
-      <span class="wmark">BLU<b>PA1RS</b></span><em class="beta-tag">BETA</em>
-    </h1>
-    <p class="htag">Flip two cards a turn. Match a pair to win an NFT or $BLUNANA. A SHUFFLE card costs the turn and reshuffles the board.</p>
-  </header>
-  <div class="homestack">
-    <div class="stats" aria-label="Turns and balance">
-      <div class="stat"><span class="k">Turns</span><b id="turns">0</b></div>
-      <div class="stat"><span class="k">$BLUNANA</span><b id="bal">—</b></div>
+  <div class="leftcol">
+    <header class="hhead">
+      <h1 class="hword">
+        <img class="hlabs" id="homeLogo" src="/assets/preview2/gorilla-logo.png" alt="MNK3YLabs" width="64" height="64">
+        <span class="wmark">BLU<b>PA1RS</b></span><em class="beta-tag">BETA</em>
+      </h1>
+      <p class="htag">Flip two cards a turn. Match a pair to win an NFT or $BLUNANA. A SHUFFLE card costs the turn and reshuffles the board.</p>
+    </header>
+    <div class="homestack">
+      <div class="stats" aria-label="Turns and balance">
+        <div class="stat"><span class="k">Turns</span><b id="turns">0</b></div>
+        <div class="stat"><span class="k">$BLUNANA</span><b id="bal">—</b></div>
+      </div>
+      <div class="acctpair">
+        <button type="button" class="discordrow out" id="discordBtn"><span class="discordmark" id="discordMark" aria-hidden="true"></span><img id="discordPfp" alt="" width="36" height="36" hidden><span id="discordName">Sign in with Discord</span></button>
+        <button class="hb" id="connectBtn" type="button"><svg class="wico" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>Connect wallet</button>
+      </div>
+      <button class="playbtn" id="buyBtn" type="button">Buy 5 turns</button>
+      <p class="modenote" id="costNote">5 turns = 100,000 $BLUNANA</p>
+      <div class="toolrow">
+        <button class="hb" id="prizesBtn" type="button">🏆 Prizes</button>
+        <button class="hb" id="howBtn" type="button">❓ How to play</button>
+      </div>
+      <button class="playbtn collect" id="collectBtn" type="button" hidden>Collect prize</button>
+      <p class="modenote" id="msg" role="status"></p>
+      <a class="wm2" href="/" aria-label="MNK3YLabs home">MNK3YLabs</a>
     </div>
-    <div class="acctpair">
-      <button type="button" class="discordrow out" id="discordBtn"><span class="discordmark" id="discordMark" aria-hidden="true"></span><img id="discordPfp" alt="" width="36" height="36" hidden><span id="discordName">Sign in with Discord</span></button>
-      <button class="hb" id="connectBtn" type="button"><svg class="wico" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>Connect wallet</button>
-    </div>
-    <button class="playbtn" id="buyBtn" type="button">Buy 5 turns</button>
-    <p class="modenote" id="costNote">5 turns = 100,000 $BLUNANA</p>
-    <div class="toolrow">
-      <button class="hb" id="prizesBtn" type="button">🏆 Prizes</button>
-      <button class="hb" id="howBtn" type="button">❓ How to play</button>
-    </div>
-    <button class="playbtn collect" id="collectBtn" type="button" hidden>Collect prize</button>
-    <p class="modenote" id="msg" role="status"></p>
-    <a class="wm2" href="/" aria-label="MNK3YLabs home">MNK3YLabs</a>
   </div>
   <div class="board" id="board">
     <p class="boardcap" id="boardCap">Face down. Buy turns, then flip two cards.</p>

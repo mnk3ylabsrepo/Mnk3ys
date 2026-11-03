@@ -938,14 +938,15 @@ button:not(:disabled):active, [role=button]:active, a.extlink:active, .soc:activ
 /* Desktop: one screen, two columns. Phones and short windows keep the stacked mobile layout. */
 body.desk { height:var(--vvh, 100svh); max-height:var(--vvh, 100svh); min-height:0; overflow:hidden; padding:calc(32px + max(10px, env(safe-area-inset-top))) max(120px, 8vw) max(14px, env(safe-area-inset-bottom)); align-items:stretch; }
 body.desk .homeview.on, body.desk .gameview.on { flex:1 1 0; min-height:0; width:100%; max-width:1280px; margin-inline:auto; }
-body.desk .homeview.on { display:grid; grid-template-columns:minmax(320px,400px) minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); column-gap:36px; align-items:stretch; padding:0; overflow:hidden; }
+body.desk .homeview.on { display:grid; grid-template-columns:minmax(320px,400px) minmax(0,1fr); grid-template-rows:minmax(0,1fr); column-gap:36px; align-items:stretch; padding:0; overflow:hidden; }
+body.desk .leftcol { grid-column:1; grid-row:1; min-height:0; height:100%; display:flex; flex-direction:column; justify-content:space-between; gap:18px; overflow:hidden; }
 body.desk .homeview .wmark { font-size:38px; }
 body.desk .hlabs { width:40px; height:40px; }
-body.desk .hhead { grid-column:1; grid-row:1; align-self:start; padding:0 0 4px; }
+body.desk .hhead { flex:none; align-self:stretch; padding:0; }
 body.desk .hword { gap:8px; justify-content:flex-start; }
 body.desk .htag { margin-top:4px; font-size:14px; max-width:none; }
-body.desk .homestack { grid-column:1; grid-row:2; align-self:stretch; align-items:center; justify-content:space-evenly; gap:0; width:auto; min-height:0; height:100%; overflow-x:hidden; overflow-y:auto; padding:0; }
-body.desk .carwrap { grid-column:2; grid-row:1 / -1; margin:0; align-self:stretch; min-width:0; min-height:0; overflow:hidden; display:flex; flex-direction:column; background:rgba(10,16,26,.82); border:1px solid #2c3a52; border-radius:28px; padding:16px; box-shadow:0 16px 40px rgba(0,0,0,.28); }
+body.desk .homestack { flex:1 1 auto; min-height:0; width:auto; display:flex; flex-direction:column; align-items:center; justify-content:space-evenly; gap:10px; overflow-x:hidden; overflow-y:auto; padding:0; }
+body.desk .carwrap { grid-column:2; grid-row:1; margin:0; align-self:stretch; min-width:0; min-height:0; overflow:hidden; display:flex; flex-direction:column; background:rgba(10,16,26,.82); border:1px solid #2c3a52; border-radius:28px; padding:16px; box-shadow:0 16px 40px rgba(0,0,0,.28); }
 body.desk .carnav { display:none; }
 body.desk .carousel { display:grid; grid-template-columns:repeat(auto-fill,minmax(156px,1fr)); grid-auto-rows:max-content; align-content:start; gap:12px; flex:1 1 auto; width:100%; height:auto; min-height:0; max-height:none; margin:0; padding:8px 4px 8px 2px; overflow-x:hidden; overflow-y:auto; scroll-snap-type:none; scrollbar-width:thin; scrollbar-color:#2c3a52 transparent; -webkit-mask-image:none; mask-image:none; }
 body.desk .pcbadge { top:10px; z-index:2; }
@@ -1003,9 +1004,9 @@ body.desk .nftsview.on { flex:1 1 auto; min-height:0; width:100%; max-width:1280
 @media (max-height: 720px) {
   body.desk .homeview .wmark { font-size:32px; }
   body.desk .hlabs { width:36px; height:36px; }
-  body.desk .hhead { padding-bottom:0; }
+  body.desk .leftcol { gap:12px; }
   body.desk .htag { font-size:12px; }
-  body.desk .homestack { gap:0; }
+  body.desk .homestack { gap:8px; }
   body.desk .playbtn { height:40px; }
   body.desk .discordrow, body.desk .toksw { height:36px; min-height:36px; }
   body.desk .hb { min-height:36px; }

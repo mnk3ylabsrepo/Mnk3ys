@@ -32,10 +32,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BLUP3TS">
 <meta name="application-name" content="BLUP3TS">
-<link rel="stylesheet" href="style.css?v=h20261103h">
-<link rel="stylesheet" href="faces_mock.css?v=h20261103h"><!-- FACES (preview only) -->
-<link rel="stylesheet" href="face_unlocks.css?v=h20261103h"><!-- FACE UNLOCKS (preview only) -->
-<link rel="stylesheet" href="lb_rewards.css?v=h20261103h"><!-- LB REWARDS (preview only) -->
+<link rel="stylesheet" href="style.css?v=h20261103i">
+<link rel="stylesheet" href="faces_mock.css?v=h20261103i"><!-- FACES (preview only) -->
+<link rel="stylesheet" href="face_unlocks.css?v=h20261103i"><!-- FACE UNLOCKS (preview only) -->
+<link rel="stylesheet" href="lb_rewards.css?v=h20261103i"><!-- LB REWARDS (preview only) -->
 </head>
 <body>
 
@@ -45,46 +45,48 @@
 <section class="view homeview on" id="homeView" role="main" aria-label="BLUP3TS home">
   <button class="spk spkhome" id="spkHome" aria-label="Sound is off. Turn sound on" aria-pressed="false">🔇</button>
   <div class="bgfx" aria-hidden="true"><i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="stars"></i></div>
-  <header class="hhead">
-    <h1 class="hword">
-      <img class="hlabs" id="homeLogo" src="/assets/preview2/gorilla-logo.png" alt="MNK3YLabs logo" role="button" tabindex="0" width="64" height="64">
-      <span class="wmark">BLU<b>P3TS</b></span><em class="beta-tag betatap" role="button" tabindex="0" aria-label="Beta: what is coming">BETA</em>
-    </h1>
-    <p class="htag">Feed your pet bananas, jam to 8-bit tunes and watch it grow. Starring MNK3YS, ZMB3YS and Caporegime Del $Empire. BABI3S coming soon.</p>
-  </header>
+  <div class="leftcol">
+    <header class="hhead">
+      <h1 class="hword">
+        <img class="hlabs" id="homeLogo" src="/assets/preview2/gorilla-logo.png" alt="MNK3YLabs logo" role="button" tabindex="0" width="64" height="64">
+        <span class="wmark">BLU<b>P3TS</b></span><em class="beta-tag betatap" role="button" tabindex="0" aria-label="Beta: what is coming">BETA</em>
+      </h1>
+      <p class="htag">Feed your pet bananas, jam to 8-bit tunes and watch it grow. Starring MNK3YS, ZMB3YS and Caporegime Del $Empire. BABI3S coming soon.</p>
+    </header>
+    <div class="homestack">
+      <div class="carstatus" id="carStatus" aria-live="polite"></div>
+      <button class="playbtn" id="playBtn">▶ Play</button>
+      <div class="hbtns">
+        <div class="acctpair">
+          <button type="button" class="discordrow out" id="discordBtn"><span class="discordmark" id="discordMark" aria-hidden="true"></span><img id="discordPfp" alt="" width="36" height="36" hidden><span id="discordName">Sign in with Discord</span></button>
+          <button class="hb" id="connectBtn" hidden><svg class="wico" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>Connect wallet</button>
+        </div>
+        <div class="moderow">
+          <div class="modeseg" id="modeSeg" role="group" aria-label="Mode" hidden>
+            <button id="modePretend" aria-pressed="true">Pretend</button><button id="modeWallet" aria-pressed="false">Wallet</button>
+          </div>
+          <button type="button" class="toksw" id="tokenSeg" role="switch" aria-checked="false" aria-label="Play token, BLUTEST" hidden><span id="tokenTest">BLUTEST</span><span class="toksw-track" aria-hidden="true"><span class="toksw-thumb"></span></span><span id="tokenBlunana">BLUNANA</span></button>
+        </div>
+        <div class="toolrow">
+          <button class="hb" id="howBtn">❓ How to play</button>
+          <button class="hb" id="ranksBtn" data-open-leaderboard="str" hidden>🏆 Ranks</button>
+          <button class="hb" id="faqBtn">💬 FAQ</button>
+        </div>
+        <button class="hb" id="settingsBtn">⚙️ Settings</button>
+      </div>
+      <p class="modenote" id="modeNote"></p>
+      <button type="button" class="btn b-cyan blutest-claim" id="blutestClaim" hidden><span class="blutest-mark" aria-hidden="true"></span><span class="blutest-label">Get 100,000 BLUTEST</span></button>
+      <p class="blutest-bal" id="blutestBal" hidden></p>
+      <button class="hb boostbtn" id="boostBtn" hidden disabled aria-disabled="true">✨ Burn cNFT for a boost · Coming soon</button>
+      <button class="looksrow" id="looksBtn"><span class="lk">🎨</span><span><b>Looks</b><br><small id="looksSub">Watch cases · unlock at Level 3</small></span><span class="soonpill">⌚ Cases</span></button>
+    </div>
+  </div>
   <div class="carwrap">
     <button class="carnav prev" id="carPrev" aria-label="Previous pet">‹</button>
     <div class="carousel" id="carousel" tabindex="-1" role="listbox" aria-label="Pick your pet"></div>
     <button class="carnav next" id="carNext" aria-label="Next pet">›</button>
     <!-- Credit fix (Nov 1): centred directly under the pet cards -->
   <a class="wm2 wmlink wmunder" id="homeWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Made by Azgog (@azgog): Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
-  </div>
-  <div class="homestack">
-  <div class="carstatus" id="carStatus" aria-live="polite"></div>
-  <button class="playbtn" id="playBtn">▶ Play</button>
-  <div class="hbtns">
-    <div class="acctpair">
-      <button type="button" class="discordrow out" id="discordBtn"><span class="discordmark" id="discordMark" aria-hidden="true"></span><img id="discordPfp" alt="" width="36" height="36" hidden><span id="discordName">Sign in with Discord</span></button>
-      <button class="hb" id="connectBtn" hidden><svg class="wico" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>Connect wallet</button>
-    </div>
-    <div class="moderow">
-      <div class="modeseg" id="modeSeg" role="group" aria-label="Mode" hidden>
-        <button id="modePretend" aria-pressed="true">Pretend</button><button id="modeWallet" aria-pressed="false">Wallet</button>
-      </div>
-      <button type="button" class="toksw" id="tokenSeg" role="switch" aria-checked="false" aria-label="Play token, BLUTEST" hidden><span id="tokenTest">BLUTEST</span><span class="toksw-track" aria-hidden="true"><span class="toksw-thumb"></span></span><span id="tokenBlunana">BLUNANA</span></button>
-    </div>
-    <div class="toolrow">
-      <button class="hb" id="howBtn">❓ How to play</button>
-      <button class="hb" id="ranksBtn" data-open-leaderboard="str" hidden>🏆 Ranks</button>
-      <button class="hb" id="faqBtn">💬 FAQ</button>
-    </div>
-    <button class="hb" id="settingsBtn">⚙️ Settings</button>
-  </div>
-  <p class="modenote" id="modeNote"></p>
-  <button type="button" class="btn b-cyan blutest-claim" id="blutestClaim" hidden><span class="blutest-mark" aria-hidden="true"></span><span class="blutest-label">Get 100,000 BLUTEST</span></button>
-  <p class="blutest-bal" id="blutestBal" hidden></p>
-  <button class="hb boostbtn" id="boostBtn" hidden disabled aria-disabled="true">✨ Burn cNFT for a boost · Coming soon</button>
-  <button class="looksrow" id="looksBtn"><span class="lk">🎨</span><span><b>Looks</b><br><small id="looksSub">Watch cases · unlock at Level 3</small></span><span class="soonpill">⌚ Cases</span></button>
   </div>
 </section>
 
@@ -400,29 +402,29 @@
   <div class="muted">BLUP3TS by MNK3YLabs · Just a game: Pretend mode uses no real tokens.</div>
 </footer>
 
-<script src="config.js?v=h20261103h"></script>
-<script src="faces_mock.js?v=h20261103h"></script><!-- FACES (preview only) -->
-<script src="lb_face.js?v=h20261103h"></script><!-- LB REWARDS (preview only) -->
-<script src="data.js?v=h20261103h"></script>
-<script src="starters.js?v=h20261103h"></script>
-<script src="art.js?v=h20261103h"></script>
-<script src="filter.js?v=h20261103h"></script>
-<script src="rarity.js?v=h20261103h"></script>
-<script src="tiers.js?v=h20261103h"></script>
-<script src="eat.js?v=h20261103h"></script>
-<script src="app.js?v=h20261103h"></script>
-<script src="faq.js?v=h20261103h"></script>
-<script src="home.js?v=h20261103h"></script>
-<script src="fullscreen.js?v=h20261103h"></script>
-<script src="vendor/blup3ts-sol.js?v=h20261103h"></script>
-<script src="boost.js?v=h20261103h"></script>
-<script src="wallet.js?v=h20261103h"></script>
-<script src="face_unlocks.js?v=h20261103h"></script><!-- FACE UNLOCKS (preview only) -->
-<script src="empire_store.js?v=h20261103h"></script><!-- $EMPIRE feeds + Store + free unlock SOL fee (flags) -->
-<script src="lb_auth.js?v=h20261103h"></script><!-- RANKS SECURITY: wallet proof + feed receipts -->
-<script src="lb_rewards.js?v=h20261103h"></script><!-- LB REWARDS (preview only) -->
-<script src="leaderboard.js?v=h20261103h"></script>
-<script src="discord.js?v=h20261103h"></script>
-<script src="live.js?v=h20261103h"></script>
+<script src="config.js?v=h20261103i"></script>
+<script src="faces_mock.js?v=h20261103i"></script><!-- FACES (preview only) -->
+<script src="lb_face.js?v=h20261103i"></script><!-- LB REWARDS (preview only) -->
+<script src="data.js?v=h20261103i"></script>
+<script src="starters.js?v=h20261103i"></script>
+<script src="art.js?v=h20261103i"></script>
+<script src="filter.js?v=h20261103i"></script>
+<script src="rarity.js?v=h20261103i"></script>
+<script src="tiers.js?v=h20261103i"></script>
+<script src="eat.js?v=h20261103i"></script>
+<script src="app.js?v=h20261103i"></script>
+<script src="faq.js?v=h20261103i"></script>
+<script src="home.js?v=h20261103i"></script>
+<script src="fullscreen.js?v=h20261103i"></script>
+<script src="vendor/blup3ts-sol.js?v=h20261103i"></script>
+<script src="boost.js?v=h20261103i"></script>
+<script src="wallet.js?v=h20261103i"></script>
+<script src="face_unlocks.js?v=h20261103i"></script><!-- FACE UNLOCKS (preview only) -->
+<script src="empire_store.js?v=h20261103i"></script><!-- $EMPIRE feeds + Store + free unlock SOL fee (flags) -->
+<script src="lb_auth.js?v=h20261103i"></script><!-- RANKS SECURITY: wallet proof + feed receipts -->
+<script src="lb_rewards.js?v=h20261103i"></script><!-- LB REWARDS (preview only) -->
+<script src="leaderboard.js?v=h20261103i"></script>
+<script src="discord.js?v=h20261103i"></script>
+<script src="live.js?v=h20261103i"></script>
 </body>
 </html>
