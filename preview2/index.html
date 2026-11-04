@@ -18,29 +18,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Nunito:wght@800;900&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/preview2.css?v=69" />
+  <link rel="stylesheet" href="/css/preview2.css?v=70" />
 </head>
 <body class="p2">
-  <header class="p2-nav" id="p2-nav">
-    <a href="#home" class="p2-nav__logo" aria-label="MNK3YLABS home">
-      <img src="/assets/preview2/gorilla-logo.png" alt="" width="28" height="28" />
-    </a>
-    <button type="button" class="p2-nav__toggle" id="p2-nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="p2-nav-links">
-      <span></span><span></span><span></span>
-    </button>
-    <nav class="p2-nav__links" id="p2-nav-links" aria-label="Main">
-      <a href="#home" data-section="home">Home</a>
-      <a href="#mnk3ys" data-section="mnk3ys">MNK3YS</a>
-      <a href="#zmb3ys" data-section="zmb3ys">ZMB3YS</a>
-      <a href="#blunana" data-section="blunana">$BLUNANA</a>
-      <a href="#games" data-section="games">GAM3S</a>
-      <a href="#lp" data-section="lp">LP</a>
-      <a href="#utility" data-section="utility">Utility</a>
-      <a href="#b3bs" data-section="b3bs">B3BS</a>
-      <a href="#services" data-section="services">S3RV1CES</a>
-      <a href="#partners" data-section="partners">Partners</a>
-    </nav>
-  </header>
+  <nav class="orbit-nav" id="orbit-nav" aria-label="Page navigation">
+    <div class="orbit-nav__stage" id="orbit-nav-stage"></div>
+    <p class="orbit-nav__label" id="orbit-nav-label" aria-live="polite"></p>
+  </nav>
 
   <main class="p2-main">
 
@@ -461,7 +445,7 @@
 
   <div class="p2-toast" id="p2-toast" role="status" aria-live="polite"></div>
 
-  <script src="/js/preview2-nav.js?v=7"></script>
+  <script src="/js/preview2-nav.js?v=8"></script>
   <script src="/js/preview2-tools.js?v=7"></script>
   <script src="/js/preview2-portal.js?v=8"></script>
 </body>
