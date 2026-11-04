@@ -353,7 +353,7 @@ body.p2 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: min(1000px, 100%);
+  width: min(920px, 100%);
   max-height: calc(100svh - var(--p2-nav-h) - 24px);
   text-align: center;
   gap: 0.35em;
@@ -379,26 +379,24 @@ body.p2 {
 }
 
 .p2-game {
+  /* Equal tiles: text column matches image width + height */
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  column-gap: 0.55em;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 0.55rem;
   row-gap: 0.35em;
-  align-items: center;
+  align-items: stretch;
   width: 100%;
   min-height: 0;
   text-align: left;
 }
 
-.p2-game--flip {
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.p2-game--flip .p2-game__shot { order: 2; justify-self: end; }
+.p2-game--flip .p2-game__shot { order: 2; }
 .p2-game--flip .p2-game__copy { order: 1; }
 
 .p2-game__shot {
   display: block;
-  width: min(100%, 440px);
+  width: 100%;
+  max-width: none;
   height: auto;
   aspect-ratio: 16 / 10;
   object-fit: contain;
@@ -407,18 +405,25 @@ body.p2 {
   border-radius: 14px;
   background: #05070d;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
-  justify-self: start;
+  justify-self: stretch;
+  align-self: start;
 }
 
 .p2-game__copy {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: flex-start;
-  gap: 0.4em;
+  gap: 0.5em;
   min-width: 0;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  /* Match the image tile height (16/10 of column width) */
+  aspect-ratio: 16 / 10;
 }
 
-/* Right column: text (BLUP3TS) hugs the right edge */
+/* Right column: right-justified text */
 .p2-game:not(.p2-game--flip) .p2-game__copy {
   align-items: flex-end;
   text-align: right;
@@ -428,26 +433,36 @@ body.p2 {
   justify-content: flex-end;
 }
 
-/* Match BLUP3TS / BLUPA1RS home title styling */
+.p2-game--flip .p2-game__copy {
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* Title + BETA on one row (same as game-page .hword) */
 .p2-game__word {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  gap: 12px;
   margin: 0;
   font-size: inherit;
   font-weight: inherit;
+  width: auto;
+  max-width: 100%;
 }
 
 .p2-game__mark {
+  display: inline;
   font-family: Nunito, var(--p2-display);
   font-weight: 1000;
-  font-size: max(1.85rem, calc(3.6 * var(--u)));
+  font-size: clamp(1.7rem, 2.6vw, 2.4rem);
   letter-spacing: -1px;
   line-height: 1;
   color: #fff;
   text-transform: none;
   text-shadow: none;
+  white-space: nowrap;
 }
 
 .p2-game__mark b {
@@ -457,6 +472,9 @@ body.p2 {
 }
 
 .p2-game__beta {
+  display: inline-block;
+  flex: 0 0 auto;
+  align-self: center;
   font-style: normal;
   font-size: 12px;
   letter-spacing: 1.5px;
@@ -465,16 +483,19 @@ body.p2 {
   padding: 3px 8px;
   border-radius: 7px;
   font-weight: 900;
+  white-space: nowrap;
+  line-height: 1.2;
 }
 
 .p2-game__copy .p2-desc {
   margin: 0;
-  max-width: 32ch;
-  line-height: 1.25;
+  max-width: none;
+  width: 100%;
+  line-height: 1.3;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.85);
 }
 
-.p2-game__copy .p2-pill { margin-top: 0.1em; }
+.p2-game__copy .p2-pill { margin-top: 0.15em; }
 
 /* ——— Buttons ——— */
 .p2-socials {
@@ -1527,31 +1548,52 @@ body.p2 {
   .p2-game--flip {
     grid-template-columns: 1fr;
     text-align: center;
+    column-gap: 0;
   }
 
   .p2-game--flip .p2-game__shot,
   .p2-game--flip .p2-game__copy { order: unset; }
 
-  .p2-game__copy {
+  .p2-game:not(.p2-game--flip) .p2-game__shot,
+  .p2-game:not(.p2-game--flip) .p2-game__copy,
+  .p2-game--flip .p2-game__shot,
+  .p2-game--flip .p2-game__copy {
+    justify-self: center;
+  }
+
+  .p2-game__copy,
+  .p2-game:not(.p2-game--flip) .p2-game__copy,
+  .p2-game--flip .p2-game__copy {
     align-items: center;
+    text-align: center;
+    max-width: none;
+    aspect-ratio: auto;
+    height: auto;
+  }
+
+  .p2-game:not(.p2-game--flip) .p2-game__word {
+    justify-content: center;
   }
 
   .p2-game__copy .p2-desc {
-    max-width: min(88vw, 34ch);
+    max-width: min(88vw, 36ch);
   }
 
   .p2-game__shot {
     width: min(100%, 480px);
+    max-width: min(100%, 480px);
     margin-inline: auto;
     border-radius: 12px;
   }
 
   .p2-game__word {
     justify-content: center;
+    flex-wrap: nowrap;
+    width: auto;
   }
 
   .p2-game__mark {
-    font-size: clamp(1.7rem, 8vw, 2.4rem);
+    font-size: clamp(1.5rem, 7vw, 2.2rem);
   }
 
   .p2-pill {
