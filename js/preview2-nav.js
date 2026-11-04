@@ -206,6 +206,7 @@
   }
 
   function syncOrbitFromScroll() {
+    if (scrollInProgress) return;
     var blend = getScrollBlend();
     layoutOrbit(blend.from, blend.to, blend.t, true);
     var resolved = blend.from === blend.to ? blend.from : (blend.t >= 0.5 ? blend.to : blend.from);
@@ -216,11 +217,12 @@
   }
 
   function runScrollLoop() {
-    syncOrbitFromScroll();
+    if (!scrollInProgress) syncOrbitFromScroll();
     if (scrollLoopActive) requestAnimationFrame(runScrollLoop);
   }
 
   function scheduleLayout() {
+    if (scrollInProgress) return;
     markScrollActivity();
     if (!scrollLoopActive) {
       scrollLoopActive = true;
@@ -230,22 +232,81 @@
     scrollEndTimer = setTimeout(function () {
       scrollLoopActive = false;
       setScrollTracking(false);
-      syncOrbitFromScroll();
+      if (!scrollInProgress) syncOrbitFromScroll();
     }, 160);
+  }
+
+  var navToken = 0;
+  var navScrollEndHandler = null;
+
+  function finishNavScroll(index, token) {
+    if (token !== navToken) return;
+    scrollInProgress = false;
+    document.documentElement.classList.remove('p2-nav-scrolling');
+    layoutOrbit(index, index, 0, true);
+    activeIndex = index;
+    window.history.replaceState(null, '', '#' + PAGES[index].id);
   }
 
   function scrollToIndex(index) {
     var section = sections[index];
-    if (!section) return;
+    if (!section || index < 0 || index >= sections.length) return;
+
+    clearTimeout(scrollTimer);
+    if (navScrollEndHandler) {
+      window.removeEventListener('scrollend', navScrollEndHandler);
+      navScrollEndHandler = null;
+    }
+    scrollLoopActive = false;
+    setScrollTracking(false);
+
+    var token = ++navToken;
     scrollInProgress = true;
     activeIndex = index;
     window.history.replaceState(null, '', '#' + PAGES[index].id);
-    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    clearTimeout(scrollTimer);
-    scrollTimer = setTimeout(function () {
-      scrollInProgress = false;
-      layoutOrbit(index, index, 0, true);
-    }, 850);
+    layoutOrbit(index, index, 0, true);
+    document.documentElement.classList.add('p2-nav-scrolling');
+    // Force style flush so snap is off before measuring / scrolling
+    void document.documentElement.offsetHeight;
+
+    var top = Math.max(0, Math.round(section.getBoundingClientRect().top + window.pageYOffset));
+    try {
+      window.scrollTo({ top: top, left: 0, behavior: 'smooth' });
+    } catch (e) {
+      window.scrollTo(0, top);
+    }
+
+    function settle() {
+      if (token !== navToken) return;
+      if (navScrollEndHandler) {
+        window.removeEventListener('scrollend', navScrollEndHandler);
+        navScrollEndHandler = null;
+      }
+      clearTimeout(scrollTimer);
+      var exact = Math.max(0, Math.round(section.getBoundingClientRect().top + window.pageYOffset));
+      if (Math.abs(window.pageYOffset - exact) > 2) window.scrollTo(0, exact);
+      finishNavScroll(index, token);
+    }
+
+    navScrollEndHandler = function () { settle(); };
+    if ('onscrollend' in window) {
+      window.addEventListener('scrollend', navScrollEndHandler, { once: true });
+    }
+
+    // Mobile Safari often lacks scrollend — poll until near target, then lock
+    var tries = 0;
+    function watch() {
+      if (token !== navToken) return;
+      tries += 1;
+      var exact = Math.max(0, Math.round(section.getBoundingClientRect().top + window.pageYOffset));
+      var dist = Math.abs(window.pageYOffset - exact);
+      if (dist < 4 || tries > 50) {
+        settle();
+        return;
+      }
+      scrollTimer = setTimeout(watch, 40);
+    }
+    scrollTimer = setTimeout(watch, 80);
   }
 
   function indexFromHash() {
@@ -265,7 +326,10 @@
       btn.setAttribute('data-index', String(index));
       btn.setAttribute('aria-label', page.label);
       btn.innerHTML = '<span class="orbit-bubble__inner">' + pageIcon(page.id) + '</span>';
-      btn.addEventListener('click', function () { scrollToIndex(index); });
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        scrollToIndex(index);
+      });
       stageEl.appendChild(btn);
       return btn;
     });

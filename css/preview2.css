@@ -24,9 +24,19 @@
 *::after { box-sizing: border-box; }
 
 html {
-  scroll-behavior: smooth;
-  scroll-snap-type: y proximity;
+  scroll-behavior: auto;
   background: var(--p2-bg);
+}
+
+/* Soft snap for finger-scroll only — disabled while orbit menu drives navigation */
+html:not(.p2-nav-scrolling) {
+  scroll-snap-type: y proximity;
+}
+
+html.p2-nav-scrolling,
+html.p2-nav-scrolling .p2-page {
+  scroll-snap-type: none !important;
+  scroll-snap-align: none !important;
 }
 
 body.p2 {
