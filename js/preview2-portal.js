@@ -426,11 +426,21 @@
 
   function openPortal(tab) {
     if (!dialog.open) dialog.showModal();
-    showTab(tab || 'holders');
+    showTab(tab || (isVerified() ? 'holders' : 'mine'));
     render();
+    // iOS Safari sometimes paints dialog flex children at 0 height until a reflow
+    requestAnimationFrame(function () {
+      dialog.style.transform = 'translateZ(0)';
+      void dialog.offsetHeight;
+      dialog.style.transform = '';
+      var panel = dialog.querySelector('.p2-tabpanel:not([hidden])');
+      if (panel) panel.scrollTop = 0;
+    });
   }
 
-  btn.addEventListener('click', function () { openPortal('holders'); });
+  btn.addEventListener('click', function () {
+    openPortal(isVerified() ? 'holders' : 'mine');
+  });
 
   document.addEventListener('click', function (e) {
     var link = e.target.closest('[data-portal-open]');

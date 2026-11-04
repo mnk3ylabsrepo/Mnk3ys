@@ -977,6 +977,7 @@ body.p2 {
 .p2-modal {
   width: min(760px, calc(100vw - 32px));
   max-height: min(84vh, 900px);
+  max-height: min(84dvh, 900px);
   padding: 0;
   border: 2px solid var(--p2-green);
   border-radius: 18px;
@@ -984,6 +985,7 @@ body.p2 {
   color: var(--p2-white);
   font-family: var(--p2-mono);
   box-shadow: 0 0 40px rgba(34, 245, 58, 0.2);
+  overflow: hidden;
 }
 
 .p2-modal--rarity { width: min(840px, calc(100vw - 32px)); }
@@ -1000,6 +1002,7 @@ body.p2 {
   align-items: center;
   justify-content: space-between;
   padding: 18px 22px 6px;
+  flex-shrink: 0;
 }
 
 .p2-modal__title {
@@ -1292,12 +1295,15 @@ body.p2 {
 .p2-portal-btn.is-locked .p2-portal-btn__check { display: none; }
 .p2-portal-btn.is-locked .p2-portal-btn__badge { background: #ff3b3b; color: #fff; }
 
-.p2-modal--portal { width: min(920px, calc(100vw - 32px)); }
+.p2-modal--portal {
+  width: min(920px, calc(100vw - 32px));
+}
 
 .p2-tabs {
   display: flex;
   gap: 8px;
   padding: 6px 22px 14px;
+  flex-shrink: 0;
 }
 
 .p2-tab {
@@ -1317,11 +1323,20 @@ body.p2 {
 .p2-tabpanel {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
-.p2-tabpanel[hidden] { display: none; }
+.p2-tabpanel[hidden] { display: none !important; }
+
+.p2-modal--portal .p2-modal__body {
+  flex: 1 1 auto;
+  min-height: 0;
+}
 
 .p2-verify__intro {
   margin: 0 0 18px;
@@ -1516,13 +1531,38 @@ body.p2 {
 .p2-table tr.is-me td { background: rgba(34, 245, 58, 0.12); }
 
 @media (max-width: 600px) {
+  .p2-modal,
+  .p2-modal--portal,
+  .p2-modal--rarity,
+  .p2-modal--chart {
+    width: calc(100vw - 12px);
+    max-width: calc(100vw - 12px);
+    /* Explicit height so flex children get space on iOS Safari dialog */
+    height: calc(100vh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100vh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    margin: auto;
+    border-radius: 14px;
+  }
+
+  .p2-modal__head { padding: 14px 16px 4px; flex-shrink: 0; }
+  .p2-modal__title { font-size: 1.25rem; }
+  .p2-tabs { padding: 4px 16px 12px; gap: 6px; }
+  .p2-tab { flex: 1; text-align: center; padding: 10px 10px; font-size: 0.78rem; }
+  .p2-modal__body { padding: 0 16px 20px; }
+  .p2-portal__controls { padding: 0 16px 12px; }
+  .p2-verify-badge { width: calc(100% - 32px); margin: 0 16px 12px; }
+  .p2-verify__intro { font-size: 0.9rem; }
+
   .p2-portal-btn {
     width: var(--orb-primary);
     height: var(--orb-primary);
   }
   .p2-step { grid-template-columns: 30px 1fr; }
   .p2-step > .p2-link { grid-column: 2; justify-self: start; }
-  .p2-step__btn { grid-column: 1 / -1; }
+  .p2-step__btn { grid-column: 1 / -1; width: 100%; min-height: 44px; }
+  .p2-discord-btn { width: 100%; min-height: 44px; }
   .p2-mine__who { flex-wrap: wrap; }
   .p2-mine__actions { margin-left: 0; width: 100%; }
   .p2-portal__controls .p2-modal__meta { margin-left: 0; }
