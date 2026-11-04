@@ -7,7 +7,7 @@
   var nav = document.getElementById('p2-nav');
   var toggle = document.getElementById('p2-nav-toggle');
   var links = Array.prototype.slice.call(document.querySelectorAll('.p2-nav__links a'));
-  var pages = Array.prototype.slice.call(document.querySelectorAll('.p2-page'));
+  var pages = Array.prototype.slice.call(document.querySelectorAll('.p2-page:not([hidden])'));
   var toast = document.getElementById('p2-toast');
   var toastTimer;
 

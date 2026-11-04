@@ -114,6 +114,8 @@ body.p2 {
   overflow: hidden;
 }
 
+.p2-page[hidden] { display: none !important; }
+
 /* Hero gorilla lives on a pseudo-element so it can pulse behind the title */
 .p2-page--home::before {
   content: '';
@@ -139,6 +141,7 @@ body.p2 {
 .p2-page--juicebags { background-image: url('/assets/preview2/juicebags-landscape.jpg?v=2'); }
 .p2-page--b3bs      { background-image: url('/assets/preview2/b3bs-landscape.jpg?v=2'); }
 .p2-page--mnk1sh    { background-image: url('/assets/preview2/mnk1sh-landscape.jpg?v=2'); }
+.p2-page--services  { background-image: none; }
 .p2-page--partners  { background-image: none; }
 
 .p2-page__content {
@@ -359,10 +362,6 @@ body.p2 {
   gap: 0.35em;
 }
 
-.p2-games > .p2-games__title {
-  font-size: max(1.9rem, calc(4.6 * var(--u)));
-}
-
 .p2-games > .p2-sub {
   margin: 0.15em 0 0;
 }
@@ -496,6 +495,95 @@ body.p2 {
 }
 
 .p2-game__copy .p2-pill { margin-top: 0.15em; }
+
+/* ——— S3RV1CES: 2x2 offering grid (one viewport) ——— */
+.p2-page--services {
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  height: 100vh;
+  height: 100svh;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-top: calc(var(--p2-nav-h) + 8px);
+  padding-bottom: 16px;
+}
+
+.p2-services {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: min(960px, 100%);
+  max-height: calc(100svh - var(--p2-nav-h) - 24px);
+  text-align: center;
+  gap: 0.35em;
+}
+
+.p2-services > .p2-sub {
+  margin: 0.15em 0 0;
+}
+
+.p2-service-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: max(0.75em, 1.4vh) max(1em, 1.6vw);
+  width: 100%;
+  margin-top: 0.7em;
+  min-height: 0;
+  flex: 1 1 auto;
+  align-content: center;
+}
+
+.p2-service {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45em;
+  padding: max(0.9em, 1.4vh) max(1em, 1.2vw);
+  text-align: left;
+  border: 2px solid rgba(34, 245, 58, 0.28);
+  border-radius: 14px;
+  background: rgba(5, 7, 13, 0.72);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.p2-service__icon {
+  display: grid;
+  place-items: center;
+  width: max(2.4rem, calc(3.2 * var(--u)));
+  height: max(2.4rem, calc(3.2 * var(--u)));
+  border: 1.5px solid rgba(34, 245, 58, 0.45);
+  border-radius: 10px;
+  color: var(--p2-green);
+  background: rgba(34, 245, 58, 0.08);
+}
+
+.p2-service__icon svg {
+  width: 58%;
+  height: 58%;
+}
+
+.p2-service__name {
+  margin: 0;
+  font-family: var(--p2-display);
+  font-weight: 800;
+  font-size: max(0.95rem, calc(1.55 * var(--u)));
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--p2-white);
+  text-transform: uppercase;
+}
+
+.p2-service__desc {
+  margin: 0;
+  font-family: var(--p2-mono);
+  font-size: max(0.62rem, calc(0.95 * var(--u)));
+  line-height: 1.35;
+  color: var(--p2-grey);
+  text-transform: none;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
 
 /* ——— Buttons ——— */
 .p2-socials {
@@ -1459,6 +1547,7 @@ body.p2 {
   .p2-page--juicebags { background-image: url('/assets/preview2/juicebags-portrait.jpg'); }
   .p2-page--b3bs      { background-image: url('/assets/preview2/b3bs-portrait.jpg'); }
   .p2-page--mnk1sh    { background-image: url('/assets/preview2/mnk1sh-portrait.jpg'); }
+  .p2-page--services  { background-image: none; }
   .p2-page--partners  { background-image: none; }
 
   .p2-page--home      { background-image: none; }
@@ -1533,15 +1622,32 @@ body.p2 {
     margin-top: 0.9em;
   }
 
-  .p2-page--games {
+  .p2-page--games,
+  .p2-page--services {
     height: auto;
     min-height: 100svh;
     overflow: visible;
     justify-content: flex-start;
   }
 
-  .p2-games {
+  .p2-games,
+  .p2-services {
     max-height: none;
+  }
+
+  .p2-service-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85em;
+  }
+
+  .p2-service {
+    align-items: center;
+    text-align: center;
+  }
+
+  .p2-service__desc {
+    font-size: clamp(0.75rem, 3.2vw, 0.95rem);
+    max-width: 42ch;
   }
 
   .p2-game,
