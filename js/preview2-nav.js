@@ -5,12 +5,13 @@
   'use strict';
 
   var GORILLA = '/assets/preview2/gorilla-logo.png';
+  var NAV = '/assets/preview2/nav/';
 
   var ICONS = {
     home: '<img src="' + GORILLA + '" alt="" class="orbit-bubble__img" draggable="false">',
-    mnk3ys: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-    zmb3ys: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
-    blunana: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13c2.5-6 8-9 12-9 0 4-1.5 8.5-5 12"/><path d="M8 17c3-3 6.5-4.5 10-4.5"/><path d="M7 20c1.5-1.5 3-2 4.5-2"/></svg>',
+    mnk3ys: '<img src="' + NAV + 'mnk3ys.png" alt="" class="orbit-bubble__img orbit-bubble__img--cover" draggable="false">',
+    zmb3ys: '<img src="' + NAV + 'zmb3ys.png" alt="" class="orbit-bubble__img orbit-bubble__img--cover" draggable="false">',
+    blunana: '<img src="' + NAV + 'blunana.png" alt="" class="orbit-bubble__img orbit-bubble__img--cover" draggable="false">',
     games: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4"/><circle cx="17" cy="10" r="1"/><circle cx="15" cy="14" r="1"/></svg>',
     lp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
     utility: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',

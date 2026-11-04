@@ -163,6 +163,10 @@ body.p2 {
   display: block;
 }
 
+.orbit-bubble__img--cover {
+  object-fit: cover;
+}
+
 .orbit-nav__label {
   margin: 0.5rem 0 0;
   padding-left: 0.15rem;
