@@ -133,10 +133,10 @@ body.p2 {
 .p2-page--home      { background-image: none; }
 .p2-page--mnk3ys    { background-image: url('/assets/preview2/mnk3ys-landscape.jpg'); }
 .p2-page--zmb3ys    { background-image: url('/assets/preview2/zmb3ys-landscape.jpg'); }
-.p2-page--blunana   { background-image: url('/assets/preview2/blunana-landscape.jpg'); }
+.p2-page--blunana   { background-image: url('/assets/preview2/blunana-landscape.jpg?v=2'); }
 .p2-page--games     { background-image: none; }
-.p2-page--lp        { background-image: url('/assets/preview2/lp-landscape.jpg'); }
-.p2-page--utility   { background-image: url('/assets/preview2/utility-landscape.jpg'); }
+.p2-page--lp        { background-image: url('/assets/preview2/lp-landscape.jpg?v=2'); }
+.p2-page--utility   { background-image: url('/assets/preview2/utility-landscape.jpg?v=2'); }
 .p2-page--juice     { background-image: url('/assets/preview2/juice-landscape.jpg?v=2'); }
 .p2-page--juicebags { background-image: url('/assets/preview2/juicebags-landscape.jpg?v=2'); }
 .p2-page--b3bs      { background-image: url('/assets/preview2/b3bs-landscape.jpg?v=2'); }
@@ -1539,10 +1539,10 @@ body.p2 {
   .p2-page--home      { background-image: url('/assets/preview2/home-portrait.jpg'); }
   .p2-page--mnk3ys    { background-image: url('/assets/preview2/mnk3ys-portrait.jpg'); }
   .p2-page--zmb3ys    { background-image: url('/assets/preview2/zmb3ys-portrait.jpg'); }
-  .p2-page--blunana   { background-image: url('/assets/preview2/blunana-portrait.jpg'); }
+  .p2-page--blunana   { background-image: url('/assets/preview2/blunana-portrait.jpg?v=2'); }
   .p2-page--games     { background-image: none; }
-  .p2-page--lp        { background-image: url('/assets/preview2/lp-portrait.jpg'); }
-  .p2-page--utility   { background-image: url('/assets/preview2/utility-portrait.jpg'); }
+  .p2-page--lp        { background-image: url('/assets/preview2/lp-portrait.jpg?v=2'); }
+  .p2-page--utility   { background-image: url('/assets/preview2/utility-portrait.jpg?v=2'); }
   .p2-page--juice     { background-image: url('/assets/preview2/juice-portrait.jpg'); }
   .p2-page--juicebags { background-image: url('/assets/preview2/juicebags-portrait.jpg'); }
   .p2-page--b3bs      { background-image: url('/assets/preview2/b3bs-portrait.jpg'); }
