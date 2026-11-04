@@ -380,8 +380,9 @@ body.p2 {
 
 .p2-game {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.85fr);
-  gap: max(0.9em, calc(1.6 * var(--u)));
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 0.55em;
+  row-gap: 0.35em;
   align-items: center;
   width: 100%;
   min-height: 0;
@@ -389,10 +390,10 @@ body.p2 {
 }
 
 .p2-game--flip {
-  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.2fr);
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
-.p2-game--flip .p2-game__shot { order: 2; }
+.p2-game--flip .p2-game__shot { order: 2; justify-self: end; }
 .p2-game--flip .p2-game__copy { order: 1; }
 
 .p2-game__shot {
@@ -406,6 +407,7 @@ body.p2 {
   border-radius: 14px;
   background: #05070d;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+  justify-self: start;
 }
 
 .p2-game__copy {
@@ -414,6 +416,16 @@ body.p2 {
   align-items: flex-start;
   gap: 0.4em;
   min-width: 0;
+}
+
+/* Right column: text (BLUP3TS) hugs the right edge */
+.p2-game:not(.p2-game--flip) .p2-game__copy {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.p2-game:not(.p2-game--flip) .p2-game__word {
+  justify-content: flex-end;
 }
 
 /* Match BLUP3TS / BLUPA1RS home title styling */
