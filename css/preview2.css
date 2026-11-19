@@ -682,6 +682,19 @@ body.p2 {
   transform: translateX(-8%);
 }
 
+.p2-poker__note {
+  flex: 0 0 auto;
+  margin: 0 auto 0.85rem;
+  max-width: 42ch;
+  font-family: var(--p2-display);
+  font-size: max(0.68rem, calc(0.95 * var(--u)));
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--p2-grey);
+}
+
 .p2-poker__tabs {
   flex: 0 0 auto;
   display: flex;
