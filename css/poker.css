@@ -1,0 +1,178 @@
+:root {
+  --pk-bg: #05070d;
+  --pk-green: #22f53a;
+  --pk-white: #f4f6f8;
+  --pk-grey: #9aa3b2;
+  --pk-line: rgba(34, 245, 58, 0.28);
+  --pk-display: Nunito, system-ui, sans-serif;
+  --pk-ui: Poppins, system-ui, sans-serif;
+  --pk-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: radial-gradient(120% 80% at 50% -10%, rgba(34, 245, 58, 0.12), transparent 55%), var(--pk-bg);
+  color: var(--pk-white);
+  font-family: var(--pk-ui);
+}
+a { color: inherit; }
+.g { color: var(--pk-green); }
+
+.pk-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: calc(1rem + env(safe-area-inset-top, 0px)) 1.25rem 0.75rem;
+}
+.pk-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  font-family: var(--pk-display);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+.pk-brand img { border-radius: 50%; }
+.pk-home {
+  font-family: var(--pk-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--pk-grey);
+}
+.pk-home:hover { color: var(--pk-green); }
+
+.pk-main {
+  width: min(720px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.25rem 0 calc(3rem + env(safe-area-inset-bottom, 0px));
+}
+.pk-kicker {
+  margin: 0 0 0.4rem;
+  font-family: var(--pk-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pk-grey);
+}
+.pk-title {
+  margin: 0;
+  font-family: var(--pk-display);
+  font-weight: 900;
+  font-size: clamp(2.6rem, 10vw, 4.2rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+.pk-lede {
+  margin: 0.9rem 0 1.5rem;
+  max-width: 42ch;
+  color: var(--pk-grey);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.pk-tabs {
+  display: flex;
+  gap: 0.45rem;
+  margin-bottom: 1.1rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.pk-tabs::-webkit-scrollbar { display: none; }
+.pk-tab {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--pk-line);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--pk-grey);
+  font-family: var(--pk-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.pk-tab.is-active {
+  color: #000;
+  background: var(--pk-green);
+  border-color: var(--pk-green);
+}
+
+.pk-status {
+  margin: 0.35rem 0 1rem;
+  font-family: var(--pk-mono);
+  font-size: 0.8rem;
+  color: var(--pk-grey);
+}
+.pk-status.is-error { color: #ff7b7b; }
+
+.pk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.pk-card {
+  display: grid;
+  gap: 0.55rem;
+  padding: 1rem 1.05rem;
+  border: 1px solid var(--pk-line);
+  border-radius: 14px;
+  background:
+    linear-gradient(155deg, rgba(34, 245, 58, 0.12) 0%, rgba(34, 245, 58, 0.03) 40%, rgba(5, 7, 13, 0.72) 100%);
+  text-decoration: none;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.pk-card:hover {
+  border-color: rgba(34, 245, 58, 0.55);
+  transform: translateY(-1px);
+}
+.pk-card__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.pk-card__name {
+  margin: 0;
+  font-family: var(--pk-display);
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+.pk-card__meta,
+.pk-card__prize,
+.pk-card__desc {
+  margin: 0;
+  font-family: var(--pk-mono);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--pk-grey);
+}
+.pk-card__prize { color: var(--pk-white); }
+.pk-card__cta {
+  margin-top: 0.15rem;
+  font-family: var(--pk-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pk-green);
+}
+.pk-empty {
+  margin: 0;
+  padding: 1.25rem 1rem;
+  border: 1px dashed rgba(34, 245, 58, 0.25);
+  border-radius: 14px;
+  color: var(--pk-grey);
+  font-family: var(--pk-mono);
+  font-size: 0.85rem;
+  text-align: center;
+}

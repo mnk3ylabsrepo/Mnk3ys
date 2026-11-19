@@ -145,6 +145,28 @@ app.get('/legacy/', function (req, res) {
   res.redirect(301, '/legacy');
 });
 
+app.get('/poker', function (req, res) {
+  res.sendFile(path.join(__dirname, 'poker', 'index.html'));
+});
+app.get('/poker/', function (req, res) {
+  res.redirect(301, '/poker');
+});
+
+app.get('/api/poker-tournaments', async function (req, res) {
+  try {
+    const { fetchMnkTournaments } = require('./lib/poker-tournaments');
+    const tournaments = await fetchMnkTournaments();
+    res.setHeader('Cache-Control', 'public, max-age=30');
+    res.json({ ok: true, updatedAt: new Date().toISOString(), tournaments: tournaments });
+  } catch (e) {
+    res.status(e.status || 502).json({
+      ok: false,
+      message: e.message || 'Could not load tournaments',
+      tournaments: [],
+    });
+  }
+});
+
 // BLUP3TS preview: Azgog's read-only NFT check and floor-starter list. Real $BLUNANA payments stay off.
 const blup3tsNft = require('./lib/blup3ts/nft-check');
 const blup3tsFloor = require('./lib/blup3ts/floor-pets');

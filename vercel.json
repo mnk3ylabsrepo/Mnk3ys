@@ -12,7 +12,10 @@
 
     { "source": "/blupa1rs", "destination": "/preview/blupa1rs/index.html" },
     { "source": "/blupa1rs/", "destination": "/preview/blupa1rs/index.html" },
-    { "source": "/blupa1rs/:path*", "destination": "/preview/blupa1rs/:path*" }
+    { "source": "/blupa1rs/:path*", "destination": "/preview/blupa1rs/:path*" },
+
+    { "source": "/poker", "destination": "/poker/index.html" },
+    { "source": "/poker/", "destination": "/poker/index.html" }
   ],
   "redirects": [
     { "source": "/Mnk3ys", "destination": "/", "permanent": false },

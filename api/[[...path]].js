@@ -119,6 +119,10 @@ module.exports = (req, res) => {
     return res.end();
   }
 
+  if (u === '/poker' || u === '/poker/') {
+    return sendFile(res, path.join(ROOT, 'poker', 'index.html'), '.html');
+  }
+
   if (u === '/preview/blup3ts' || u === '/preview/blup3ts/') {
     res.statusCode = 308;
     res.setHeader('Location', '/blup3ts/');
