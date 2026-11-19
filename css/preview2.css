@@ -2080,11 +2080,22 @@ a.p2-partner:focus-visible {
   .p2-page--zmb3ys .p2-split {
     width: 100%;
     max-width: 34rem;
-    margin: 0 auto;
+    margin: -20vh auto 0;
     align-items: center;
     text-align: center;
-    /* Sit 20% above vertical center; bg position stays unchanged */
+  }
+
+  /* Beat the page-reveal `transform: none` so copy stays above center */
+  .p2-page--mnk3ys.is-visible .p2-page__content.p2-split,
+  .p2-page--zmb3ys.is-visible .p2-page__content.p2-split,
+  .p2-page--mnk3ys .p2-page__content.p2-split,
+  .p2-page--zmb3ys .p2-page__content.p2-split {
     transform: translateY(-20vh);
+  }
+
+  .p2-page--mnk3ys:not(.is-visible) .p2-page__content.p2-split,
+  .p2-page--zmb3ys:not(.is-visible) .p2-page__content.p2-split {
+    transform: translateY(calc(-20vh + 24px));
   }
 
   .p2-page--mnk3ys .p2-live,
