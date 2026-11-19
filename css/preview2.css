@@ -685,7 +685,7 @@ body.p2 {
 .p2-poker__note {
   flex: 0 0 auto;
   margin: 0 auto 0.85rem;
-  max-width: 42ch;
+  max-width: none;
   font-family: var(--p2-display);
   font-size: max(0.68rem, calc(0.95 * var(--u)));
   font-weight: 500;
@@ -693,6 +693,12 @@ body.p2 {
   letter-spacing: 0.01em;
   text-transform: none;
   color: var(--p2-grey);
+}
+
+.p2-poker__note-line {
+  display: inline-block;
+  white-space: nowrap;
+  font-size: clamp(0.58rem, 1.15vw, 0.72rem);
 }
 
 .p2-poker__tabs {
