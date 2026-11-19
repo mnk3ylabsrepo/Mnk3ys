@@ -2204,13 +2204,17 @@ a.p2-partner:focus-visible {
 
   .p2-partners {
     padding:
-      calc(2.75rem + env(safe-area-inset-top, 0px))
+      calc(4.5rem + env(safe-area-inset-top, 0px))
       1rem
-      calc(88px + env(safe-area-inset-bottom, 0px));
+      calc(108px + env(safe-area-inset-bottom, 0px));
   }
 
   .p2-partners__title {
-    padding-top: 0.35rem;
+    padding-top: 0.75rem;
+  }
+
+  .p2-partners__footer {
+    padding-bottom: 0.85rem;
   }
 
   .p2-partner-grid {
