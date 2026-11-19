@@ -906,8 +906,30 @@ body.p2 {
   height: auto;
   translate: -50% -50%;
   opacity: 0.8;
-  animation: p2-logo-pulse 10s ease-in-out infinite;
+  animation: p2-logo-pulse 12s ease-in-out infinite;
   animation-delay: calc(var(--i) * 2s);
+}
+
+a.p2-partner-logo {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a.p2-partner-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+a.p2-partner-logo:hover,
+a.p2-partner-logo:focus-visible {
+  opacity: 1;
+  outline: none;
+  filter: drop-shadow(0 0 12px rgba(34, 245, 58, 0.45));
 }
 
 .p2-partner-logo--solana {
@@ -915,10 +937,10 @@ body.p2 {
   animation: none;
 }
 
-/* Each logo's 2s pulse (1.5x the title fade) occupies one 20% slot of the 10s cycle */
+/* Each logo's 2s pulse occupies one slot of the 12s cycle (6 partners) */
 @keyframes p2-logo-pulse {
-  0%, 20%, 100% { opacity: 0.8; scale: 1; }
-  10%           { opacity: 1;   scale: 1.1; }
+  0%, 16.66%, 100% { opacity: 0.8; scale: 1; }
+  8.33%            { opacity: 1;   scale: 1.1; }
 }
 
 .p2-partner-label {
@@ -933,13 +955,14 @@ body.p2 {
   white-space: nowrap;
   color: #fff;
   opacity: 0;
-  animation: p2-label-show 10s ease-in-out infinite;
+  animation: p2-label-show 12s ease-in-out infinite;
   animation-delay: calc(var(--i) * 2s);
+  pointer-events: none;
 }
 
 @keyframes p2-label-show {
-  0%, 20%, 100% { opacity: 0; }
-  6%, 14%       { opacity: 1; }
+  0%, 16.66%, 100% { opacity: 0; }
+  5%, 12%          { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
