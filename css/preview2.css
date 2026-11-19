@@ -631,6 +631,11 @@ body.p2 {
   gap: 0.35em;
 }
 
+.p2-poker__mark {
+  display: inline;
+  white-space: nowrap;
+}
+
 .p2-poker__word .p2-game__beta {
   font-size: clamp(11px, 1.1vw, 14px);
   padding: 4px 9px;
@@ -640,7 +645,7 @@ body.p2 {
 
 .p2-poker__lede {
   flex: 0 0 auto;
-  margin: 0.45rem auto 0.75rem;
+  margin: 0.45rem auto 0.35rem;
   max-width: 46ch;
   font-family: var(--p2-display);
   font-size: max(0.8rem, calc(1.2 * var(--u)));
@@ -649,6 +654,32 @@ body.p2 {
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--p2-white);
+}
+
+.p2-poker__slotto {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  margin: 0 auto 0.75rem;
+  font-family: var(--p2-display);
+  font-size: max(0.78rem, calc(1.1 * var(--u)));
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--p2-white);
+}
+
+.p2-poker__slotto-thumb {
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+  object-position: center;
+  flex: 0 0 auto;
+  /* SLOTTO art waves left — nudge so the figure sits on the label */
+  transform: translateX(-8%);
 }
 
 .p2-poker__tabs {
