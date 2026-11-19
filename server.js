@@ -23,7 +23,7 @@ const SESSION_SECRET = process.env.SESSION_SECRET || 'mnk3ys-session-secret-chan
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:' + PORT).replace(/\/$/, '');
 const REDIRECT_URI = BASE_URL + '/api/discord/callback';
 // Send Discord back to the domain the user started on, so the session cookie is readable there
-const { requestHost, gameDirForHost, OAUTH_HOST_RE } = require('./lib/site-hosts');
+const { requestHost, OAUTH_HOST_RE } = require('./lib/site-hosts');
 function discordRedirectUri(req) {
   const host = requestHost(req);
   return OAUTH_HOST_RE.test(host) ? 'https://' + host + '/api/discord/callback' : REDIRECT_URI;
@@ -95,33 +95,17 @@ app.use(
   })
 );
 
-// Homepage / game subdomain roots (before static so index.html does not win)
+// Homepage (before static so root index.html does not win)
 app.get('/', function (req, res) {
-  const gameDir = gameDirForHost(requestHost(req));
-  if (gameDir) return res.sendFile(path.join(__dirname, gameDir, 'index.html'));
   const { sendPreview2Html } = require('./lib/preview-site');
   if (!sendPreview2Html(res, __dirname)) res.status(404).end();
 });
 
-// Game subdomains — map /style.css etc. into the game folder
-app.use(function (req, res, next) {
-  const gameDir = gameDirForHost(requestHost(req));
-  if (!gameDir) return next();
-  if (req.path === '/api' || req.path.indexOf('/api/') === 0) return next();
-  if (
-    req.path.indexOf('/assets/') === 0 ||
-    req.path.indexOf('/css/') === 0 ||
-    req.path.indexOf('/js/') === 0 ||
-    req.path.indexOf('/preview/') === 0
-  ) {
-    return next();
-  }
-  const rel = req.path.replace(/^\/+/, '');
-  if (!rel) return next();
-  return res.sendFile(path.join(__dirname, gameDir, rel), function (err) {
-    if (err) next();
-  });
-});
+// Public game URLs → preview game folders
+app.use('/blup3ts', express.static(path.join(__dirname, 'preview', 'blup3ts'), { index: 'index.html' }));
+app.use('/blupa1rs', express.static(path.join(__dirname, 'preview', 'blupa1rs'), { index: 'index.html' }));
+app.get('/blup3ts', function (req, res) { res.redirect(301, '/blup3ts/'); });
+app.get('/blupa1rs', function (req, res) { res.redirect(301, '/blupa1rs/'); });
 
 app.use(express.static(path.join(__dirname), { index: false }));
 

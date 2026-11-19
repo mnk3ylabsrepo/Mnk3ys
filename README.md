@@ -40,12 +40,8 @@ After this, Discord logins are stored in `users`, and when a user **Verify**s (D
 1. Push this repo to GitHub and import it in [Vercel](https://vercel.com) as a new project.
 2. **Framework**: Other. **Root Directory**: (leave default).
 3. **Environment Variables**: add the same as `.env` (`BASE_URL` = your Vercel URL, `SESSION_SECRET`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, and optionally `HELIUS_API_KEY`, `BLUNANA_TOKEN_MINT`, `DISCORD_BOT_TOKEN`, `BIRDEYE_API_KEY`, collection mints, `DATABASE_URL` for Discord/holders and Pairs).
-4. In Discord, add redirects:
-   - `https://www.mnk3ylabs.com/api/discord/callback`
-   - `https://blupets.mnk3ylabs.com/api/discord/callback`
-   - `https://blupairs.mnk3ylabs.com/api/discord/callback`
-5. In Vercel → Domains, add `blupets.mnk3ylabs.com` and `blupairs.mnk3ylabs.com` (same project), then point DNS.
-6. Deploy. Live site is promoted from `preview2/` at build time; games are served on those subdomains.
+4. In Discord, add redirect: `https://www.mnk3ylabs.com/api/discord/callback`.
+5. Deploy. Live site is promoted from `preview2/` at build time; games are at `/blup3ts/` and `/blupa1rs/`.
 
 ## Project config
 

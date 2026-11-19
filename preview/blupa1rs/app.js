@@ -15,7 +15,7 @@
   var TYPE = {};
   CARD_TYPES.forEach(function (t) { TYPE[t.id] = t; });
   var BLUNANA_LOGO = 'https://ipfs.io/ipfs/QmTKRAZEcTfDeVDt8hebrCv27DctYghtdfXRMc9FRA6NU3';
-  var BADGE = '/preview/blup3ts/assets/blunana_badge.png';
+  var BADGE = '/blup3ts/assets/blunana_badge.png';
   var BACK = '/assets/preview2/gorilla-logo.png';
   var STORE = 'blupa1rs.state';
   var cfg = { turnsPerBuy: 5, costBlunana: 100000 };
@@ -39,7 +39,7 @@
     return pk && pk.length > 12 ? pk.slice(0, 4) + '…' + pk.slice(-4) : (pk || '');
   }
   var W = { connecting: false, kind: null, provider: null, std: null, account: null, pubkey: null, lastConnect: 0, lastDrop: 0 };
-  var LOGO = { solflare: '/preview/blup3ts/assets/wallets/solflare.png', phantom: '/preview/blup3ts/assets/wallets/phantom.png' };
+  var LOGO = { solflare: '/blup3ts/assets/wallets/solflare.png', phantom: '/blup3ts/assets/wallets/phantom.png' };
   var ALLOWED = ['Phantom', 'Solflare', 'Backpack'];
   var STD = [];
   var REM = 'blupa1rs.wallet';
@@ -724,9 +724,7 @@
   }
 
   var discordUser = null, discordWallets = [], discordSure = '';
-  var DISCORD_LOGIN = '/api/discord/auth?next=' + encodeURIComponent(
-    /^blupairs\./i.test(location.hostname || '') ? '/' : '/preview/blupa1rs/'
-  );
+  var DISCORD_LOGIN = '/api/discord/auth?next=' + encodeURIComponent('/blupa1rs/');
   function discordName(u) { return (u && (u.global_name || u.username)) || 'Discord'; }
   function discordAvatar(u) {
     if (!u || !u.id) return '';

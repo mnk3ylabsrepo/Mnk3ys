@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   var LOGIN = (window.BLUP3TS_CONFIG && BLUP3TS_CONFIG.LEADERBOARD_DISCORD_LOGIN_URL) || (
-    '/api/discord/auth?next=' + encodeURIComponent(/^blupets\./i.test(location.hostname || '') ? '/' : '/preview/blup3ts/')
+    '/api/discord/auth?next=' + encodeURIComponent('/blup3ts/')
   );
   var user = null, wallets = [], sure = '';
 

@@ -5,7 +5,6 @@ const fs = require('fs');
 const path = require('path');
 const app = require('../server');
 const { sendPreviewHtml, sendPreview2Html } = require('../lib/preview-site');
-const { requestHost, gameDirForHost } = require('../lib/site-hosts');
 
 const ROOT = path.resolve(path.join(__dirname, '..'));
 
@@ -29,7 +28,7 @@ const MIME = {
 
 function sendFile(res, filePath, ext) {
   try {
-    const body = ['.css', '.js', '.json'].includes(ext)
+    const body = ['.html', '.css', '.js', '.json', '.webmanifest', '.svg'].includes(ext)
       ? fs.readFileSync(filePath, 'utf8')
       : fs.readFileSync(filePath);
     res.setHeader('Content-Type', MIME[ext] || 'application/octet-stream');
@@ -120,21 +119,38 @@ module.exports = (req, res) => {
     return res.end();
   }
 
-  const host = requestHost(req);
-  const gameDir = gameDirForHost(host);
+  if (u === '/preview/blup3ts' || u === '/preview/blup3ts/') {
+    res.statusCode = 308;
+    res.setHeader('Location', '/blup3ts/');
+    return res.end();
+  }
+  if (u === '/preview/blupa1rs' || u === '/preview/blupa1rs/') {
+    res.statusCode = 308;
+    res.setHeader('Location', '/blupa1rs/');
+    return res.end();
+  }
+
   const isRoot = u === '' || u === '/' || u === '/index.html';
 
-  if (gameDir && isRoot) {
-    return sendFile(res, path.join(ROOT, gameDir, 'index.html'), '.html');
-  }
-  if (gameDir && !u.startsWith('/api') && !u.startsWith('/assets/') && !u.startsWith('/css/') && !u.startsWith('/js/') && !u.startsWith('/preview/')) {
-    const gameRel = u.replace(/^\/+/, '');
-    const gamePath = path.join(ROOT, gameDir, gameRel);
-    const gameResolved = path.resolve(gamePath);
-    if (gameResolved.startsWith(path.resolve(ROOT, gameDir)) && fs.existsSync(gameResolved)) {
-      return sendFile(res, gameResolved, path.extname(gameResolved));
+  function sendGame(publicPrefix, diskDir) {
+    if (u === publicPrefix) {
+      return sendFile(res, path.join(ROOT, diskDir, 'index.html'), '.html');
     }
+    if (u.startsWith(publicPrefix + '/')) {
+      const gameRel = u.slice(publicPrefix.length).replace(/^\/+/, '') || 'index.html';
+      const gamePath = path.join(ROOT, diskDir, gameRel);
+      const gameResolved = path.resolve(gamePath);
+      if (!gameResolved.startsWith(path.resolve(ROOT, diskDir))) return res.status(404).end();
+      if (!fs.existsSync(gameResolved)) return res.status(404).end();
+      return sendFile(res, gameResolved, path.extname(gameResolved) || '.html');
+    }
+    return null;
   }
+
+  const blup3ts = sendGame('/blup3ts', 'preview/blup3ts');
+  if (blup3ts) return blup3ts;
+  const blupa1rs = sendGame('/blupa1rs', 'preview/blupa1rs');
+  if (blupa1rs) return blupa1rs;
 
   if (isRoot) {
     if (sendPreview2Html(res, ROOT)) return;
