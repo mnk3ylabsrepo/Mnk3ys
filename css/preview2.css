@@ -314,8 +314,10 @@ body.p2 {
     text-align: right;
   }
 
-  .p2-page--lp .p2-title { order: -1; }
-  .p2-page--lp .p2-desc { margin: 0.8em 0 0; }
+  .p2-page--lp .p2-sub {
+    margin: 0.8em 0 0;
+    max-width: 36ch;
+  }
 
   .p2-page--lp .p2-pills {
     --u-pill: calc(min(1vw, 1.778vh) * 1.8);
@@ -355,7 +357,7 @@ body.p2 {
 
   .p2-page--b3bs .p2-title,
   .p2-page--mnk1sh .p2-title { font-size: max(2.97rem, calc(8.37 * var(--u))); }
-  .p2-page--b3bs .p2-desc,
+  .p2-page--b3bs .p2-sub,
   .p2-page--mnk1sh .p2-desc { font-size: max(0.97rem, calc(1.69 * var(--u))); }
 
   .p2-page--blunana .p2-chart-links img {
@@ -1856,7 +1858,29 @@ body.p2 {
 
   .p2-page--blunana,
   .p2-page--games,
-  .p2-page--utility { align-items: center; }
+  .p2-page--lp,
+  .p2-page--utility,
+  .p2-page--b3bs {
+    align-items: center;
+    justify-content: center;
+    background-position: center;
+  }
+
+  .p2-page--lp .p2-center,
+  .p2-page--utility .p2-center,
+  .p2-page--b3bs .p2-center {
+    width: 100%;
+    max-width: 36rem;
+    margin: 0;
+    align-items: center;
+    text-align: center;
+  }
+
+  .p2-page--lp .p2-sub,
+  .p2-page--b3bs .p2-sub {
+    margin: 0.35em 0 0;
+    max-width: 34ch;
+  }
 
   .p2-page--home {
     align-items: flex-start;
@@ -1958,55 +1982,6 @@ body.p2 {
   }
 
   .p2-portal-btn__badge svg { width: 10px; height: 10px; }
-
-  /* LP + B3BS: text mid-viewport over art (art raised so they can overlap) */
-  .p2-page--lp,
-  .p2-page--b3bs {
-    align-items: center;
-    justify-content: center;
-    background-size: cover;
-  }
-
-  .p2-page--lp {
-    background-position: center 28%;
-  }
-
-  .p2-page--b3bs {
-    background-position: center 32%;
-  }
-
-  .p2-page--lp .p2-center,
-  .p2-page--b3bs .p2-center {
-    width: 100%;
-    max-width: 34rem;
-    margin: 0;
-    padding: 0 8px;
-    align-items: center;
-    text-align: center;
-    gap: 0.55em;
-  }
-
-  .p2-page--lp .p2-title,
-  .p2-page--b3bs .p2-title {
-    order: 0;
-    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.9), 0 0 28px rgba(0, 0, 0, 0.55);
-  }
-
-  .p2-page--lp .p2-desc,
-  .p2-page--b3bs .p2-desc {
-    order: 1;
-    margin: 0.35em 0 0;
-    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 0, 0, 0.6);
-  }
-
-  .p2-page--lp .p2-pills,
-  .p2-page--b3bs .p2-soon,
-  .p2-page--b3bs .p2-pills {
-    order: 2;
-    margin-top: 0.55em;
-  }
-
-  .p2-page--b3bs .p2-pills { order: 3; }
 
   /* GAM3S: title → image → smaller description */
   .p2-game,
