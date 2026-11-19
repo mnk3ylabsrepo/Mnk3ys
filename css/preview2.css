@@ -622,7 +622,7 @@ body.p2 {
 .p2-service-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: max(0.75em, 1.4vh) max(1em, 1.6vw);
+  gap: max(0.75em, 1.4vh) clamp(1.75rem, 3.5vw, 3.25rem);
   width: 100%;
   margin-top: 0.7em;
   min-height: 0;
@@ -641,7 +641,15 @@ body.p2 {
   text-align: left;
   border: 2px solid rgba(34, 245, 58, 0.28);
   border-radius: 14px;
-  background: rgba(5, 7, 13, 0.72);
+  background:
+    linear-gradient(
+      155deg,
+      rgba(34, 245, 58, 0.14) 0%,
+      rgba(34, 245, 58, 0.04) 38%,
+      rgba(5, 7, 13, 0.55) 72%,
+      rgba(5, 7, 13, 0.78) 100%
+    ),
+    rgba(5, 7, 13, 0.72);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
 }
 
