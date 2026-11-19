@@ -48,6 +48,7 @@
   function render() {
     var rows = filtered();
     list.hidden = false;
+    list.scrollTop = 0;
     if (!rows.length) {
       list.innerHTML = '<p class="pk-empty">No ' + esc(activeTab) + ' tournaments right now.</p>';
       return;
@@ -64,7 +65,7 @@
       return (
         '<a class="pk-card" href="' + esc(t.url) + '" target="_blank" rel="noopener">'
         + '<div class="pk-card__top">'
-        + '<h2 class="pk-card__name">' + esc(t.name) + '</h2>'
+        + '<h3 class="pk-card__name">' + esc(t.name) + '</h3>'
         + '</div>'
         + '<p class="pk-card__meta">' + esc(formatWhen(t.startTime)) + ' · ' + esc(seats) + ' seated</p>'
         + prize

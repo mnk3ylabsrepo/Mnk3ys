@@ -592,18 +592,16 @@ body.p2 {
 
 .p2-game__copy .p2-pill { margin-top: 0.15em; }
 
-/* ——— Poker: BUX tournament list (scrollable) ——— */
+/* ——— Poker: one-viewport panel; list scrolls inside ——— */
 .p2-page--poker {
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   height: 100vh;
   height: 100svh;
   min-height: 100vh;
   min-height: 100svh;
-  padding-top: calc(1.25rem + env(safe-area-inset-top, 0px));
+  padding-top: 16px;
   padding-bottom: calc(var(--orb-primary) + 2rem);
 }
 
@@ -611,13 +609,17 @@ body.p2 {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  width: min(720px, 100%);
+  width: min(640px, 100%);
+  height: calc(100svh - var(--orb-primary) - 3rem);
+  max-height: calc(100svh - var(--orb-primary) - 3rem);
+  min-height: 0;
   margin: 0 auto;
-  text-align: left;
+  text-align: center;
 }
 
 .p2-poker .p2-kicker {
-  margin: 0 0 0.35rem;
+  flex: 0 0 auto;
+  margin: 0 0 0.25rem;
   font-family: var(--p2-mono);
   font-size: 0.72rem;
   font-weight: 500;
@@ -626,26 +628,30 @@ body.p2 {
 }
 
 .p2-poker .p2-title {
+  flex: 0 0 auto;
   margin: 0;
-  text-align: left;
+  text-align: center;
 }
 
 .p2-poker__lede {
-  margin: 0.75rem 0 1.15rem;
-  max-width: 46ch;
+  flex: 0 0 auto;
+  margin: 0.45rem auto 0.75rem;
+  max-width: 42ch;
   font-family: var(--p2-mono);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 400;
-  line-height: 1.45;
+  line-height: 1.4;
   text-transform: none;
   letter-spacing: 0;
   color: var(--p2-grey);
 }
 
 .p2-poker__tabs {
+  flex: 0 0 auto;
   display: flex;
-  gap: 0.45rem;
-  margin-bottom: 0.85rem;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0 auto 0.65rem;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -656,13 +662,13 @@ body.p2 {
 .p2-poker__tab {
   flex: 0 0 auto;
   margin: 0;
-  padding: 0.55rem 0.9rem;
+  padding: 0.5rem 0.85rem;
   border: 1px solid rgba(34, 245, 58, 0.28);
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.45);
   color: var(--p2-grey);
   font-family: var(--p2-mono);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -676,46 +682,81 @@ body.p2 {
 }
 
 .p2-poker__status {
-  margin: 0.2rem 0 0.85rem;
+  flex: 0 0 auto;
+  margin: 0 0 0.5rem;
   font-family: var(--p2-mono);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--p2-grey);
 }
 
 .p2-poker__status.is-error { color: #ff7b7b; }
 
+.p2-poker__status:empty,
+.p2-poker__status[hidden] {
+  display: none;
+}
+
 .p2-poker__list {
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding-bottom: 0.5rem;
+  gap: 0.55rem;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  text-align: left;
+  padding: 0.15rem 0.35rem 0.35rem;
+  border: 1px solid rgba(34, 245, 58, 0.22);
+  border-radius: 16px;
+  background: rgba(5, 7, 13, 0.55);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 245, 58, 0.45) transparent;
+}
+
+.p2-poker__list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.p2-poker__list::-webkit-scrollbar-thumb {
+  background: rgba(34, 245, 58, 0.4);
+  border-radius: 999px;
 }
 
 .p2-page--poker .pk-card {
   display: grid;
-  gap: 0.55rem;
-  padding: 1rem 1.05rem;
-  border: 1px solid rgba(34, 245, 58, 0.28);
-  border-radius: 14px;
+  gap: 0.28rem;
+  flex: 0 0 auto;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid rgba(34, 245, 58, 0.22);
+  border-radius: 12px;
   background:
-    linear-gradient(155deg, rgba(34, 245, 58, 0.12) 0%, rgba(34, 245, 58, 0.03) 40%, rgba(5, 7, 13, 0.72) 100%);
+    linear-gradient(155deg, rgba(34, 245, 58, 0.1) 0%, rgba(34, 245, 58, 0.02) 42%, rgba(5, 7, 13, 0.65) 100%);
   color: inherit;
   text-decoration: none;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .p2-page--poker .pk-card:hover {
   border-color: rgba(34, 245, 58, 0.55);
-  transform: translateY(-1px);
+}
+
+.p2-page--poker .pk-card__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.65rem;
 }
 
 .p2-page--poker .pk-card__name {
   margin: 0;
   font-family: var(--p2-display);
   font-weight: 800;
-  font-size: 1.1rem;
+  font-size: 0.98rem;
   letter-spacing: -0.02em;
   text-transform: uppercase;
+  line-height: 1.15;
 }
 
 .p2-page--poker .pk-card__meta,
@@ -723,30 +764,37 @@ body.p2 {
 .p2-page--poker .pk-card__desc {
   margin: 0;
   font-family: var(--p2-mono);
-  font-size: 0.78rem;
-  line-height: 1.4;
+  font-size: 0.72rem;
+  line-height: 1.35;
   color: var(--p2-grey);
+}
+
+.p2-page--poker .pk-card__desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .p2-page--poker .pk-card__prize { color: var(--p2-white); }
 
 .p2-page--poker .pk-card__cta {
-  margin-top: 0.1rem;
+  margin-top: 0.15rem;
   font-family: var(--p2-mono);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--p2-green);
 }
 
 .p2-page--poker .pk-empty {
-  margin: 0;
-  padding: 1.25rem 1rem;
+  margin: auto 0;
+  padding: 1.1rem 1rem;
   border: 1px dashed rgba(34, 245, 58, 0.25);
-  border-radius: 14px;
+  border-radius: 12px;
   color: var(--p2-grey);
   font-family: var(--p2-mono);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   text-align: center;
 }
 
@@ -2365,7 +2413,6 @@ a.p2-partner:focus-visible {
   }
 
   .p2-page--games,
-  .p2-page--poker,
   .p2-page--services {
     height: 100%;
     min-height: 100%;
@@ -2375,18 +2422,25 @@ a.p2-partner:focus-visible {
     align-items: flex-start;
   }
 
-  .p2-page--games,
   .p2-page--poker {
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    justify-content: flex-start;
+    align-items: stretch;
     padding-top: calc(3.25rem + env(safe-area-inset-top, 0px));
     padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
   }
 
-  .p2-page--poker {
-    justify-content: flex-start;
+  .p2-page--games {
+    padding-top: calc(3.25rem + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
   }
 
   .p2-poker {
     width: min(100%, 36rem);
+    height: 100%;
+    max-height: none;
   }
 
   .p2-games,
