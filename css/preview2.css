@@ -1745,7 +1745,7 @@ a.p2-partner:focus-visible {
   position: fixed;
   left: 50%;
   bottom: 28px;
-  z-index: 60;
+  z-index: 140;
   padding: 10px 18px;
   border: 1px solid var(--p2-green);
   border-radius: 999px;
@@ -1763,6 +1763,13 @@ a.p2-partner:focus-visible {
 .p2-toast.is-shown {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+
+@media (orientation: portrait) {
+  .p2-toast {
+    /* Sit above the footer nav strip */
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 @media (max-width: 599px) {
