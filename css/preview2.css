@@ -2067,15 +2067,17 @@ a.p2-partner:focus-visible {
     background-position: center;
   }
 
-  /* MNK3YS portrait: center copy over art; lift bg so the ape is less clipped at the bottom */
-  .p2-page--mnk3ys {
+  /* MNK3YS / ZMB3YS portrait: center copy over art; lift bg so the character is less clipped */
+  .p2-page--mnk3ys,
+  .p2-page--zmb3ys {
     align-items: center;
     justify-content: center;
     background-position: center 72%;
     background-size: cover;
   }
 
-  .p2-page--mnk3ys .p2-split {
+  .p2-page--mnk3ys .p2-split,
+  .p2-page--zmb3ys .p2-split {
     width: 100%;
     max-width: 34rem;
     margin: 0 auto;
@@ -2085,14 +2087,21 @@ a.p2-partner:focus-visible {
 
   .p2-page--mnk3ys .p2-live,
   .p2-page--mnk3ys .p2-socials,
-  .p2-page--mnk3ys .p2-pills {
+  .p2-page--mnk3ys .p2-pills,
+  .p2-page--zmb3ys .p2-live,
+  .p2-page--zmb3ys .p2-socials,
+  .p2-page--zmb3ys .p2-pills {
     align-self: center;
   }
 
   .p2-page--mnk3ys .p2-title,
   .p2-page--mnk3ys .p2-tagline,
   .p2-page--mnk3ys .p2-stats,
-  .p2-page--mnk3ys .p2-live__status {
+  .p2-page--mnk3ys .p2-live__status,
+  .p2-page--zmb3ys .p2-title,
+  .p2-page--zmb3ys .p2-tagline,
+  .p2-page--zmb3ys .p2-stats,
+  .p2-page--zmb3ys .p2-live__status {
     text-shadow:
       0 0 10px #000,
       0 0 22px #000,
