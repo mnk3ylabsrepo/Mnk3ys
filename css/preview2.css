@@ -1964,13 +1964,20 @@ a.p2-partner:focus-visible {
     justify-content: center;
   }
 
-  /* Art fits viewport width (contain), centered behind copy — no oversized crop */
+  /*
+   * LP / Utility / B3BS portrait:
+   * content pinned top (Partners title offset), art pinned bottom with the same margin.
+   * --p2-edge-pad = page top pad (4.5rem) + title pad (0.75rem)
+   */
   .p2-page--lp,
   .p2-page--utility,
   .p2-page--b3bs {
+    --p2-edge-pad: 5.25rem;
     background-image: none !important;
-    /* Bottom inset matches title top offset (4.5rem page + 0.75rem title) */
-    padding-bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: calc(4.5rem + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(var(--p2-edge-pad) + env(safe-area-inset-bottom, 0px));
     overflow: hidden;
   }
 
@@ -1982,33 +1989,31 @@ a.p2-partner:focus-visible {
     left: 0;
     right: 0;
     top: 0;
-    bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
+    bottom: 0;
     z-index: 0;
+    box-sizing: border-box;
+    /* Same margin under the art as above the title */
+    padding-bottom: calc(var(--p2-edge-pad) + env(safe-area-inset-bottom, 0px));
     background-repeat: no-repeat;
-    /* Fit screen width; height follows. Parent overflow clips the lift. */
     background-size: 100% auto;
-    background-position: center top;
+    background-position: center bottom;
+    background-origin: content-box;
+    background-clip: content-box;
     pointer-events: none;
+    transform: none;
   }
 
   .p2-page--lp::before {
     background-image: url('/assets/preview2/lp-portrait.jpg?v=2');
-    background-position: 34% top;
-    /* Asset subject is low — shift layer up so the lock sits mid-viewport */
-    transform: translate3d(0, -18%, 0);
+    background-position: 34% bottom;
   }
 
   .p2-page--utility::before {
     background-image: url('/assets/preview2/utility-portrait.jpg?v=2');
-    background-position: center top;
-    transform: translate3d(0, -6%, 0);
   }
 
   .p2-page--b3bs::before {
     background-image: url('/assets/preview2/b3bs-portrait.jpg');
-    background-position: center top;
-    /* Asset subject is in the lower third — lift harder to true center */
-    transform: translate3d(0, -22%, 0);
   }
 
   .p2-page--lp .p2-page__content,
@@ -2018,10 +2023,6 @@ a.p2-partner:focus-visible {
     z-index: 1;
   }
 
-  /* Match Partners title offset from the top of the viewport */
-  .p2-page--lp,
-  .p2-page--utility,
-  .p2-page--b3bs,
   .p2-page--services {
     align-items: flex-start;
     justify-content: center;
