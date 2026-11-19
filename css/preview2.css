@@ -2224,13 +2224,16 @@ a.p2-partner:focus-visible {
   }
 
   .p2-service {
-    grid-template-columns: auto auto;
-    justify-content: center;
-    justify-items: center;
-    text-align: center;
+    grid-template-columns: minmax(0, 1fr) auto;
+    justify-content: stretch;
+    text-align: left;
   }
 
   .p2-service__name {
+    text-align: left;
+  }
+
+  .p2-service__desc {
     text-align: left;
   }
 
