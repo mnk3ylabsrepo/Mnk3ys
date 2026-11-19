@@ -2083,6 +2083,8 @@ a.p2-partner:focus-visible {
     margin: 0 auto;
     align-items: center;
     text-align: center;
+    /* Sit 20% above vertical center; bg position stays unchanged */
+    transform: translateY(-20vh);
   }
 
   .p2-page--mnk3ys .p2-live,
