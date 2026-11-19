@@ -1969,8 +1969,8 @@ a.p2-partner:focus-visible {
   .p2-page--utility,
   .p2-page--b3bs {
     background-image: none !important;
-    /* Only clear the footer icons; leftover padding was clipping the art */
-    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    /* Bottom inset matches title top offset (4.5rem page + 0.75rem title) */
+    padding-bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
     overflow: hidden;
   }
 
@@ -1982,7 +1982,7 @@ a.p2-partner:focus-visible {
     left: 0;
     right: 0;
     top: 0;
-    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
     z-index: 0;
     background-repeat: no-repeat;
     /* Fit screen width; height follows. Parent overflow clips the lift. */
