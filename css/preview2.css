@@ -961,10 +961,9 @@ body.p2 {
   animation-delay: calc(var(--i, 0) * 2s);
 }
 
-/* Waving arm sits left of the ball — nudge so the body lines up over the label */
+/* Waving arm sits left of the ball — shift icon left so the body sits over the centered label */
 .p2-partner--slotto .p2-partner__logo {
-  transform: translateX(7%);
-  object-position: 58% center;
+  transform: translateX(-10%);
 }
 
 .p2-partner__name {
