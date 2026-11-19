@@ -631,10 +631,12 @@ body.p2 {
 }
 
 .p2-service {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.45em;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  justify-items: start;
+  column-gap: 0.65em;
+  row-gap: 0.45em;
   padding: max(0.9em, 1.4vh) max(1em, 1.2vw);
   text-align: left;
   border: 2px solid rgba(34, 245, 58, 0.28);
@@ -642,6 +644,10 @@ body.p2 {
   background: rgba(5, 7, 13, 0.72);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
 }
+
+.p2-service__icon { grid-column: 1; grid-row: 1; }
+.p2-service__name { grid-column: 2; grid-row: 1; }
+.p2-service__desc { grid-column: 1 / -1; }
 
 .p2-service__icon {
   display: grid;
@@ -2206,8 +2212,14 @@ a.p2-partner:focus-visible {
   }
 
   .p2-service {
-    align-items: center;
+    grid-template-columns: auto auto;
+    justify-content: center;
+    justify-items: center;
     text-align: center;
+  }
+
+  .p2-service__name {
+    text-align: left;
   }
 
   .p2-service__desc {
