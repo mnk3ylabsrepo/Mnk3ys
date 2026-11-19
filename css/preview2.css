@@ -704,7 +704,7 @@ body.p2 {
 
 .p2-headline__tools {
   display: flex;
-  gap: max(10px, calc(1.2 * var(--u)));
+  gap: max(24px, calc(4 * var(--u)));
 }
 
 /* ——— Live collection stats ——— */
