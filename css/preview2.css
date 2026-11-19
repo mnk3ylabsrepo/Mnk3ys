@@ -632,10 +632,10 @@ body.p2 {
 
 .p2-service {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  justify-items: stretch;
-  column-gap: 0.65em;
+  justify-items: start;
+  column-gap: 0.55em;
   row-gap: 0.45em;
   padding: max(0.9em, 1.4vh) max(1em, 1.2vw);
   text-align: left;
@@ -645,18 +645,17 @@ body.p2 {
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
 }
 
-.p2-service__name {
+.p2-service__icon {
   grid-column: 1;
   grid-row: 1;
   justify-self: start;
-  align-self: center;
 }
 
-.p2-service__icon {
+.p2-service__name {
   grid-column: 2;
   grid-row: 1;
-  justify-self: end;
-  align-self: center;
+  justify-self: start;
+  text-align: left;
 }
 
 .p2-service__desc { grid-column: 1 / -1; }
