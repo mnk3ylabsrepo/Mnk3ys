@@ -1880,7 +1880,11 @@ body.p2 {
   .p2-page--b3bs::before {
     content: '';
     position: absolute;
-    inset: 0;
+    /* Center in the usable area above the footer, not the full page */
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
     z-index: 0;
     background-repeat: no-repeat;
     background-size: contain;
@@ -1890,18 +1894,19 @@ body.p2 {
 
   .p2-page--lp::before {
     background-image: url('/assets/preview2/lp-portrait.jpg?v=2');
-    /* Subject sits low-left in the asset — keep full width, bias focal point */
-    background-position: 38% 58%;
+    /* Padlock is low-left in the file — pin image toward the top so the subject lands mid-screen */
+    background-position: 36% 0%;
   }
 
   .p2-page--utility::before {
     background-image: url('/assets/preview2/utility-portrait.jpg?v=2');
-    background-position: center 46%;
+    background-position: center center;
   }
 
   .p2-page--b3bs::before {
     background-image: url('/assets/preview2/b3bs-portrait.jpg');
-    background-position: center 56%;
+    /* Character sits in the lower third of the file — lift so it reads as centered */
+    background-position: center 0%;
   }
 
   .p2-page--lp .p2-page__content,
