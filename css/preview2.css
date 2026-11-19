@@ -2136,7 +2136,8 @@ a.p2-partner:focus-visible {
 
   .p2-socials { margin: 0.9em 0 0.6em; }
   .p2-socials a,
-  .p2-socials .p2-tool { width: 34px; height: 34px; }
+  .p2-socials .p2-tool,
+  .p2-headline__tools .p2-tool { width: 34px; height: 34px; }
   .p2-live__status { justify-content: center; }
 
   .p2-headline {
