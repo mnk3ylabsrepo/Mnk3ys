@@ -942,6 +942,7 @@ body.p2 {
   width: 100%;
   max-width: 200px;
   min-width: 0;
+  text-align: center;
   color: inherit;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
@@ -951,16 +952,29 @@ body.p2 {
   display: block;
   width: min(20vw, 148px);
   height: min(20vw, 148px);
+  margin-inline: auto;
   object-fit: contain;
+  object-position: center;
   opacity: 0.55;
-  transform: scale(1);
+  scale: 1;
   animation: p2-logo-pulse 12s ease-in-out infinite;
   animation-delay: calc(var(--i, 0) * 2s);
 }
 
+/* Waving arm sits left of the ball — nudge so the body lines up over the label */
+.p2-partner--slotto .p2-partner__logo {
+  transform: translateX(7%);
+  object-position: 58% center;
+}
+
 .p2-partner__name {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   font-family: var(--p2-mono);
   font-size: clamp(0.65rem, 2.4vw, 0.85rem);
+  text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #fff;
@@ -1017,8 +1031,8 @@ a.p2-partner:focus-visible {
 
 /* Each partner's 2s highlight occupies one slot of the 12s cycle */
 @keyframes p2-logo-pulse {
-  0%, 16.66%, 100% { opacity: 0.55; transform: scale(1); }
-  8.33%            { opacity: 1;    transform: scale(1.12); }
+  0%, 16.66%, 100% { opacity: 0.55; scale: 1; }
+  8.33%            { opacity: 1;    scale: 1.12; }
 }
 
 @keyframes p2-label-show {
