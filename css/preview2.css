@@ -2067,35 +2067,24 @@ a.p2-partner:focus-visible {
     background-position: center;
   }
 
-  /* MNK3YS / ZMB3YS portrait: center copy over art; lift bg so the character is less clipped */
+  /* MNK3YS / ZMB3YS portrait: top-align copy like Partners; lift bg so the character is less clipped */
   .p2-page--mnk3ys,
   .p2-page--zmb3ys {
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     background-position: center 72%;
     background-size: cover;
+    padding-top: calc(4.5rem + env(safe-area-inset-top, 0px));
   }
 
   .p2-page--mnk3ys .p2-split,
   .p2-page--zmb3ys .p2-split {
     width: 100%;
     max-width: 34rem;
-    margin: -20vh auto 0;
+    margin: 0 auto;
+    padding-top: 0.75rem;
     align-items: center;
     text-align: center;
-  }
-
-  /* Beat the page-reveal `transform: none` so copy stays above center */
-  .p2-page--mnk3ys.is-visible .p2-page__content.p2-split,
-  .p2-page--zmb3ys.is-visible .p2-page__content.p2-split,
-  .p2-page--mnk3ys .p2-page__content.p2-split,
-  .p2-page--zmb3ys .p2-page__content.p2-split {
-    transform: translateY(-20vh);
-  }
-
-  .p2-page--mnk3ys:not(.is-visible) .p2-page__content.p2-split,
-  .p2-page--zmb3ys:not(.is-visible) .p2-page__content.p2-split {
-    transform: translateY(calc(-20vh + 24px));
   }
 
   .p2-page--mnk3ys .p2-live,
