@@ -10,6 +10,8 @@
   var view = 'home', VIEWS = { home: 'homeView', game: 'gameView', nfts: 'nftsView' };
   function curEl() { return $(VIEWS[view]); }
   function goGame(layout) {
+    // Mobile / non-desk: always open Watch (the correct phone UI). Duo stays a desktop option.
+    if (!window.matchMedia('(min-width: 700px) and (min-height: 600px)').matches) layout = 'watch';
     if (layout === 'full' || layout === 'phone' || layout === 'watch') A.setLayout(layout); // 'full' = older name for Phone
     renderLayoutBtn();
     if (view === 'game') { A.fit(); return; } var hv = curEl(); view = 'game'; A.play('tap'); A.start();
@@ -190,6 +192,8 @@
       ['connectBtn', 'modeWallet'].forEach(function (id) { var b = $(id); b.hidden = true; b.disabled = true; b.style.display = 'none'; });
       var seg = $('modeSeg'); if (seg) { seg.hidden = true; seg.style.display = 'none'; }
       if ($('tokenSeg')) $('tokenSeg').hidden = true;
+      if ($('blutestClaim')) $('blutestClaim').hidden = true;
+      if ($('blutestBal')) $('blutestBal').hidden = true;
       $('modeNote').textContent = 'Pretend mode: play money only.';
       return;
     }
@@ -198,16 +202,9 @@
     var w = A.state().mode === 'wallet';
     $('modePretend').setAttribute('aria-pressed', w ? 'false' : 'true'); $('modeWallet').setAttribute('aria-pressed', w ? 'true' : 'false');
     $('modePretend').classList.toggle('a', !w); $('modeWallet').classList.toggle('a', w);
-    var Wlt = window.BLUP3TS_WALLET, kind = Wlt && Wlt.playToken ? Wlt.playToken() : 'test', testOn = kind !== 'blunana';
-    var tokenSeg = $('tokenSeg');
-    if (tokenSeg) {
-      tokenSeg.hidden = !w;
-      tokenSeg.classList.toggle('on', w && !testOn);
-      tokenSeg.setAttribute('aria-checked', w && !testOn ? 'true' : 'false');
-      tokenSeg.setAttribute('aria-label', 'Play token, ' + (testOn ? 'BLUTEST' : 'BLUNANA'));
-    }
-    if ($('tokenTest')) $('tokenTest').classList.toggle('on', w && testOn);
-    if ($('tokenBlunana')) $('tokenBlunana').classList.toggle('on', w && !testOn);
+    if ($('tokenSeg')) $('tokenSeg').hidden = true;
+    if ($('blutestClaim')) $('blutestClaim').hidden = true;
+    if ($('blutestBal')) $('blutestBal').hidden = true;
     $('connectBtn').style.display = w ? '' : 'none';
     var W = window.BLUP3TS_WALLET;
     $('modeNote').textContent = w ? (W ? W.modeNote() : 'Wallet mode is on its way in the next update. Pretend mode works now.') : 'Pretend mode: play money only. No wallet needed.';
@@ -217,14 +214,6 @@
   function setMode(m) { if (m === 'wallet' && !A.walletOn()) return; A.play('tap'); A.setMode(m); if (window.BLUP3TS_WALLET) BLUP3TS_WALLET.onMode(m); renderMode(); renderCarousel(true); }
   $('modePretend').onclick = function () { setMode('pretend'); };
   $('modeWallet').onclick = function () { var was = A.state().mode === 'wallet'; setMode('wallet'); var Wl = window.BLUP3TS_WALLET; if (!was && Wl && Wl.afterWalletMode) Wl.afterWalletMode(); }; // M11: on phones, tapping Wallet goes straight to connect
-  function pickToken(kind) {
-    var Wl = window.BLUP3TS_WALLET; if (!Wl || !Wl.setPlayToken) return;
-    A.play('tap'); Wl.setPlayToken(kind);
-  }
-  if ($('tokenSeg')) $('tokenSeg').onclick = function () {
-    var Wl = window.BLUP3TS_WALLET, kind = Wl && Wl.playToken ? Wl.playToken() : 'test';
-    pickToken(kind === 'blunana' ? 'test' : 'blunana');
-  };
   $('connectBtn').onclick = function () { if (!A.walletOn()) return; if (window.BLUP3TS_WALLET) BLUP3TS_WALLET.onConnectClick(); else openSheet('Wallet mode', [p('Wallet mode is on its way in the next update.'), p('Pretend mode works now and needs no wallet.')]); };
   // M13: the old 'Add my own' path (jump to Home, flip to Wallet mode, then connect or reload) is gone; wallet.js addOwnTap does it in place.
 
@@ -362,7 +351,7 @@
     var track = $('tickerTrack'); if (!track) return;
     function line(n) {
       var bal = n == null ? 'The community wallet holds the $BLUNANA spent in BLUP3TS.' : 'The community wallet holds ' + Math.round(n).toLocaleString('en-US') + ' $BLUNANA.';
-      return bal + ' Feeding with $BLUNANA sends tokens into that wallet, and it all goes back into the ecosystem: new pets, watch styles, features and events. Pretend mode and BLUTEST are just for fun and use no real $BLUNANA.';
+      return bal + ' Feeding with $BLUNANA sends tokens into that wallet, and it all goes back into the ecosystem: new pets, watch styles, features and events. Pretend mode uses play money only — no real $BLUNANA.';
     }
     function draw(n) {
       track.textContent = '';

@@ -59,12 +59,12 @@
   function rejected(e) { var c = e && (e.code || (e.error && e.error.code)); return c === 4001 || /reject|denied|cancel|declin/i.test(String(e && (e.message || e))); }
   var TOKEN_PROG = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA', ATA_PROG = 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL', HOLD = 10000;
   var tokenBal = null, balGen = 0;
-  function playKind() { try { return localStorage.getItem('blup3ts.playToken') === 'blunana' ? 'blunana' : 'test'; } catch (e) { return 'test'; } }
-  function usingTest() { return playKind() !== 'blunana'; }
+  function playKind() { return 'blunana'; }
+  function usingTest() { return false; }
   function payCfg() {
     return {
-      RESERVE_WALLET: usingTest() ? C.RESERVE_WALLET : C.BLUNANA_RESERVE_WALLET,
-      BLUNANA_MINT: usingTest() ? C.BLUNANA_MINT : C.REAL_BLUNANA_MINT,
+      RESERVE_WALLET: C.BLUNANA_RESERVE_WALLET,
+      BLUNANA_MINT: C.REAL_BLUNANA_MINT || C.BLUNANA_MINT,
       BLUNANA_DECIMALS: C.BLUNANA_DECIMALS,
       FEED_COSTS: C.FEED_COSTS,
       COST_SCALE: C.COST_SCALE,
@@ -72,9 +72,9 @@
     };
   }
   function realOn() { var cfg = payCfg(); return payOn() && C.NETWORK === 'mainnet-live' && isKey(cfg.RESERVE_WALLET) && isKey(cfg.BLUNANA_MINT) && !!SOL; }
-  function livePlay() { return A.state().mode === 'wallet' && payOn() && (usingTest() ? C.TEST_PLAY === true : isKey(C.BLUNANA_RESERVE_WALLET)); }
-  function setPlayKind(k) {
-    try { localStorage.setItem('blup3ts.playToken', k === 'blunana' ? 'blunana' : 'test'); } catch (e) {}
+  function livePlay() { return A.state().mode === 'wallet' && payOn() && isKey(C.BLUNANA_RESERVE_WALLET); }
+  function setPlayKind() {
+    try { localStorage.setItem('blup3ts.playToken', 'blunana'); } catch (e) {}
     tokenBal = null; readBal(); syncClaim(); paintPlay();
     if (H && H.renderMode) H.renderMode();
   }
@@ -108,15 +108,18 @@
     var live = livePlay(), word = payWord();
     var cap = $('balCap'), fine = $('balFine'), refill = $('refillBtn');
     if (cap) cap.textContent = live ? word : 'Pretend $BLUNANA';
-    if (fine) fine.textContent = !live ? 'Play money for Pretend mode. Nothing here touches real tokens.' : usingTest() ? (W.pubkey ? 'Test token in this wallet. Feeding sends it to the test reserve. It is not $BLUNANA.' : 'Connect a wallet to see your ' + word + '. Wallet mode does not use pretend play money.') : (W.pubkey ? 'Real $BLUNANA. Every feed goes back into the project.' : 'Connect a wallet to see your $BLUNANA. Every feed goes back into the project.');
+    if (fine) fine.textContent = !live ? 'Play money for Pretend mode. Nothing here touches real tokens.' : (W.pubkey ? 'Real $BLUNANA. Every feed goes back into the project.' : 'Connect a wallet to see your $BLUNANA. Every feed goes back into the project.');
     if (refill) refill.hidden = !!live;
     if (live && $('bal')) $('bal').textContent = !W.pubkey ? '—' : (tokenBal == null ? '…' : A.fmt(tokenBal));
     var fw = $('feedWord'), ff = $('feedFine'), fb = $('feedBal'), ov = $('ov-feed');
     if (fw) fw.textContent = live ? word : 'pretend';
-    if (ff) ff.textContent = !live ? 'Pretend $BLUNANA · play money · no real tokens' : usingTest() ? word + ' · your wallet approves each feed · not $BLUNANA' : '$BLUNANA · your wallet approves each feed · community wallet';
+    if (ff) ff.textContent = !live ? 'Pretend $BLUNANA · play money · no real tokens' : '$BLUNANA · your wallet approves each feed · community wallet';
     if (live && fb && ov && ov.classList.contains('show')) fb.textContent = !W.pubkey ? '—' : (tokenBal == null ? '…' : A.fmt(tokenBal));
     var home = $('blutestBal');
-    if (home) { home.hidden = !live; home.textContent = !W.pubkey ? 'Connect a wallet to see your ' + word + ' balance.' : (tokenBal == null ? 'Checking ' + word + ' balance…' : word + ' balance: ' + A.fmt(tokenBal)); }
+    if (home) {
+      home.hidden = !live;
+      home.textContent = !W.pubkey ? 'Connect a wallet to see your $BLUNANA balance.' : (tokenBal == null ? 'Checking $BLUNANA balance…' : '$BLUNANA balance: ' + A.fmt(tokenBal));
+    }
     unlockFoods();
   }
 
@@ -464,7 +467,7 @@
   }
 
   // ---------- real $BLUNANA feeding (ON when config REAL_PAYMENTS_ENABLED is true) ----------
-  function payWord() { return usingTest() ? (C.TEST_TOKEN_SYMBOL || 'BLUTEST') : '$BLUNANA'; }
+  function payWord() { return '$BLUNANA'; }
   var claimState = 'idle', claimTimer = null, claimMsg = '';
   function claimButtons() {
     var list = [];

@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Nunito:wght@800;900&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/preview2.css?v=76" />
+  <link rel="stylesheet" href="/css/preview2.css?v=77" />
 </head>
 <body class="p2">
   <nav class="orbit-nav" id="orbit-nav" aria-label="Page navigation">
@@ -26,7 +26,16 @@
     <p class="orbit-nav__label" id="orbit-nav-label" aria-live="polite"></p>
   </nav>
 
-  <main class="p2-main">
+  <nav class="p2-footnav" id="p2-footnav" aria-label="Page navigation" hidden>
+    <button type="button" class="p2-footnav__arrow" id="p2-footnav-prev" aria-label="Scroll navigation left" hidden>‹</button>
+    <div class="p2-footnav__scroller" id="p2-footnav-scroller">
+      <div class="p2-footnav__track" id="p2-footnav-track" role="list"></div>
+    </div>
+    <button type="button" class="p2-footnav__arrow" id="p2-footnav-next" aria-label="Scroll navigation right" hidden>›</button>
+  </nav>
+  <p class="p2-swipe-hint" id="p2-swipe-hint" hidden>Swipe to explore</p>
+
+  <main class="p2-main" id="p2-main">
 
     <section class="p2-page p2-page--home" id="home">
       <div class="p2-page__content p2-center">
@@ -445,7 +454,7 @@
 
   <div class="p2-toast" id="p2-toast" role="status" aria-live="polite"></div>
 
-  <script src="/js/preview2-nav.js?v=10"></script>
+  <script src="/js/preview2-nav.js?v=11"></script>
   <script src="/js/preview2-tools.js?v=7"></script>
   <script src="/js/preview2-portal.js?v=9"></script>
 </body>

@@ -32,12 +32,25 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BLUP3TS">
 <meta name="application-name" content="BLUP3TS">
-<link rel="stylesheet" href="style.css?v=h20261103j">
+<link rel="stylesheet" href="style.css?v=h20261119a">
 <link rel="stylesheet" href="faces_mock.css?v=h20261103j"><!-- FACES (preview only) -->
 <link rel="stylesheet" href="face_unlocks.css?v=h20261103j"><!-- FACE UNLOCKS (preview only) -->
 <link rel="stylesheet" href="lb_rewards.css?v=h20261103j"><!-- LB REWARDS (preview only) -->
+<script>
+(function () {
+  document.documentElement.classList.add('booting');
+  if (window.matchMedia('(min-width: 700px) and (min-height: 600px)').matches) {
+    document.documentElement.classList.add('desk');
+  }
+})();
+</script>
 </head>
 <body>
+<div id="boot" class="boot" role="status" aria-live="polite" aria-label="Loading BLUP3TS">
+  <div class="boot__mark">BLU<span>P3TS</span></div>
+  <div class="boot__bar" aria-hidden="true"><i></i></div>
+  <p class="boot__msg">Loading…</p>
+</div>
 
 <div class="ticker" id="ecoTicker"><div class="tickertrack" id="tickerTrack"></div></div>
 <div class="livenotes" id="liveNotes" aria-live="polite"></div>
@@ -65,7 +78,7 @@
           <div class="modeseg" id="modeSeg" role="group" aria-label="Mode" hidden>
             <button id="modePretend" aria-pressed="true">Pretend</button><button id="modeWallet" aria-pressed="false">Wallet</button>
           </div>
-          <button type="button" class="toksw" id="tokenSeg" role="switch" aria-checked="false" aria-label="Play token, BLUTEST" hidden><span id="tokenTest">BLUTEST</span><span class="toksw-track" aria-hidden="true"><span class="toksw-thumb"></span></span><span id="tokenBlunana">BLUNANA</span></button>
+          <button type="button" class="toksw" id="tokenSeg" role="switch" aria-checked="false" aria-label="Play token" hidden></button>
         </div>
         <div class="toolrow">
           <button class="hb" id="howBtn">❓ How to play</button>
@@ -75,7 +88,7 @@
         <button class="hb" id="settingsBtn">⚙️ Settings</button>
       </div>
       <p class="modenote" id="modeNote"></p>
-      <button type="button" class="btn b-cyan blutest-claim" id="blutestClaim" hidden><span class="blutest-mark" aria-hidden="true"></span><span class="blutest-label">Get 100,000 BLUTEST</span></button>
+      <button type="button" class="btn b-cyan blutest-claim" id="blutestClaim" hidden></button>
       <p class="blutest-bal" id="blutestBal" hidden></p>
       <button class="hb boostbtn" id="boostBtn" hidden disabled aria-disabled="true">✨ Burn cNFT for a boost · Coming soon</button>
       <button class="looksrow" id="looksBtn"><span class="lk">🎨</span><span><b>Looks</b><br><small id="looksSub">Watch cases · unlock at Level 3</small></span><span class="soonpill">⌚ Cases</span></button>
@@ -402,7 +415,7 @@
   <div class="muted">BLUP3TS by MNK3YLabs · Just a game: Pretend mode uses no real tokens.</div>
 </footer>
 
-<script src="config.js?v=h20261103j"></script>
+<script src="config.js?v=h20261119a"></script>
 <script src="faces_mock.js?v=h20261103j"></script><!-- FACES (preview only) -->
 <script src="lb_face.js?v=h20261103j"></script><!-- LB REWARDS (preview only) -->
 <script src="data.js?v=h20261103j"></script>
@@ -412,13 +425,13 @@
 <script src="rarity.js?v=h20261103j"></script>
 <script src="tiers.js?v=h20261103j"></script>
 <script src="eat.js?v=h20261103j"></script>
-<script src="app.js?v=h20261103j"></script>
+<script src="app.js?v=h20261119a"></script>
 <script src="faq.js?v=h20261103j"></script>
-<script src="home.js?v=h20261103j"></script>
+<script src="home.js?v=h20261119a"></script>
 <script src="fullscreen.js?v=h20261103j"></script>
 <script src="vendor/blup3ts-sol.js?v=h20261103j"></script>
 <script src="boost.js?v=h20261103j"></script>
-<script src="wallet.js?v=h20261103j"></script>
+<script src="wallet.js?v=h20261119a"></script>
 <script src="face_unlocks.js?v=h20261103j"></script><!-- FACE UNLOCKS (preview only) -->
 <script src="empire_store.js?v=h20261103j"></script><!-- $EMPIRE feeds + Store + free unlock SOL fee (flags) -->
 <script src="lb_auth.js?v=h20261103j"></script><!-- RANKS SECURITY: wallet proof + feed receipts -->

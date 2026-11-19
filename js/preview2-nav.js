@@ -1,5 +1,5 @@
 /**
- * Preview 2: bottom-left orbit nav (scroll momentum), page reveal, live stats, copy pills.
+ * Preview 2: landscape/desktop orbit nav + portrait footer nav with horizontal page swipe.
  */
 (function () {
   'use strict';
@@ -38,15 +38,25 @@
 
   var stageEl = document.getElementById('orbit-nav-stage');
   var labelEl = document.getElementById('orbit-nav-label');
+  var mainEl = document.getElementById('p2-main') || document.querySelector('.p2-main');
+  var footNav = document.getElementById('p2-footnav');
+  var footTrack = document.getElementById('p2-footnav-track');
+  var footScroller = document.getElementById('p2-footnav-scroller');
+  var footPrev = document.getElementById('p2-footnav-prev');
+  var footNext = document.getElementById('p2-footnav-next');
+  var swipeHint = document.getElementById('p2-swipe-hint');
   var sections = PAGES.map(function (p) { return document.getElementById(p.id); }).filter(Boolean);
   var pages = Array.prototype.slice.call(document.querySelectorAll('.p2-page:not([hidden])'));
   var bubbles = [];
+  var footItems = [];
   var activeIndex = 0;
   var scrollInProgress = false;
   var scrollTimer = null;
   var scrollLoopActive = false;
   var scrollEndTimer = null;
   var isTracking = false;
+  var portraitMode = false;
+  var portraitMq = window.matchMedia('(orientation: portrait)');
   var toast = document.getElementById('p2-toast');
   var toastTimer;
 
@@ -239,35 +249,32 @@
   var navToken = 0;
   var navScrollEndHandler = null;
 
+  function resetPageTop(index) {
+    var section = sections[index];
+    if (section) section.scrollTop = 0;
+  }
+
+  function setActiveChrome(index) {
+    activeIndex = index;
+    window.history.replaceState(null, '', '#' + PAGES[index].id);
+    if (!portraitMode) layoutOrbit(index, index, 0, true);
+    syncFootActive(index);
+    updateSwipeHint();
+  }
+
   function finishNavScroll(index, token) {
     if (token !== navToken) return;
     scrollInProgress = false;
     document.documentElement.classList.remove('p2-nav-scrolling');
-    layoutOrbit(index, index, 0, true);
-    activeIndex = index;
-    window.history.replaceState(null, '', '#' + PAGES[index].id);
+    resetPageTop(index);
+    setActiveChrome(index);
   }
 
-  function scrollToIndex(index) {
+  function scrollToIndexVertical(index, token) {
     var section = sections[index];
-    if (!section || index < 0 || index >= sections.length) return;
-
-    clearTimeout(scrollTimer);
-    if (navScrollEndHandler) {
-      window.removeEventListener('scrollend', navScrollEndHandler);
-      navScrollEndHandler = null;
-    }
-    scrollLoopActive = false;
-    setScrollTracking(false);
-
-    var token = ++navToken;
-    scrollInProgress = true;
-    activeIndex = index;
-    window.history.replaceState(null, '', '#' + PAGES[index].id);
-    layoutOrbit(index, index, 0, true);
     document.documentElement.classList.add('p2-nav-scrolling');
-    // Force style flush so snap is off before measuring / scrolling
     void document.documentElement.offsetHeight;
+    layoutOrbit(index, index, 0, true);
 
     var top = Math.max(0, Math.round(section.getBoundingClientRect().top + window.pageYOffset));
     try {
@@ -289,24 +296,83 @@
     }
 
     navScrollEndHandler = function () { settle(); };
-    if ('onscrollend' in window) {
-      window.addEventListener('scrollend', navScrollEndHandler, { once: true });
-    }
+    if ('onscrollend' in window) window.addEventListener('scrollend', navScrollEndHandler, { once: true });
 
-    // Mobile Safari often lacks scrollend — poll until near target, then lock
     var tries = 0;
     function watch() {
       if (token !== navToken) return;
       tries += 1;
       var exact = Math.max(0, Math.round(section.getBoundingClientRect().top + window.pageYOffset));
-      var dist = Math.abs(window.pageYOffset - exact);
-      if (dist < 4 || tries > 50) {
+      if (Math.abs(window.pageYOffset - exact) < 4 || tries > 50) {
         settle();
         return;
       }
       scrollTimer = setTimeout(watch, 40);
     }
     scrollTimer = setTimeout(watch, 80);
+  }
+
+  function scrollToIndexHorizontal(index, token) {
+    if (!mainEl) return finishNavScroll(index, token);
+    document.documentElement.classList.add('p2-nav-scrolling');
+    var left = Math.round(index * mainEl.clientWidth);
+    try {
+      mainEl.scrollTo({ left: left, top: 0, behavior: 'smooth' });
+    } catch (e) {
+      mainEl.scrollLeft = left;
+    }
+
+    function settle() {
+      if (token !== navToken) return;
+      if (navScrollEndHandler) {
+        mainEl.removeEventListener('scrollend', navScrollEndHandler);
+        navScrollEndHandler = null;
+      }
+      clearTimeout(scrollTimer);
+      var exact = Math.round(index * mainEl.clientWidth);
+      if (Math.abs(mainEl.scrollLeft - exact) > 2) mainEl.scrollLeft = exact;
+      finishNavScroll(index, token);
+    }
+
+    navScrollEndHandler = function () { settle(); };
+    if ('onscrollend' in mainEl) mainEl.addEventListener('scrollend', navScrollEndHandler, { once: true });
+
+    var tries = 0;
+    function watch() {
+      if (token !== navToken) return;
+      tries += 1;
+      var exact = Math.round(index * mainEl.clientWidth);
+      if (Math.abs(mainEl.scrollLeft - exact) < 4 || tries > 50) {
+        settle();
+        return;
+      }
+      scrollTimer = setTimeout(watch, 40);
+    }
+    scrollTimer = setTimeout(watch, 80);
+  }
+
+  function scrollToIndex(index) {
+    var section = sections[index];
+    if (!section || index < 0 || index >= sections.length) return;
+
+    clearTimeout(scrollTimer);
+    if (navScrollEndHandler) {
+      window.removeEventListener('scrollend', navScrollEndHandler);
+      if (mainEl) mainEl.removeEventListener('scrollend', navScrollEndHandler);
+      navScrollEndHandler = null;
+    }
+    scrollLoopActive = false;
+    setScrollTracking(false);
+
+    var token = ++navToken;
+    scrollInProgress = true;
+    activeIndex = index;
+    window.history.replaceState(null, '', '#' + PAGES[index].id);
+    syncFootActive(index);
+    resetPageTop(index);
+
+    if (portraitMode) scrollToIndexHorizontal(index, token);
+    else scrollToIndexVertical(index, token);
   }
 
   function indexFromHash() {
@@ -335,18 +401,164 @@
     });
   }
 
-  buildBubbles();
-  activeIndex = indexFromHash();
-  layoutOrbit(activeIndex, activeIndex, 0, false);
-  if (PAGES[activeIndex] && window.location.hash.slice(1) === PAGES[activeIndex].id) {
-    requestAnimationFrame(function () {
-      var section = sections[activeIndex];
-      if (section) section.scrollIntoView({ behavior: 'auto', block: 'start' });
+  function syncFootActive(index) {
+    footItems.forEach(function (btn, i) {
+      btn.classList.toggle('is-active', i === index);
+      if (i === index) btn.setAttribute('aria-current', 'page');
+      else btn.removeAttribute('aria-current');
+    });
+    var active = footItems[index];
+    if (active && footScroller && portraitMode) {
+      var left = active.offsetLeft - (footScroller.clientWidth - active.offsetWidth) / 2;
+      footScroller.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+    }
+    updateFootArrows();
+  }
+
+  function updateFootArrows() {
+    if (!footScroller || !footPrev || !footNext) return;
+    var overflow = footScroller.scrollWidth > footScroller.clientWidth + 4;
+    footPrev.hidden = !overflow;
+    footNext.hidden = !overflow;
+    if (!overflow) return;
+    var max = footScroller.scrollWidth - footScroller.clientWidth;
+    footPrev.disabled = footScroller.scrollLeft <= 2;
+    footNext.disabled = footScroller.scrollLeft >= max - 2;
+  }
+
+  function updateSwipeHint() {
+    if (!swipeHint) return;
+    var show = portraitMode && activeIndex === 0;
+    swipeHint.hidden = !portraitMode;
+    swipeHint.classList.toggle('is-shown', show);
+  }
+
+  function buildFootNav() {
+    if (!footTrack) return;
+    footTrack.innerHTML = '';
+    footItems = PAGES.map(function (page, index) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'p2-footnav__item';
+      btn.setAttribute('role', 'listitem');
+      btn.setAttribute('aria-label', page.label);
+      btn.innerHTML = '<span>' + pageIcon(page.id) + '</span>';
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        scrollToIndex(index);
+      });
+      footTrack.appendChild(btn);
+      return btn;
     });
   }
 
-  window.addEventListener('scroll', scheduleLayout, { passive: true });
-  window.addEventListener('resize', function () { syncOrbitFromScroll(); }, { passive: true });
+  function syncFromMainScroll() {
+    if (!portraitMode || !mainEl || scrollInProgress) return;
+    var w = mainEl.clientWidth || 1;
+    var idx = Math.round(mainEl.scrollLeft / w);
+    idx = Math.max(0, Math.min(sections.length - 1, idx));
+    if (idx !== activeIndex) {
+      resetPageTop(idx);
+      setActiveChrome(idx);
+    } else {
+      syncFootActive(idx);
+      updateSwipeHint();
+    }
+  }
+
+  function applyNavMode() {
+    var next = portraitMq.matches;
+    var changed = next !== portraitMode;
+    portraitMode = next;
+    if (footNav) {
+      if (portraitMode) footNav.removeAttribute('hidden');
+      else footNav.setAttribute('hidden', '');
+    }
+    updateSwipeHint();
+    if (!changed && !sections.length) return;
+
+    // Jump to the active page in the new scroll axis without animation
+    scrollInProgress = false;
+    document.documentElement.classList.remove('p2-nav-scrolling');
+    resetPageTop(activeIndex);
+    if (portraitMode && mainEl) {
+      mainEl.scrollLeft = Math.round(activeIndex * mainEl.clientWidth);
+      window.scrollTo(0, 0);
+      syncFootActive(activeIndex);
+    } else {
+      var section = sections[activeIndex];
+      if (section) {
+        var top = Math.max(0, Math.round(section.getBoundingClientRect().top + window.pageYOffset));
+        window.scrollTo(0, top);
+      }
+      layoutOrbit(activeIndex, activeIndex, 0, false);
+    }
+    updateFootArrows();
+  }
+
+  buildBubbles();
+  buildFootNav();
+  activeIndex = indexFromHash();
+  layoutOrbit(activeIndex, activeIndex, 0, false);
+  syncFootActive(activeIndex);
+  applyNavMode();
+
+  if (PAGES[activeIndex] && window.location.hash.slice(1) === PAGES[activeIndex].id) {
+    requestAnimationFrame(function () {
+      if (portraitMode && mainEl) {
+        mainEl.scrollLeft = Math.round(activeIndex * mainEl.clientWidth);
+        resetPageTop(activeIndex);
+      } else {
+        var section = sections[activeIndex];
+        if (section) section.scrollIntoView({ behavior: 'auto', block: 'start' });
+      }
+    });
+  }
+
+  window.addEventListener('scroll', function () {
+    if (!portraitMode) scheduleLayout();
+  }, { passive: true });
+
+  if (mainEl) {
+    mainEl.addEventListener('scroll', function () {
+      if (!portraitMode || scrollInProgress) return;
+      clearTimeout(scrollEndTimer);
+      scrollEndTimer = setTimeout(syncFromMainScroll, 80);
+    }, { passive: true });
+  }
+
+  if (footScroller) {
+    footScroller.addEventListener('scroll', updateFootArrows, { passive: true });
+  }
+  if (footPrev) {
+    footPrev.addEventListener('click', function () {
+      if (!footScroller) return;
+      footScroller.scrollBy({ left: -Math.max(120, footScroller.clientWidth * 0.6), behavior: 'smooth' });
+    });
+  }
+  if (footNext) {
+    footNext.addEventListener('click', function () {
+      if (!footScroller) return;
+      footScroller.scrollBy({ left: Math.max(120, footScroller.clientWidth * 0.6), behavior: 'smooth' });
+    });
+  }
+
+  function onOrientationChange() {
+    applyNavMode();
+  }
+  if (portraitMq.addEventListener) portraitMq.addEventListener('change', onOrientationChange);
+  else if (portraitMq.addListener) portraitMq.addListener(onOrientationChange);
+
+  window.addEventListener('resize', function () {
+    if (portraitMode) {
+      if (mainEl && !scrollInProgress) {
+        mainEl.scrollLeft = Math.round(activeIndex * mainEl.clientWidth);
+      }
+      updateFootArrows();
+    } else {
+      syncOrbitFromScroll();
+    }
+  }, { passive: true });
 
   /* ——— Page reveal ——— */
   if ('IntersectionObserver' in window) {

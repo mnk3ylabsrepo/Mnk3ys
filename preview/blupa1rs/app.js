@@ -905,12 +905,21 @@
     document.documentElement.style.setProperty('--vvh', Math.round(h) + 'px');
     var desk = window.matchMedia('(min-width: 700px) and (min-height: 600px)').matches;
     document.body.classList.toggle('desk', desk);
+    document.documentElement.classList.toggle('desk', desk);
+  }
+
+  function revealApp() {
+    document.documentElement.classList.remove('booting');
+    document.body.classList.add('ready');
+    var bootEl = document.getElementById('boot');
+    if (bootEl) bootEl.setAttribute('hidden', '');
   }
 
   function boot() {
     frame();
     window.addEventListener('resize', frame);
     if (window.visualViewport) window.visualViewport.addEventListener('resize', frame);
+    requestAnimationFrame(function () { frame(); requestAnimationFrame(revealApp); });
     paintTicker();
     $('sheetClose').addEventListener('click', closeSheet);
     $('sheetBg').addEventListener('click', closeSheet);

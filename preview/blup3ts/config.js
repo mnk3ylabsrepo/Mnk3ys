@@ -19,8 +19,8 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   FLOOR_ENDPOINT: '/api/blup3ts-floor',
   // Same-origin proxy. The Helius key stays on the server. Absolute, because the Solana client rejects a relative URL.
   RPC_URL: (typeof location === 'undefined' ? 'https://www.mnk3ylabs.com' : location.origin) + '/api/blup3ts-rpc',
-  // Preview live play uses this test token, never the real $BLUNANA mint below, once TEST_PLAY is on.
-  TEST_PLAY: true,
+  // BLUTEST minting is retired (SOL cost). Wallet play uses real $BLUNANA only; Pretend stays free play money.
+  TEST_PLAY: false,
   TEST_TOKEN_SYMBOL: 'BLUTEST',
   TEST_TOKEN_NAME: 'BLUP3TS Test',
 
@@ -28,15 +28,14 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   // set to exactly 'mainnet-live'.
   NETWORK: 'mainnet-live',
 
-  // BLUTEST only. This wallet is the test-token mint authority. BLUTEST feeds are sent here.
+  // Legacy BLUTEST reserve (unused while TEST_PLAY is false).
   RESERVE_WALLET: '5eZ3Qt1jKCGdXkCES791W68T87bGG62j9ZHcmBaMUtTP',
-  // Real $BLUNANA community wallet. The top ticker reads its balance. BLUNANA play feeds are sent here.
+  // Real $BLUNANA community wallet. The top ticker reads its balance. Wallet-mode feeds are sent here.
   BLUNANA_RESERVE_WALLET: 'B3HziYmuE9Wx42FULYZLTBRNg5WNBj6UH32Vb5kfacBN',
 
-  // $BLUNANA (pinned). Classic SPL token, 6 decimals. REAL_BLUNANA_MINT stays the community token.
-  // BLUNANA_MINT is what a live feed sends. While TEST_PLAY is on, that is the preview test token, not $BLUNANA.
+  // $BLUNANA (pinned). Classic SPL token, 6 decimals. Pretend mode never touches this mint.
   REAL_BLUNANA_MINT: 'C9vfeaCLhJy7sykgKnfzi6RikawQNoGtRKwsaupKavmV',
-  BLUNANA_MINT: '2arvp34u8Fzcq6UBRqq5dmWuMncwJ9pggMKUwZbRoGPv',
+  BLUNANA_MINT: 'C9vfeaCLhJy7sykgKnfzi6RikawQNoGtRKwsaupKavmV',
   BLUNANA_DECIMALS: 6,
 
   // Playable NFT collections. standard: 'core' (Metaplex Core: membership = update authority Collection(addr))

@@ -57,6 +57,8 @@
     s.adult = get('adult') === true; s.orig = s.adult && get('orig') === true; // 'Show original traits' needs the 18+ confirm
     // M13: exactly two views, Watch and Phone. Any older saved view ('full' or anything else) becomes Phone.
     v = get('layout'); s.layout = v === undefined || v === 'watch' ? 'watch' : 'phone';
+    // Phones keep Watch as the real mobile UI (Duo is a desktop / large-screen option)
+    if (!window.matchMedia('(min-width: 700px) and (min-height: 600px)').matches) s.layout = 'watch';
     v = get('fold'); s.fold = v === 'v' || v === 'h' ? v : 'auto'; // Phone layout: Auto / Stacked / Side by side
     v = get('vol'); s.vol = typeof v === 'number' && isFinite(v) ? Math.round(Math.max(0, Math.min(100, v))) : (s.sound ? 70 : 0); // master volume 0..100 (older saves: sound on = 70)
     return s;
@@ -778,7 +780,7 @@
   $('moodPill').onclick = function () { play('tap'); var m = mood(pet()); toast(m[0] + ' ' + (MOOD_TIP[m[1]] || 'Tap Feed or Jam to play together.')); };
   $('tileHunger').onclick = function () { play('tap'); toast('Hunger shows how full your pet is. Tap Feed to fill it up.'); };
   $('tileStr').onclick = $('tileLvl').onclick = function () { play('tap'); showPage('stats'); };
-  $('balCoin').onclick = function () { play('tap'); bump(this, 'spin', 900); toast(S.mode === 'wallet' && API.payWord ? API.payWord() + (API.playToken && API.playToken() === 'blunana' ? ' · community wallet' : ' · test token') : 'Pretend $BLUNANA, play money'); };
+  $('balCoin').onclick = function () { play('tap'); bump(this, 'spin', 900); toast(S.mode === 'wallet' && API.payWord ? API.payWord() + ' · community wallet' : 'Pretend $BLUNANA, play money'); };
   $('sideBtn').onclick = function () { play('tap'); hideOverlays(); if (!S.started) start(); showPage('home'); };
   [].forEach.call(document.querySelectorAll('#screen .betatap'), function (n) { n.onclick = function () { play('tap'); toast('New stuff on the way, share ideas on Discord'); }; });
   if ($('soundBtn')) $('soundBtn').onclick = function () { setSound(!soundOn); };
@@ -892,9 +894,19 @@
     var vv = window.visualViewport, h = vv && vv.height ? vv.height : window.innerHeight;
     document.body.style.setProperty('--vvh', Math.round(h) + 'px');
   }
+  function revealApp() {
+    document.documentElement.classList.remove('booting');
+    document.body.classList.add('ready');
+    var boot = document.getElementById('boot');
+    if (boot) boot.setAttribute('hidden', '');
+  }
+
   function fit() {
     var gv = $('gameView'), full = isFull(), side = full && foldSide();
+    // Mobile: never leave Watch for Duo via resize
+    if (!deskOn() && S.layout !== 'watch') { S.layout = 'watch'; full = false; side = false; }
     document.body.classList.toggle('desk', deskOn());
+    document.documentElement.classList.toggle('desk', deskOn());
     deskFrame();
     if (gv) { gv.classList.toggle('full', full); gv.classList.toggle('fold-h', side); gv.classList.toggle('fold-v', full && !side); }
     caseFxFit(full, side);
@@ -933,6 +945,7 @@
   window.addEventListener('resize', fit);
   if (window.visualViewport) { window.visualViewport.addEventListener('resize', fit); window.visualViewport.addEventListener('scroll', fit); }
   fit();
+  requestAnimationFrame(function () { fit(); requestAnimationFrame(revealApp); });
 
   // hooks for automated checks
   // ===== API for home.js and wallet.js =====
@@ -966,7 +979,11 @@
     start: function () { S.started = true; save(); showPage('home'); fit(); },
     feedReal: function (f) { return feed(f, true); }, showPage: showPage, hideOverlays: hideOverlays, show: show,
     mouth: MOUTH, xp: null, onAddOwn: null, realFeedSection: null, onReset: null, onSound: null,
-    setLayout: function (l) { S.layout = l === 'watch' ? 'watch' : 'phone'; save(); fit(); render(); }, layout: function () { return S.layout; }, fit: fit, // 'full' (older name) = Phone
+    setLayout: function (l) {
+      if (!deskOn()) l = 'watch';
+      S.layout = l === 'watch' ? 'watch' : 'phone';
+      save(); fit(); render();
+    }, layout: function () { return S.layout; }, fit: fit, // 'full' (older name) = Phone
     MODES: ['watch', 'phone'], setFold: function (f) { S.fold = f === 'v' || f === 'h' ? f : 'auto'; save(); fit(); }, fold: function () { return S.fold; },
     rarity: rarityInfo, origOn: origOn, setOrig: function (on, adult) { if (adult === true) S.adult = true; S.orig = !!on && S.adult === true; save(); if (page === 'stats') renderTraits(); },
     renderTraits: renderTraits,
