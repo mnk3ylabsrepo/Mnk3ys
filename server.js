@@ -149,7 +149,7 @@ app.get('/poker', function (req, res) {
   res.sendFile(path.join(__dirname, 'poker', 'index.html'));
 });
 app.get('/poker/', function (req, res) {
-  res.redirect(301, '/poker');
+  res.redirect(302, '/poker');
 });
 
 app.get('/api/poker-tournaments', async function (req, res) {

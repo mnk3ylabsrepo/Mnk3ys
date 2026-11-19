@@ -15,6 +15,7 @@
     games: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4"/><circle cx="17" cy="10" r="1"/><circle cx="15" cy="14" r="1"/></svg>',
     lp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
     utility: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
+    poker: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.25" y="2.25" width="15.5" height="19.5" rx="2.1" fill="currentColor" opacity="0.14"/><rect x="4.25" y="2.25" width="15.5" height="19.5" rx="2.1" fill="none" stroke="currentColor" stroke-width="1.65"/><path fill="currentColor" d="M7.05 5.1h1.35c.72 0 1.18.38 1.18.98 0 .52-.32.86-.78.98l.92 1.62h-1.05l-.78-1.45H8.1v1.45H7.05V5.1zm1.05.88v.92h.22c.28 0 .46-.14.46-.42s-.18-.5-.46-.5H8.1z"/><path fill="currentColor" d="M12 8.15c1.85 1.7 3.05 3 3.05 4.2a1.9 1.9 0 0 1-3.8 0c0-1.2 1.2-2.5 3.05-4.2zm0 0C10.15 9.85 8.95 11.15 8.95 12.35a1.9 1.9 0 0 0 3.8 0c0-1.2-1.2-2.5-3.05-4.2z"/><path fill="currentColor" d="M11.15 14.2h1.7v2.15c0 .62-.35 1.05-.85 1.05s-.85-.43-.85-1.05V14.2z"/><path fill="currentColor" d="M15.05 15.35h1.2v.95h-.78l.95 1.85H15.2l-.88-1.72h-.22v1.72h-1.05v-2.8z"/></svg>',
     b3bs: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-1.5 3-4 5-4 8a4 4 0 0 0 8 0c0-3-2.5-5-4-8z"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>',
     services: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
     partners: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
@@ -28,6 +29,7 @@
     { id: 'games', label: 'GAM3S' },
     { id: 'lp', label: 'LP' },
     { id: 'utility', label: 'Utility' },
+    { id: 'poker', label: 'Poker' },
     { id: 'b3bs', label: 'B3BS' },
     { id: 'services', label: 'S3RV1CES' },
     { id: 'partners', label: 'Partners' }

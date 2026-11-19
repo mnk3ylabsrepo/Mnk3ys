@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Nunito:wght@800;900&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/preview2.css?v=114" />
+  <link rel="stylesheet" href="/css/preview2.css?v=115" />
 </head>
 <body class="p2">
   <nav class="orbit-nav" id="orbit-nav" aria-label="Page navigation">
@@ -188,6 +188,21 @@
           <a class="p2-pill" href="#" data-todo>Flip</a>
           <a class="p2-pill" href="#" data-todo>Rip packs</a>
         </div>
+      </div>
+    </section>
+
+    <section class="p2-page p2-page--poker" id="poker">
+      <div class="p2-page__content p2-poker">
+        <p class="p2-kicker">BUX Poker · beta</p>
+        <h2 class="p2-title" style="--chars:5">P<span class="g">OK</span>ER</h2>
+        <p class="p2-sub p2-poker__lede">Tournaments with MNK3YS registration enabled. SLOTTO freeroll Wednesdays 9pm EST — prizes in that week’s project token.</p>
+        <div class="p2-poker__tabs" role="tablist" aria-label="Tournament status">
+          <button type="button" class="p2-poker__tab is-active" role="tab" aria-selected="true" data-tab="registering">Registering</button>
+          <button type="button" class="p2-poker__tab" role="tab" aria-selected="false" data-tab="running">Running</button>
+          <button type="button" class="p2-poker__tab" role="tab" aria-selected="false" data-tab="completed">Completed</button>
+        </div>
+        <p class="p2-poker__status" id="pk-status" role="status">Loading tournaments…</p>
+        <div class="p2-poker__list" id="pk-list" hidden></div>
       </div>
     </section>
 
@@ -469,8 +484,9 @@
 
   <div class="p2-toast" id="p2-toast" role="status" aria-live="polite"></div>
 
-  <script src="/js/preview2-nav.js?v=11"></script>
+  <script src="/js/preview2-nav.js?v=12"></script>
   <script src="/js/preview2-tools.js?v=7"></script>
   <script src="/js/preview2-portal.js?v=10"></script>
+  <script src="/js/poker.js?v=2"></script>
 </body>
 </html>

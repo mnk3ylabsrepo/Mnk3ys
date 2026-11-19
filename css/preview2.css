@@ -234,6 +234,7 @@ body.p2 {
 .p2-page--juicebags { background-image: url('/assets/preview2/juicebags-landscape.jpg?v=2'); }
 .p2-page--b3bs      { background-image: url('/assets/preview2/b3bs-landscape.jpg?v=2'); }
 .p2-page--mnk1sh    { background-image: url('/assets/preview2/mnk1sh-landscape.jpg?v=2'); }
+.p2-page--poker     { background-image: none; }
 .p2-page--services  { background-image: none; }
 .p2-page--partners  { background-image: none; }
 
@@ -590,6 +591,164 @@ body.p2 {
 }
 
 .p2-game__copy .p2-pill { margin-top: 0.15em; }
+
+/* ——— Poker: BUX tournament list (scrollable) ——— */
+.p2-page--poker {
+  justify-content: flex-start;
+  align-items: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  height: 100vh;
+  height: 100svh;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-top: calc(1.25rem + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(var(--orb-primary) + 2rem);
+}
+
+.p2-poker {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: min(720px, 100%);
+  margin: 0 auto;
+  text-align: left;
+}
+
+.p2-poker .p2-kicker {
+  margin: 0 0 0.35rem;
+  font-family: var(--p2-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--p2-grey);
+}
+
+.p2-poker .p2-title {
+  margin: 0;
+  text-align: left;
+}
+
+.p2-poker__lede {
+  margin: 0.75rem 0 1.15rem;
+  max-width: 46ch;
+  font-family: var(--p2-mono);
+  font-size: 0.85rem;
+  font-weight: 400;
+  line-height: 1.45;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--p2-grey);
+}
+
+.p2-poker__tabs {
+  display: flex;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.p2-poker__tabs::-webkit-scrollbar { display: none; }
+
+.p2-poker__tab {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid rgba(34, 245, 58, 0.28);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--p2-grey);
+  font-family: var(--p2-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.p2-poker__tab.is-active {
+  color: #000;
+  background: var(--p2-green);
+  border-color: var(--p2-green);
+}
+
+.p2-poker__status {
+  margin: 0.2rem 0 0.85rem;
+  font-family: var(--p2-mono);
+  font-size: 0.8rem;
+  color: var(--p2-grey);
+}
+
+.p2-poker__status.is-error { color: #ff7b7b; }
+
+.p2-poker__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-bottom: 0.5rem;
+}
+
+.p2-page--poker .pk-card {
+  display: grid;
+  gap: 0.55rem;
+  padding: 1rem 1.05rem;
+  border: 1px solid rgba(34, 245, 58, 0.28);
+  border-radius: 14px;
+  background:
+    linear-gradient(155deg, rgba(34, 245, 58, 0.12) 0%, rgba(34, 245, 58, 0.03) 40%, rgba(5, 7, 13, 0.72) 100%);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.p2-page--poker .pk-card:hover {
+  border-color: rgba(34, 245, 58, 0.55);
+  transform: translateY(-1px);
+}
+
+.p2-page--poker .pk-card__name {
+  margin: 0;
+  font-family: var(--p2-display);
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.p2-page--poker .pk-card__meta,
+.p2-page--poker .pk-card__prize,
+.p2-page--poker .pk-card__desc {
+  margin: 0;
+  font-family: var(--p2-mono);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--p2-grey);
+}
+
+.p2-page--poker .pk-card__prize { color: var(--p2-white); }
+
+.p2-page--poker .pk-card__cta {
+  margin-top: 0.1rem;
+  font-family: var(--p2-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--p2-green);
+}
+
+.p2-page--poker .pk-empty {
+  margin: 0;
+  padding: 1.25rem 1rem;
+  border: 1px dashed rgba(34, 245, 58, 0.25);
+  border-radius: 14px;
+  color: var(--p2-grey);
+  font-family: var(--p2-mono);
+  font-size: 0.85rem;
+  text-align: center;
+}
 
 /* ——— S3RV1CES: 2x2 offering grid (one viewport) ——— */
 .p2-page--services {
@@ -1975,6 +2134,7 @@ a.p2-partner:focus-visible {
   .p2-page--juicebags { background-image: url('/assets/preview2/juicebags-portrait.jpg'); }
   .p2-page--b3bs      { background-image: url('/assets/preview2/b3bs-portrait.jpg'); }
   .p2-page--mnk1sh    { background-image: url('/assets/preview2/mnk1sh-portrait.jpg'); }
+  .p2-page--poker     { background-image: none; }
   .p2-page--services  { background-image: none; }
   .p2-page--partners  { background-image: none; }
 
@@ -2205,6 +2365,7 @@ a.p2-partner:focus-visible {
   }
 
   .p2-page--games,
+  .p2-page--poker,
   .p2-page--services {
     height: 100%;
     min-height: 100%;
@@ -2214,9 +2375,18 @@ a.p2-partner:focus-visible {
     align-items: flex-start;
   }
 
-  .p2-page--games {
+  .p2-page--games,
+  .p2-page--poker {
     padding-top: calc(3.25rem + env(safe-area-inset-top, 0px));
     padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .p2-page--poker {
+    justify-content: flex-start;
+  }
+
+  .p2-poker {
+    width: min(100%, 36rem);
   }
 
   .p2-games,

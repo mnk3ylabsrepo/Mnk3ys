@@ -1,7 +1,11 @@
 (function () {
   var list = document.getElementById('pk-list');
   var statusEl = document.getElementById('pk-status');
-  var tabs = Array.prototype.slice.call(document.querySelectorAll('.pk-tab'));
+  var tabs = Array.prototype.slice.call(
+    document.querySelectorAll('.pk-tab, .p2-poker__tab')
+  );
+  if (!list || !statusEl) return;
+
   var activeTab = 'registering';
   var tournaments = [];
 
