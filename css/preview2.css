@@ -2005,6 +2005,7 @@ a.p2-partner:focus-visible {
 
   .p2-page--lp::before {
     background-image: url('/assets/preview2/lp-portrait.jpg?v=2');
+    background-size: 130% auto;
     background-position: 34% bottom;
   }
 
