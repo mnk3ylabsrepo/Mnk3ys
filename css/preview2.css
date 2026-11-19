@@ -1865,11 +1865,14 @@ body.p2 {
     justify-content: center;
   }
 
-  /* Center art behind copy — LP/B3BS assets are composed low/off-center, so crop into a centered layer */
+  /* Art fits viewport width (contain), centered behind copy — no oversized crop */
   .p2-page--lp,
   .p2-page--utility,
   .p2-page--b3bs {
     background-image: none !important;
+    /* Only clear the footer icons; leftover padding was clipping the art */
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
   }
 
   .p2-page--lp::before,
@@ -1877,33 +1880,28 @@ body.p2 {
   .p2-page--b3bs::before {
     content: '';
     position: absolute;
-    left: 50%;
-    top: 46%;
+    inset: 0;
     z-index: 0;
-    width: min(112vw, 78vh);
-    height: min(112vw, 78vh);
-    transform: translate(-50%, -50%);
     background-repeat: no-repeat;
-    background-size: cover;
+    background-size: contain;
+    background-position: center center;
     pointer-events: none;
   }
 
   .p2-page--lp::before {
     background-image: url('/assets/preview2/lp-portrait.jpg?v=2');
-    background-position: 32% 72%;
-    background-size: 165%;
+    /* Subject sits low-left in the asset — keep full width, bias focal point */
+    background-position: 38% 58%;
   }
 
   .p2-page--utility::before {
     background-image: url('/assets/preview2/utility-portrait.jpg?v=2');
-    background-position: center 42%;
-    background-size: 115%;
+    background-position: center 46%;
   }
 
   .p2-page--b3bs::before {
     background-image: url('/assets/preview2/b3bs-portrait.jpg');
-    background-position: center 78%;
-    background-size: 155%;
+    background-position: center 56%;
   }
 
   .p2-page--lp .p2-page__content,
@@ -1927,6 +1925,26 @@ body.p2 {
   .p2-page--b3bs .p2-sub {
     margin: 0.35em 0 0;
     max-width: 34ch;
+  }
+
+  /* Definition when copy sits on top of art */
+  .p2-page--lp .p2-title,
+  .p2-page--utility .p2-title,
+  .p2-page--b3bs .p2-title,
+  .p2-page--lp .p2-sub,
+  .p2-page--utility .p2-sub,
+  .p2-page--b3bs .p2-sub,
+  .p2-page--lp .p2-soon,
+  .p2-page--utility .p2-soon,
+  .p2-page--b3bs .p2-soon,
+  .p2-page--lp .p2-desc,
+  .p2-page--utility .p2-desc,
+  .p2-page--b3bs .p2-desc {
+    text-shadow:
+      0 0 10px #000,
+      0 0 22px #000,
+      0 0 36px rgba(0, 0, 0, 0.95),
+      0 2px 4px #000;
   }
 
   .p2-page--home {
