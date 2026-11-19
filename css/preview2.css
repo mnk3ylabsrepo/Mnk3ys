@@ -2010,15 +2010,9 @@ a.p2-partner:focus-visible {
 
   .p2-page--utility::before {
     background-image: url('/assets/preview2/utility-portrait.jpg?v=2');
-    /* Face is mid-frame in the asset — crop into a bottom-pinned box (same edge margin) */
-    top: auto;
-    bottom: calc(var(--p2-edge-pad) + env(safe-area-inset-bottom, 0px));
-    height: min(72vw, 58vh);
-    padding-bottom: 0;
-    background-size: 125% auto;
-    background-position: center 44%;
-    background-origin: border-box;
-    background-clip: border-box;
+    /* Mid-asset face: scale up + bottom-align inside the shared edge pad (no bottom crop) */
+    background-size: 135% auto;
+    background-position: center bottom;
   }
 
   .p2-page--b3bs::before {
