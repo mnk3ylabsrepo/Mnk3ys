@@ -2067,11 +2067,11 @@ a.p2-partner:focus-visible {
     background-position: center;
   }
 
-  /* MNK3YS / ZMB3YS portrait: top-align copy like Partners; lift bg so the character is less clipped */
+  /* MNK3YS / ZMB3YS portrait: top-align (row flex → align-items); lift bg */
   .p2-page--mnk3ys,
   .p2-page--zmb3ys {
-    align-items: center;
-    justify-content: flex-start;
+    align-items: flex-start;
+    justify-content: center;
     background-position: center 72%;
     background-size: cover;
     padding-top: calc(4.5rem + env(safe-area-inset-top, 0px));
