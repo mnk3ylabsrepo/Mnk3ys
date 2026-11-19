@@ -2235,9 +2235,6 @@ a.p2-partner:focus-visible {
 
   .p2-service__desc {
     text-align: left;
-  }
-
-  .p2-service__desc {
     font-size: clamp(0.75rem, 3.2vw, 0.95rem);
     max-width: 42ch;
   }
