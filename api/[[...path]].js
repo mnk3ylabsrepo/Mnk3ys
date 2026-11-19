@@ -5,10 +5,12 @@ const fs = require('fs');
 const path = require('path');
 const app = require('../server');
 const { sendPreviewHtml, sendPreview2Html } = require('../lib/preview-site');
+const { requestHost, gameDirForHost } = require('../lib/site-hosts');
 
 const ROOT = path.resolve(path.join(__dirname, '..'));
 
 const MIME = {
+  '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
   '.json': 'application/json',
@@ -21,6 +23,8 @@ const MIME = {
   '.svg': 'image/svg+xml',
   '.woff2': 'font/woff2',
   '.woff': 'font/woff',
+  '.ttf': 'font/ttf',
+  '.webmanifest': 'application/manifest+json',
 };
 
 function sendFile(res, filePath, ext) {
@@ -111,26 +115,45 @@ module.exports = (req, res) => {
   }
 
   if (u === '/preview2' || u === '/preview2/') {
+    res.statusCode = 308;
+    res.setHeader('Location', '/');
+    return res.end();
+  }
+
+  const host = requestHost(req);
+  const gameDir = gameDirForHost(host);
+  const isRoot = u === '' || u === '/' || u === '/index.html';
+
+  if (gameDir && isRoot) {
+    return sendFile(res, path.join(ROOT, gameDir, 'index.html'), '.html');
+  }
+  if (gameDir && !u.startsWith('/api') && !u.startsWith('/assets/') && !u.startsWith('/css/') && !u.startsWith('/js/') && !u.startsWith('/preview/')) {
+    const gameRel = u.replace(/^\/+/, '');
+    const gamePath = path.join(ROOT, gameDir, gameRel);
+    const gameResolved = path.resolve(gamePath);
+    if (gameResolved.startsWith(path.resolve(ROOT, gameDir)) && fs.existsSync(gameResolved)) {
+      return sendFile(res, gameResolved, path.extname(gameResolved));
+    }
+  }
+
+  if (isRoot) {
     if (sendPreview2Html(res, ROOT)) return;
     return res.status(404).end();
   }
 
-  const isRoot = u === '' || u === '/' || u === '/index.html';
   const rel = (u || '').replace(/^\/+/, '') || 'index.html';
-  const filePath = path.join(ROOT, isRoot ? 'index.html' : rel);
+  const filePath = path.join(ROOT, rel);
   const resolvedPath = path.resolve(filePath);
   if (!resolvedPath.startsWith(path.resolve(ROOT))) return res.status(404).end();
-  const ext = path.extname(isRoot ? 'index.html' : u);
-  if (isRoot || u.startsWith('/css/') || u.startsWith('/js/') || u.startsWith('/assets/')) {
+  const ext = path.extname(u);
+  if (u.startsWith('/css/') || u.startsWith('/js/') || u.startsWith('/assets/') || u.startsWith('/legacy/') || u.startsWith('/preview/')) {
     try {
-      const readPath = resolvedPath;
       const body = ['.css', '.js', '.json', '.html'].includes(ext)
-        ? fs.readFileSync(readPath, 'utf8')
-        : fs.readFileSync(readPath);
-      res.setHeader('Content-Type', isRoot ? 'text/html; charset=utf-8' : (MIME[ext] || 'application/octet-stream'));
+        ? fs.readFileSync(resolvedPath, 'utf8')
+        : fs.readFileSync(resolvedPath);
+      res.setHeader('Content-Type', MIME[ext] || 'application/octet-stream');
       return res.status(200).send(body);
     } catch (e) {
-      if (isRoot) return res.status(500).send('index not found');
       res.setHeader('Content-Type', 'text/plain');
       return res.status(404).send('Not Found');
     }

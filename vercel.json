@@ -4,10 +4,34 @@
     { "source": "/favicon.ico", "destination": "/api/favicon" },
     { "source": "/favicon.svg", "destination": "/api/favicon.svg" },
     { "source": "/pairs", "destination": "/api/pairs" },
-    { "source": "/pairs/", "destination": "/api/pairs" }
+    { "source": "/pairs/", "destination": "/api/pairs" },
+
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "blupets.mnk3ylabs.com" }],
+      "destination": "/preview/blup3ts/index.html"
+    },
+    {
+      "source": "/((?!api/|assets/|css/|js/|preview/).*)",
+      "has": [{ "type": "host", "value": "blupets.mnk3ylabs.com" }],
+      "destination": "/preview/blup3ts/$1"
+    },
+
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "blupairs.mnk3ylabs.com" }],
+      "destination": "/preview/blupa1rs/index.html"
+    },
+    {
+      "source": "/((?!api/|assets/|css/|js/|preview/).*)",
+      "has": [{ "type": "host", "value": "blupairs.mnk3ylabs.com" }],
+      "destination": "/preview/blupa1rs/$1"
+    }
   ],
   "redirects": [
     { "source": "/Mnk3ys", "destination": "/", "permanent": false },
-    { "source": "/Mnk3ys/", "destination": "/", "permanent": false }
+    { "source": "/Mnk3ys/", "destination": "/", "permanent": false },
+    { "source": "/preview2", "destination": "/", "permanent": true },
+    { "source": "/preview2/", "destination": "/", "permanent": true }
   ]
 }

@@ -3,6 +3,12 @@
 <head>
 <meta charset="utf-8">
 <base href="/preview/blup3ts/">
+<script>
+(function () {
+  var h = location.hostname || '';
+  if (/^blupets\./i.test(h)) document.querySelector('base').setAttribute('href', '/');
+})();
+</script>
 <meta name="robots" content="noindex, nofollow">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://cdn.discordapp.com https://img-cdn.magiceden.dev https://firebasestorage.googleapis.com https://na-assets.pinit.io https://we-assets.pinit.io https://gateway.pinit.io https://gateway.irys.xyz https://*.datasprite-cdn.com https://arweave.net https://*.arweave.net https://ipfs.io https://nftstorage.link https://*.ipfs.nftstorage.link https://cdn.helius-rpc.com; media-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="no-referrer">

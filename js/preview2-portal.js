@@ -451,7 +451,7 @@
   });
 
   el('p2-btn-discord').addEventListener('click', function () {
-    window.location.href = '/api/discord/auth?next=' + encodeURIComponent('/preview2');
+    window.location.href = '/api/discord/auth?next=' + encodeURIComponent('/');
   });
   el('p2-btn-wallet').addEventListener('click', showWalletPicker);
   el('p2-btn-verify').addEventListener('click', verify);

@@ -306,5 +306,5 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   LB_REWARDS_ENDPOINT: '',
   LEADERBOARD_ENABLED: true,
   LEADERBOARD_ENDPOINT: '/api/blup3ts-leaderboard',
-  LEADERBOARD_DISCORD_LOGIN_URL: '/api/discord/auth?next=/preview/blup3ts/'
+  LEADERBOARD_DISCORD_LOGIN_URL: ''
 });

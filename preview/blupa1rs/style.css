@@ -1,4 +1,4 @@
-@font-face { font-family: Nun; src: url('../blup3ts/fonts/Nunito.ttf') format('truetype'); font-weight: 200 1000; font-display: swap; }
+@font-face { font-family: Nun; src: url('/preview/blup3ts/fonts/Nunito.ttf') format('truetype'); font-weight: 200 1000; font-display: swap; }
 :root { --cyan:#48D8FC; --blue:#1E6FD9; --gold:#F2C94C; --card:#141B24; --card2:#1C2633; --dim:#9AA7B6; --pink:#FF5C8A; }
 * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
 html { -webkit-text-size-adjust:100%; }

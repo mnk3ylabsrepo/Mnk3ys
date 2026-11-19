@@ -23,10 +23,10 @@ const SESSION_SECRET = process.env.SESSION_SECRET || 'mnk3ys-session-secret-chan
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:' + PORT).replace(/\/$/, '');
 const REDIRECT_URI = BASE_URL + '/api/discord/callback';
 // Send Discord back to the domain the user started on, so the session cookie is readable there
-const OAUTH_HOSTS = /^(www\.mnk3ylabs\.com|mnk3ylabs\.com|mnk3ys\.vercel\.app)$/;
+const { requestHost, gameDirForHost, OAUTH_HOST_RE } = require('./lib/site-hosts');
 function discordRedirectUri(req) {
-  const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim().toLowerCase();
-  return OAUTH_HOSTS.test(host) ? 'https://' + host + '/api/discord/callback' : REDIRECT_URI;
+  const host = requestHost(req);
+  return OAUTH_HOST_RE.test(host) ? 'https://' + host + '/api/discord/callback' : REDIRECT_URI;
 }
 
 const DISCORD_AUTH_URL = 'https://discord.com/api/oauth2/authorize';
@@ -95,7 +95,35 @@ app.use(
   })
 );
 
-app.use(express.static(path.join(__dirname)));
+// Homepage / game subdomain roots (before static so index.html does not win)
+app.get('/', function (req, res) {
+  const gameDir = gameDirForHost(requestHost(req));
+  if (gameDir) return res.sendFile(path.join(__dirname, gameDir, 'index.html'));
+  const { sendPreview2Html } = require('./lib/preview-site');
+  if (!sendPreview2Html(res, __dirname)) res.status(404).end();
+});
+
+// Game subdomains — map /style.css etc. into the game folder
+app.use(function (req, res, next) {
+  const gameDir = gameDirForHost(requestHost(req));
+  if (!gameDir) return next();
+  if (req.path === '/api' || req.path.indexOf('/api/') === 0) return next();
+  if (
+    req.path.indexOf('/assets/') === 0 ||
+    req.path.indexOf('/css/') === 0 ||
+    req.path.indexOf('/js/') === 0 ||
+    req.path.indexOf('/preview/') === 0
+  ) {
+    return next();
+  }
+  const rel = req.path.replace(/^\/+/, '');
+  if (!rel) return next();
+  return res.sendFile(path.join(__dirname, gameDir, rel), function (err) {
+    if (err) next();
+  });
+});
+
+app.use(express.static(path.join(__dirname), { index: false }));
 
 // Avoid 404 for favicon (browsers request it automatically)
 app.get('/favicon.ico', function (req, res) {
@@ -110,7 +138,7 @@ app.get('/api/pairs', function (req, res) {
   res.sendFile(path.join(__dirname, 'pairs.html'));
 });
 
-// UI preview revamp at /preview (localhost + Vercel; live / unchanged)
+// Keep /preview as the older revamp; /preview2 → live site
 app.get('/preview', function (req, res) {
   const { sendPreviewHtml } = require('./lib/preview-site');
   if (!sendPreviewHtml(res, __dirname)) res.status(404).end();
@@ -120,11 +148,17 @@ app.get('/preview/', function (req, res) {
 });
 
 app.get('/preview2', function (req, res) {
-  const { sendPreview2Html } = require('./lib/preview-site');
-  if (!sendPreview2Html(res, __dirname)) res.status(404).end();
+  res.redirect(301, '/');
 });
 app.get('/preview2/', function (req, res) {
-  res.redirect(301, '/preview2');
+  res.redirect(301, '/');
+});
+
+app.get('/legacy', function (req, res) {
+  res.sendFile(path.join(__dirname, 'legacy', 'index.html'));
+});
+app.get('/legacy/', function (req, res) {
+  res.redirect(301, '/legacy');
 });
 
 // BLUP3TS preview: Azgog's read-only NFT check and floor-starter list. Real $BLUNANA payments stay off.
