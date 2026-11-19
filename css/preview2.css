@@ -1863,7 +1863,54 @@ body.p2 {
   .p2-page--b3bs {
     align-items: center;
     justify-content: center;
-    background-position: center;
+  }
+
+  /* Center art behind copy — LP/B3BS assets are composed low/off-center, so crop into a centered layer */
+  .p2-page--lp,
+  .p2-page--utility,
+  .p2-page--b3bs {
+    background-image: none !important;
+  }
+
+  .p2-page--lp::before,
+  .p2-page--utility::before,
+  .p2-page--b3bs::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    z-index: 0;
+    width: min(112vw, 78vh);
+    height: min(112vw, 78vh);
+    transform: translate(-50%, -50%);
+    background-repeat: no-repeat;
+    background-size: cover;
+    pointer-events: none;
+  }
+
+  .p2-page--lp::before {
+    background-image: url('/assets/preview2/lp-portrait.jpg?v=2');
+    background-position: 32% 72%;
+    background-size: 165%;
+  }
+
+  .p2-page--utility::before {
+    background-image: url('/assets/preview2/utility-portrait.jpg?v=2');
+    background-position: center 42%;
+    background-size: 115%;
+  }
+
+  .p2-page--b3bs::before {
+    background-image: url('/assets/preview2/b3bs-portrait.jpg');
+    background-position: center 78%;
+    background-size: 155%;
+  }
+
+  .p2-page--lp .p2-page__content,
+  .p2-page--utility .p2-page__content,
+  .p2-page--b3bs .p2-page__content {
+    position: relative;
+    z-index: 1;
   }
 
   .p2-page--lp .p2-center,
