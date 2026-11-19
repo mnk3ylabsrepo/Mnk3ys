@@ -1765,13 +1765,6 @@ a.p2-partner:focus-visible {
   transform: translate(-50%, 0);
 }
 
-@media (orientation: portrait) {
-  .p2-toast {
-    /* Sit above the footer nav strip */
-    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-  }
-}
-
 @media (max-width: 599px) {
   :root {
     --orb-primary: 80px;
@@ -1924,6 +1917,11 @@ a.p2-partner:focus-visible {
   }
 
   .p2-swipe-hint { display: block; }
+
+  /* Above footer for Copy CA, Coming soon, etc. */
+  .p2-toast {
+    bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
 
   html, body.p2 {
     height: 100%;
