@@ -2010,6 +2010,7 @@ a.p2-partner:focus-visible {
 
   .p2-page--utility::before {
     background-image: url('/assets/preview2/utility-portrait.jpg?v=2');
+    transform: translate3d(0, 14vh, 0);
   }
 
   .p2-page--b3bs::before {
