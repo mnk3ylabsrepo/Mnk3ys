@@ -1,0 +1,17 @@
+/* Duo opening (Watch -> Duo), v2 flat slide + even grow. transform/opacity only. */
+.ldo-open { position:absolute; inset:0; z-index:80; pointer-events:auto; cursor:pointer; }
+.ldo-open .ldo-lid { position:absolute; z-index:4; overflow:visible; will-change:transform; }
+.ldo-open .ldo-face { position:absolute; inset:0; overflow:visible; }
+.ldo-open .ldo-clone { position:absolute; left:0; top:0; transform-origin:0 0; pointer-events:none; }
+.ldo-open .ldo-splash { position:absolute; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; background:#000; pointer-events:none; z-index:3; will-change:opacity; }
+.ldo-open .ldo-splash img { width:46%; max-width:180px; height:auto; opacity:0; filter:drop-shadow(0 0 14px rgba(72,216,252,.55)); will-change:transform,opacity; }
+.ldo-open .ldo-splash img.ldo-white { filter:brightness(1.45) drop-shadow(0 0 14px rgba(72,216,252,.55)); }
+.ldo-open .ldo-splash img.ldo-logo { border-radius:22%; }
+/* the supplied wordmark image (white BLU, cyan P3TS) */
+.ldo-open .ldo-splash img.ldo-wm { width:78%; max-width:300px; height:auto; filter:drop-shadow(0 0 16px rgba(72,216,252,.45)); }
+.ldo-open.ldo-h .ldo-splash img.ldo-logo { width:auto; height:36%; max-width:none; }
+.ldo-open.ldo-h .ldo-splash img.ldo-wm { width:56%; max-width:340px; }
+/* gap fix 1: the hinge line rides on the moving edge for the whole unfold */
+.ldo-open .ldo-clone .foldhinge { z-index:60; }
+.ldo-hidehinge .foldhinge { visibility:hidden; }
+.ldo-open .ldo-hingel { z-index:6; }

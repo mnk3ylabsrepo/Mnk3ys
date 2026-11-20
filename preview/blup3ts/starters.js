@@ -12,10 +12,12 @@
   var LAST = 'blup3ts.web.floorlast', COLS = ['MNK3YS', 'ZMB3YS'], CAPO = 'Caporegime Del $Empire'; // Nov 2: + Capo slot (optional in the floor reply)
   D.allStarters = D.pets.slice(); // everything kept for later
   function common(p) { return !(p.rank && p.rank <= 100); } // the Legendary (rank 16) is never a 'floor' pet
-  function keepExtra(p) { return (C.LPDOLLZ_ENABLED && p.collection === 'LP Dollz') || (C.LEGENDARY_STARTER_ENABLED && !common(p)); }
-  if (!C.FLOOR_STARTERS) { D.pets = D.pets.filter(function (p) { return (C.LPDOLLZ_ENABLED || p.collection !== 'LP Dollz') && (C.LEGENDARY_STARTER_ENABLED || common(p)); }); return; }
+  function colOn(id, name) { var cols = C.COLLECTIONS || [], c = cols.filter(function (x) { return x.id === id || x.name === name; })[0]; return !!(c && c.enabled !== false); }
+  function capoPlayable() { return colOn('capo', CAPO); } // Nov 19: Capo collection is off in this preview
+  function keepExtra(p) { return (C.LPDOLLZ_ENABLED && colOn('ldz', 'LP Dollz') && p.collection === 'LP Dollz') || (C.LEGENDARY_STARTER_ENABLED && !common(p)); }
+  if (!C.FLOOR_STARTERS) { D.pets = D.pets.filter(function (p) { return (C.LPDOLLZ_ENABLED || p.collection !== 'LP Dollz') && (capoPlayable() || p.collection !== CAPO) && (C.LEGENDARY_STARTER_ENABLED || common(p)); }); return; }
   function first(col) { return D.pets.filter(function (p) { return p.collection === col && common(p); })[0]; }
-  var capo = first(CAPO), bundled = [first('MNK3YS'), first('ZMB3YS')].filter(Boolean), extra = D.pets.filter(keepExtra);
+  var capo = capoPlayable() ? first(CAPO) : null, bundled = [first('MNK3YS'), first('ZMB3YS')].filter(Boolean), extra = D.pets.filter(keepExtra);
   if (bundled.length !== 2) return;
   var SLOT = { MNK3YS: bundled[0].id, ZMB3YS: bundled[1].id }; // progress lives here, whatever picture fills the slot
   if (capo) { bundled.push(capo); SLOT[CAPO] = capo.id; }
@@ -36,7 +38,7 @@
     var L = last(), shown = {}; D.pets.forEach(function (p) { if (p.floor) shown[p.collection] = p.mint; });
     var got = {}; COLS.forEach(function (col) { var x = pick(list[col], shown[col] || L[col]); if (x) got[col] = slotPet(x, col); });
     if (!got.MNK3YS || !got.ZMB3YS) return false;
-    if (SLOT[CAPO] && list[CAPO]) { var xc = pick(list[CAPO], shown[CAPO] || L[CAPO]); if (xc) got[CAPO] = slotPet(xc, CAPO); } // Capo: only when the server sends 'capo'; else the bundled Capo stays
+    if (capoPlayable() && SLOT[CAPO] && list[CAPO]) { var xc = pick(list[CAPO], shown[CAPO] || L[CAPO]); if (xc) got[CAPO] = slotPet(xc, CAPO); } // Capo floor pets only when the collection is enabled
     D.pets = D.pets.map(function (p) { if (p.owned) return p; for (var k in SLOT) if (p.id === SLOT[k] && got[k]) return got[k]; return p; });
     D.floorSource = list.source;
     var keep = { MNK3YS: got.MNK3YS.mint, ZMB3YS: got.ZMB3YS.mint }; if (got[CAPO]) keep[CAPO] = got[CAPO].mint;
@@ -50,14 +52,15 @@
     return fetch(C.FLOOR_ENDPOINT, { headers: { accept: 'application/json' } }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
       if (!j || !j.live || !Array.isArray(j.mnk3ys) || !Array.isArray(j.zmb3ys) || !j.mnk3ys.length || !j.zmb3ys.length) return null;
       list = { MNK3YS: j.mnk3ys, ZMB3YS: j.zmb3ys, source: j.source || 'live' };
-      if (Array.isArray(j.capo) && j.capo.length) list[CAPO] = j.capo; // optional third list (HANDOFF.md: floor-pets 'capo')
+      if (capoPlayable() && Array.isArray(j.capo) && j.capo.length) list[CAPO] = j.capo; // optional third list; ignored while Capo is disabled
       return list;
     }).catch(function () { return null; });
   }
   // a tap or key before the live pets arrive = the player already chose; don't swap the picture under them on this load
   function touch(e) { if (e.isTrusted) touched = true; }
   document.addEventListener('pointerdown', touch, true); document.addEventListener('keydown', touch, true);
-  load().then(function () { if (wantSwap && !touched) apply(); wantSwap = false;
+  function ready() { return new Promise(function (res) { if (document.readyState !== 'loading') res(); else document.addEventListener('DOMContentLoaded', function () { res(); }); }); } // wait for art.js etc. so a fast floor reply is not overwritten
+  Promise.all([load(), ready()]).then(function () { if (wantSwap && !touched) apply(); wantSwap = false;
     document.removeEventListener('pointerdown', touch, true); document.removeEventListener('keydown', touch, true); });
   // app.js calls this when the player switches from Wallet back to Pretend
   window.BLUP3TS_FLOOR = { reroll: function () { if (list) return apply(); load().then(function () { apply(); }); return false; }, slots: function () { return SLOT; } };

@@ -1,0 +1,84 @@
+/* Home: NFT strip sits above Play, pick-first gate.
+   Live Home look and live card size (150px thumbs) are kept. */
+
+.playbtn.needpick,
+.playbtn:disabled {
+  opacity: .45;
+  cursor: default;
+  pointer-events: none;
+  animation: none !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .2), inset 0 -3px 0 rgba(0, 0, 0, .12);
+  filter: grayscale(.2);
+}
+
+.playhint {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--gold);
+  margin: 6px 16px 0;
+  min-height: 1.2em;
+}
+.playhint[hidden] { display: none !important; }
+
+.homeview.home-pick .leftcol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+.homeview.home-pick .carwrap {
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+.homeview.home-pick .homestack .playbtn { margin-top: 8px; }
+
+/* Watermark stays under the P3t cards, compacted so Play can stay on screen */
+.homeview.home-pick .carwrap > a.wm2.wmunder {
+  min-height: 32px;
+  margin: 4px auto 0;
+}
+
+/* Desktop: header, then full-width NFT grid above Play (not a right-only column). */
+body.desk .homeview.home-pick.on {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-width: 1280px;
+  padding: 0 16px 8px 0;
+}
+body.desk .home-pick .leftcol {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-left: 52px;
+  padding-right: 8px;
+  overflow: hidden;
+  gap: 10px;
+  grid-column: auto;
+  grid-row: auto;
+}
+body.desk .home-pick .hhead { flex: none; }
+body.desk .home-pick .carwrap {
+  grid-column: auto;
+  grid-row: auto;
+  position: relative;
+  width: 100%;
+  margin: 0;
+  flex: 0 1 auto;
+  max-height: min(380px, 38vh);
+  align-self: stretch;
+}
+body.desk .home-pick .homestack {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  justify-content: flex-start;
+  gap: 8px;
+}
+body.desk .home-pick .playbtn { margin-top: 4px; }

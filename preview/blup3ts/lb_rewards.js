@@ -1,6 +1,6 @@
 /* BLUP3TS Monthly #1 rewards + wallet proof (PREVIEW ONLY, Nov 2 2026). Switch: config.js LB_REWARDS_ENABLED (default false).
  * - Reward card on the Ranks sheet: current month (America/Halifax), countdown to month end, reward preview
- *   (winner-only face 'Monthly Champion' f_champion + item 'Golden Crown', both PLACEHOLDER ART). First winner: November 2026,
+ *   (winner-only face 'Monthly Champion' f_champion + item 'Golden Crown', face art from assets/faces/prize/; item art still PLACEHOLDER). First winner: November 2026,
  *   picked at 2026-12-01T04:00:00Z, then every month. The real snapshot and the winner record live on the server (API_LEADERBOARD.md).
  * - Winner face: never sold. Unlocked only for the connected wallet the server lists as a monthly #1 (LB_REWARDS_ENDPOINT, empty = off).
  * - Wallet proof: shared with the Ranks sheet, see lb_auth.js (nonce from the server, signMessage, server checks the signature).
@@ -11,7 +11,7 @@
   var C = window.BLUP3TS_CONFIG || {}, F = window.BLUP3TS_FACES || {};
   var ON = C.LB_REWARDS_ENABLED === true;
   var TZ = 'America/Halifax';
-  // TOP 3 every month (Azgog via COS, Nov 2 2026 1:55 AM AT): one winner-only face + one item per place. Item art is a PLACEHOLDER (emoji).
+  // TOP 3 every month (Azgog via COS, Nov 2 2026 1:55 AM AT): one winner-only face + one item per place. Face art is assets/faces/prize/*.png. Item art is still a PLACEHOLDER (emoji).
   var PLACES = [
     { rank: 1, face: 'f_champion', label: '#1', item: { id: 'gold_crown', name: 'Gold Crown', icon: '👑' } },
     { rank: 2, face: 'f_second', label: '#2', item: { id: 'silver_medal', name: 'Silver Medal', icon: '🥈' } },
@@ -78,13 +78,16 @@
       var won = isWinner(pl.face), col = el('div', 'lbrprev'); col.dataset.face = pl.face; col.dataset.rank = String(pl.rank);
       col.appendChild(el('b', 'lbrplace', pl.label));
       var pv = a && a.casePreviews ? (a.casePreviews(a.petDef()) || []).filter(function (x) { return x.id === pl.face; })[0] : null;
-      if (pv && h && h.miniWatch) col.appendChild(h.miniWatch(Object.assign({}, pv, { locked: !won })));
+      var faceArt = F[pl.face] && F[pl.face].art;
+      if (typeof faceArt === 'string' && /^assets\/faces\/prize\/[\w.-]+\.png$/.test(faceArt)) {
+        var im = el('img', 'lbrart'); im.src = faceArt; im.alt = (F[pl.face].name || '') + ' face'; im.draggable = false; col.appendChild(im);
+      } else if (pv && h && h.miniWatch) col.appendChild(h.miniWatch(Object.assign({}, pv, { locked: !won })));
       col.appendChild(el('span', null, (won ? '✅ ' : '🔒 ') + (F[pl.face] ? F[pl.face].name : pl.label) + ' face'));
       col.appendChild(el('span', 'lbritem', pl.item.icon)); col.appendChild(el('span', null, pl.item.name));
       row.appendChild(col);
     });
     box.appendChild(row);
-    box.appendChild(el('span', 'lbrtag', 'ITEM ART IS A PLACEHOLDER'));
+    box.appendChild(el('span', 'lbrtag', 'ITEM ART IS A PLACEHOLDER')); /* face art is painted assets/faces/prize */
     var w = wins();
     box.appendChild(el('p', 'lbrstate ' + (w.length ? 'won' : 'lock'), w.length ? '🎉 ' + w.map(function (r) { return 'You were ' + place(r.faceId).label + ' in ' + monthName(r.month); }).join('. ') + '! Your winner face and item are unlocked.' : 'Only the top 3 players of the month get these. They can\'t be bought.'));
     box.appendChild(el('p', 'lbrfine', 'At the end of each month (Atlantic time) the board is saved, the top 3 players get their rewards, and a fresh month starts. The first winners are picked on ' + endLabel(midnight(+f[0], +f[1])) + '.'));
@@ -108,7 +111,10 @@
   function lockedSheet(id) { // tapping a winner face when it is locked
     var h = H(), a = A(), pl = place(id) || PLACES[0]; if (!h) return;
     var nodes = [], nm = F[pl.face] ? F[pl.face].name : pl.label, pv = (a.casePreviews(a.petDef()) || []).filter(function (x) { return x.id === pl.face; })[0];
-    if (pv && h.miniWatch) { var bx = el('div', 'fuprev'); bx.appendChild(h.miniWatch(Object.assign({}, pv, { locked: false }))); nodes.push(bx); }
+    var faceArt = F[pl.face] && F[pl.face].art;
+    if (typeof faceArt === 'string' && /^assets\/faces\/prize\/[\w.-]+\.png$/.test(faceArt)) {
+      var bx = el('div', 'fuprev'); var im = el('img', 'lbrart'); im.src = faceArt; im.alt = (F[pl.face].name || '') + ' face'; im.draggable = false; bx.appendChild(im); nodes.push(bx);
+    } else if (pv && h.miniWatch) { var bx = el('div', 'fuprev'); bx.appendChild(h.miniWatch(Object.assign({}, pv, { locked: false }))); nodes.push(bx); }
     nodes.push(el('p', 'funame', nm + ' watch face'));
     nodes.push(el('p', 'fuconnect', '🏆 Monthly ' + pl.label + ' only'));
     nodes.push(h.p('This face goes to the ' + pl.label + ' player of the month, together with the ' + pl.item.name + '. It is never sold, so it can\'t be bought or unlocked any other way.'));

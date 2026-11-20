@@ -7,10 +7,10 @@
   // ===== Game rules: same numbers as Shared/Core/PetEngine.swift =====
   var RULES = { fullDecay: (function (b) { return Number.isFinite(b) && b > 0 && b <= 100 ? b : 4; })((window.BLUP3TS_CONFIG || {}).BASE_HUNGER_DECAY_PER_HOUR) /* config.js */, joyDecay: 3, joyDecayHungry: 6, hungry: 30, jamJoy: 18, jamCost: 6, jamStr: 0, minFullToJam: 10 };
   var FOODS = [
-    { id: 'nibble', tier: 'Nibble', name: 'Half Blunana', cost: 100, full: 7, joy: 2, str: 4, n: 1, icon: 'half', trial: true }, // trial: half a Snack's food, same STR per $BLUNANA as a Snack
-    { id: 'snack', tier: 'Snack', name: 'Full Blunana', cost: 250, full: 15, joy: 4, str: 10, n: 1, icon: 'one' },
-    { id: 'meal', tier: 'Meal', name: 'Bunch', cost: 1000, full: 45, joy: 10, str: 60, n: 4, icon: 'two' },
-    { id: 'feast', tier: 'Feast', name: 'Split', cost: 2500, full: 100, joy: 20, str: 140, n: 8, icon: 'split' }
+    { id: 'nibble', tier: 'Nibble', name: 'Half Blunana', cost: 200, full: 7, joy: 2, str: 4, n: 1, icon: 'half', trial: true }, // trial: half a Snack's food, same STR per $BLUNANA as a Snack. Defaults match FEED_COSTS; config overwrites them.
+    { id: 'snack', tier: 'Snack', name: 'Full Blunana', cost: 500, full: 15, joy: 4, str: 10, n: 1, icon: 'one' },
+    { id: 'meal', tier: 'Meal', name: 'Bunch', cost: 2000, full: 45, joy: 10, str: 60, n: 4, icon: 'two' },
+    { id: 'feast', tier: 'Feast', name: 'Split', cost: 5000, full: 100, joy: 20, str: 140, n: 8, icon: 'split' }
   ];
   (function () { // config.js is the one source: FEED_COSTS x COST_SCALE (whole tokens, at least 1)
     var C0 = window.BLUP3TS_CONFIG || {}, c = C0.FEED_COSTS || {}, k = C0.COST_SCALE; k = typeof k === 'number' && isFinite(k) && k > 0 ? k : 1;
@@ -81,9 +81,23 @@
   // CAPO_WALLET_ENABLED (Azgog, Nov 3): Capos are Pretend-only for now. In Wallet mode they are locked ('Coming soon').
   var CAPO_NAME = 'Caporegime Del $Empire';
   function isCapo(d) { return !!d && d.collection === CAPO_NAME; }
+  // Capo feed names (Azgog, Nov 4): display names only. Ids, tiers, costs, stats, saves and SOL fee rules are unchanged.
+  var CAPO_FEED_NAMES = { nibble: 'Espresso Shot', snack: 'Cannoli', meal: 'Wagyu Steak', feast: 'King Crab' };
+  function feedName(f, d) { return isCapo(d) && CAPO_FEED_NAMES[f.id] ? CAPO_FEED_NAMES[f.id] : f.tier; }
+  function feedView(foods, d) { return isCapo(d) ? foods.map(function (f) { var o = {}; for (var k in f) o[k] = f[k]; o.tier = feedName(f, d); return o; }) : foods; }
   function capoWalletLocked() { var c = window.BLUP3TS_CONFIG || {}; return !!S && S.mode === 'wallet' && c.CAPO_WALLET_ENABLED !== true; }
-  function noLockedCapo(list) { return capoWalletLocked() ? list.filter(function (d) { return !isCapo(d); }) : list; }
-  function petDef() { var d = DATA.pets.filter(function (p) { return p.id === S.active; })[0]; if (d && isCapo(d) && capoWalletLocked()) d = null; /* old save: Capo in Wallet mode -> default pet */ return d || noLockedCapo(DATA.pets)[0] || DATA.pets[0]; }
+  function collectionPlayable(d) { // Nov 19: hide collections with enabled:false (Capo, LP Dollz) in Pretend and Wallet
+    var C = window.BLUP3TS_CONFIG || {}, cols = C.COLLECTIONS || [];
+    if (!d) return false;
+    var c = cols.filter(function (x) { return x.name === d.collection || x.id === d.collection; })[0];
+    if (c) { if (c.enabled === false) return false; if (c.id === 'ldz' && C.LPDOLLZ_ENABLED !== true) return false; }
+    else if (d.collection === 'LP Dollz' || d.collection === CAPO_NAME) return false;
+    return true;
+  }
+  function playablePet(d) { return collectionPlayable(d) && !(isCapo(d) && capoWalletLocked()); }
+  function noLockedCapo(list) { return list.filter(playablePet); }
+  function capoRowOn() { var cols = (window.BLUP3TS_CONFIG || {}).COLLECTIONS || [], c = cols.filter(function (x) { return x.id === 'capo'; })[0]; return capoWalletLocked() && c && c.enabled !== false; } // locked Capo row only if the collection is still in play
+  function petDef() { var d = DATA.pets.filter(function (p) { return p.id === S.active; })[0]; if (d && !playablePet(d)) d = null; /* old save: hidden collection or locked Capo -> default pet */ return d || noLockedCapo(DATA.pets)[0] || DATA.pets.filter(playablePet)[0] || DATA.pets[0]; }
   function pet() { var id = petDef().id; if (!S.pets[id]) S.pets[id] = newPet(); return S.pets[id]; }
 
   // food lost per hour for one pet: config BASE_HUNGER_DECAY_PER_HOUR; rarer pets a bit slower ONLY when RARITY_PERKS_ENABLED
@@ -145,6 +159,7 @@
     var sb = $('soundBtn'); if (sb) { sb.textContent = on ? '🔊 Sound on · 8-bit' : '🔇 Sound off · tap for 8-bit'; sb.setAttribute('aria-pressed', on ? 'true' : 'false'); }
     var h = $('spkHome'); if (h) { h.textContent = on ? '🔊' : '🔇'; h.setAttribute('aria-pressed', on ? 'true' : 'false'); h.setAttribute('aria-label', on ? 'Sound is on. Turn sound off' : 'Sound is off. Turn sound on'); }
     var b = $('spkWatch'); if (b) { b.dataset.level = lv; b.dataset.on = on ? '1' : '0'; b.setAttribute('aria-label', 'Volume ' + (on ? S.vol + '%' : 'muted') + '. Tap to change'); var pth = b.querySelector('path'); if (pth) pth.setAttribute('d', SPK[lv]); }
+    var tg = $('setSoundToggle'); if (tg) { tg.textContent = on ? '🔊 Sound: on' : '🔇 Sound: off'; tg.setAttribute('aria-checked', on ? 'true' : 'false'); tg.setAttribute('aria-label', on ? 'Sound is on. Turn sound off' : 'Sound is off. Turn sound on'); }
     var r = $('volSlider'); if (r && +r.value !== S.vol) r.value = S.vol; if (r) { r.setAttribute('aria-valuetext', on ? S.vol + '%' : 'Muted'); r.style.setProperty('--v', S.vol + '%'); }
   }
   function setVolume(v, quiet) {
@@ -152,8 +167,8 @@
     S.vol = v; if (on) lastVol = v; soundOn = on; S.sound = on; save(); applyVol();
     if (window.BLUP3TS_EAT) BLUP3TS_EAT.setEnabled(on); if (window.BLUP3TS_APP && BLUP3TS_APP.onSound && was !== on) BLUP3TS_APP.onSound(on);
     renderVol();
-    if (on && !was && !quiet) { unlock(); setTimeout(function () { play(jamTimer ? 'jam_loop' : 'launch'); }, 120); }
-    else if (!on) Object.keys(sounds).forEach(stop);
+    if (on && !was && !quiet) { unlock(); setTimeout(function () { if (jamTimer) beatStart(); else play('launch'); }, 120); }
+    else if (!on) { Object.keys(sounds).forEach(stop); beatStop(); stopJukebox(); }
   }
   function setSound(on, quiet) { setVolume(on ? (S.vol > 0 ? S.vol : lastVol || 70) : 0, quiet); }
 
@@ -272,33 +287,37 @@
     return rarCache[d.id];
   }
   function featStr(d, base) { var r = rarityInfo(d); return TIERS ? TIERS.featStr(CFG, r && r.tier, base) : base; }
-  // ----- Adopt chooser (Azgog, Nov 3): MNK3YS, ZMB3YS, Caporegime Del $Empire starters (not your own pets).
-  // Shows the Orbis + Magic Eden badges; each opens this pet's own page there (by mint) in a new tab, else the collection page.
+  // ----- Adopt chooser (Nov 19): MNK3YS, ZMB3YS starters (not your own pets).
+  // Shows the GraveMarket + Orbis badges; each opens this pet's own page there (by mint) in a new tab, else the collection page.
   // Links only: nothing is bought, signed or sent in the game.
-  var MKT = [{ id: 'orbis', name: 'Orbis' }, { id: 'me', name: 'Magic Eden' }];
+  var MKT = [{ id: 'gm', name: 'GraveMarket' }, { id: 'orbis', name: 'Orbis' }];
   function adoptLinks(d) {
     if (!d || d.owned || (isCapo(d) && capoWalletLocked())) return null; var C = window.BLUP3TS_CONFIG || {}, coll = (C.COLLECTIONS || []).filter(function (c) { return c.name === d.collection && c.adopt && c.enabled !== false; })[0];
     if (!coll) return null; var mintOk = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(d.mint || ''), capo = coll.id === 'capo';
     if (!capo && !(d.floor && mintOk)) return null; // MNK3YS / ZMB3YS: live floor pets only (as before); Capo: every Capo starter
     var T = C.ADOPT_ITEM_URLS || {};
     return MKT.map(function (m) { var t = T[m.id], u = mintOk && typeof t === 'string' ? t.replace('{mint}', encodeURIComponent(d.mint)) : coll.adopt[m.id];
-      return /^https:\/\/(www\.orbisonsol\.io|magiceden\.io)\//.test(u || '') ? { id: m.id, name: m.name, url: u } : null; }).filter(Boolean);
+      return /^https:\/\/(www\.)?(orbisonsol\.io|gravemarket\.io)\//.test(u || '') ? { id: m.id, name: m.name, url: u } : null; }).filter(Boolean);
   }
   function adoptChooser(d) {
     var H = window.BLUP3TS_HOME, L = adoptLinks(d); if (!H || !H.openSheet || !L || !L.length) return false; play('tap');
     var wrap = el('div', 'adoptpick'), nodes = [el('p', 'fine', 'Pick a marketplace to see ' + d.name + '. It opens in a new tab. Nothing is bought in the game.'), wrap];
     L.forEach(function (m) { var a = el('a', 'adoptmkt'); a.href = m.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.dataset.mkt = m.id;
-      a.setAttribute('aria-label', 'See ' + d.name + ' on ' + m.name + ' (opens a new tab)'); a.appendChild(el('span', 'mktbadge mkt-' + m.id)); a.appendChild(el('span', 'mktname', m.name + ' ↗'));
+      a.setAttribute('aria-label', 'See ' + d.name + ' on ' + m.name + ' (opens a new tab)');
+      var img = document.createElement('img'); img.className = 'mktbadge'; img.alt = ''; img.draggable = false;
+      img.src = m.id === 'gm' ? 'assets/market_gravemarket.png?v=h20261119d' : 'assets/market_orbis.png?v=h20261119d';
+      a.appendChild(img); a.appendChild(el('span', 'mktname', m.name + ' ↗'));
       a.onclick = function () { setTimeout(function () { H.closeSheet(); }, 0); }; wrap.appendChild(a); });
     H.openSheet('Adopt ' + d.name, nodes); return true;
   }
   function renderRarity() {
     var box = $('rarityBox'); if (!box) return; box.textContent = '';
     var r = rarityInfo(), d = petDef();
-    // M13 batch: a live floor starter (never a wallet pet) gets a small 'Adopt on Orbis' link to its own Orbis item page
-    var ad = $('adoptLink'); if (ad) { var okm = !!adoptLinks(d); ad.hidden = !okm; // Adopt chooser (Nov 3): Orbis or Magic Eden, this pet's own page
-      if (okm) { ad.textContent = '🐾 Adopt'; ad.href = adoptLinks(d)[0].url; ad.setAttribute('aria-label', 'Adopt ' + d.name + ': pick Orbis or Magic Eden'); ad.onclick = function (e) { e.preventDefault(); adoptChooser(d); }; } }
-    var h = el('div', 'cardh'); h.appendChild(document.createTextNode('Rarity ')); h.appendChild(el('span', 'dim small', 'preview')); box.appendChild(h);
+    // Live floor starter (never a wallet pet) gets Adopt: GraveMarket first, then Orbis
+    var ad = $('adoptLink'); if (ad) { var okm = !!adoptLinks(d); ad.hidden = !okm;
+      if (okm) { ad.textContent = '🐾 Adopt'; ad.removeAttribute('href'); ad.setAttribute('aria-label', 'Adopt ' + d.name + ': pick GraveMarket or Orbis'); ad.onclick = function (e) { e.preventDefault(); e.stopPropagation(); adoptChooser(d); }; } }
+    var srcName = r && r.source === 'gravemarket' ? 'GraveMarket' : r && r.source === 'orbis' ? 'Orbis' : r && r.source === 'estimate' ? 'estimate' : '';
+    var h = el('div', 'cardh'); h.appendChild(document.createTextNode('Rarity')); if (srcName) h.appendChild(el('span', 'dim small', srcName)); box.appendChild(h);
     var row = el('div', 'trow'); row.appendChild(el('span', 'tk', 'Tier'));
     var tv = el('span', 'tv'); tv.appendChild(document.createTextNode(r && r.tier ? r.tier.name : 'Coming soon'));
     if (r && r.tier) {
@@ -307,7 +326,7 @@
     }
     row.appendChild(tv); box.appendChild(row);
     var rr = el('div', 'trow'); rr.appendChild(el('span', 'tk', 'Rank'));
-    rr.appendChild(el('span', 'tv', r && r.rank ? (r.source === 'estimate' ? '≈ #' : '#') + fmt(r.rank) + (r.of ? ' of ' + fmt(r.of) : '') : 'Coming soon')); box.appendChild(rr);
+    rr.appendChild(el('span', 'tv', r && r.rank ? (r.source === 'estimate' ? '≈ ' : '') + fmt(r.rank) + (r.of ? ' / ' + fmt(r.of) : '') : 'Coming soon')); box.appendChild(rr);
     var pv = r && r.tier && TIERS && TIERS.perkPreview ? TIERS.perkPreview(r.tier) : null, on = CFG.RARITY_PERKS_ENABLED === true;
     if (pv && (pv.strBonus || pv.storeDiscount || pv.hungerDecayReduction)) {
       var pr = el('div', 'trow'); pr.appendChild(el('span', 'tk', 'Perks'));
@@ -315,15 +334,23 @@
       if (pv.hungerDecayReduction) bits.push('gets hungry ' + Math.round(pv.hungerDecayReduction * 100) + '% slower');
       pr.appendChild(el('span', 'tv', bits.join(', ') + (on ? '' : ' (coming soon)'))); pr.id = 'perkRow'; box.appendChild(pr);
     }
-    box.appendChild(el('div', 'fine', (r && r.source === 'orbis' ? 'Rank from Orbis. ' : r && r.source === 'estimate' ? 'Estimated from trait counts. ' : d.collection + ' ranks are coming soon. ') + 'Official ranks are on their way. Feeding costs the same for every pet.'));
+    box.appendChild(el('div', 'fine', (r && r.source === 'gravemarket' ? 'Rank from GraveMarket. ' : r && r.source === 'orbis' ? 'Rank from Orbis. ' : r && r.source === 'estimate' ? 'Estimated from trait counts. ' : d.collection + ' ranks are coming soon. ') + 'Feeding costs the same for every pet.'));
   }
   function rarity(sh) { return sh < 1 ? ['Legendary', 'legendary'] : sh < 3 ? ['Rare', 'rare'] : sh < 10 ? ['Uncommon', 'uncommon'] : ['Common', 'common']; }
+  function shareTxt(sh) { return sh < 0.1 ? sh.toFixed(2) + '%' : sh < 1 ? sh.toFixed(1) + '%' : Math.round(sh) + '%'; }
+  function traitShare(d, t) {
+    if (typeof t.share === 'number') return t.share;
+    var fn = window.BLUP3TS_RARITY && window.BLUP3TS_RARITY.share;
+    return fn ? fn(d.collection, t.type, t.value) : undefined;
+  }
   // ----- instruments: unlock by level (config.js INSTRUMENT_LEVELS), free, never sold -----
   var INST = (function () {
-    var c = (window.BLUP3TS_CONFIG || {}).INSTRUMENT_LEVELS, d = { bass: 2, guitar: 3, drumsticks: 4, mic: 5, keytar: 6 }, o = {};
+    var c = (window.BLUP3TS_CONFIG || {}).INSTRUMENT_LEVELS, d = { bass: 2, guitar: 3, drumsticks: 4, mic: 5, keytar: 6, keys: 7, shaker: 8, horn: 9, pad: 10, didg: 11 }, o = {};
     Object.keys(d).forEach(function (k) { var v = c && c[k]; o[k] = Number.isInteger(v) && v >= 1 && v <= 999 ? v : d[k]; }); return o;
   })();
-  var INST_NAME = { bass: 'Bass', guitar: 'Guitar', drumsticks: 'Drumsticks', mic: 'Mic', keytar: 'Keytar' };
+  var INST_NAME = { bass: 'Bass', guitar: 'Guitar', drumsticks: 'Drumsticks', mic: 'Mic', keytar: 'Keytar', keys: 'Electric Piano', shaker: 'Shakers', horn: 'Trumpet', pad: 'Synth Pad', didg: 'Didgeridoo' };
+  var INST_ICON = { bass: 1, guitar: 1, drumsticks: 1, mic: 1, keytar: 1, keys: 1, shaker: 1, horn: 1, pad: 1, didg: 1 }; // painted icons in assets/inst/<id>.png (emoji in data.js stay as the fallback)
+  function instIcon(k, fallback) { var s = el('span', 'le'); if (!INST_ICON[k]) return bluText(s, fallback); var im = document.createElement('img'); im.className = 'instimg'; im.alt = ''; im.src = 'assets/inst/' + k + '.png'; im.onerror = function () { im.remove(); s.textContent = fallback; }; s.appendChild(im); return s; }
   var INST_OPTS = DATA.swaps.hand.options.filter(function (o) { return INST[o[0]]; }); // existing music-swap art (bass first)
   function petLevel(id) { var p = S.pets[id || petDef().id]; return levelFor(p ? p.str : 0); }
   // ----- watch cases (config.js WATCH_CASES): cosmetic only, free. A project case unlocks for its collection once any
@@ -336,7 +363,8 @@
   // previewed, wearable or kept for any other pet (MNK3YS, ZMB3YS, BABI3S, LP Dollz...), even if it is ever marked face:true.
   var CAPO_COLL = 'Caporegime Del $Empire';
   function capoOnly(c, d) { return !!c && c.collection === CAPO_COLL && !(d && d.collection === CAPO_COLL); }
-  function casesFor(d) { var K = caseCfg(), out = []; Object.keys(K.map).forEach(function (id) { var c = K.map[id]; if (capoOnly(c, d)) return; if (id === K.def || (c && c.face === true) || (c && c.collection && d && c.collection === d.collection)) out.push(id); }); return out; }
+  function traitCase(c, d) { return !!(c && c.traitGroup && window.BLUP3TS_TRAITS && BLUP3TS_TRAITS.has(d, c.traitGroup)); }
+  function casesFor(d) { var K = caseCfg(), out = []; Object.keys(K.map).forEach(function (id) { var c = K.map[id]; if (c && c.traitGroup) { if (traitCase(c, d)) out.push(id); return; } if (capoOnly(c, d)) return; if (id === K.def || (c && c.face === true) || (c && c.collection && d && c.collection === d.collection)) out.push(id); }); return out; }
   function caseUnlocked(id) {
     var K = caseCfg(), c = K.map[id], FF = window.BLUP3TS_FREEFEE; if (!c) return false;
     if (c.store === true) return !!(window.BLUP3TS_STORE && BLUP3TS_STORE.owns(id)); /* STORE faces: bought once per wallet */
@@ -360,7 +388,7 @@
   function caseLogoSrc(c) { return typeof c.logo === 'string' && /^[\w\/.-]+$/.test(c.logo) && c.logo.indexOf('..') < 0 ? c.logo : null; }
   function casePreviews(d) {
     d = d || petDef(); var K = caseCfg(), cur = caseOf(d), mine = casesFor(d);
-    return Object.keys(K.map).filter(function (id) { return !capoOnly(K.map[id], d); }).map(function (id) { // Capo faces: hidden for non-Capo pets
+    return Object.keys(K.map).filter(function (id) { var c = K.map[id]; return !capoOnly(c, d) && !(c && c.traitGroup && !traitCase(c, d)); }).map(function (id) { // Capo faces: hidden for non-Capo pets. Trait faces: only for matching pets.
       var c = K.map[id] || {}, applies = mine.indexOf(id) >= 0, art = d.img;
       if (!applies && c.collection) { var pool = visiblePets().filter(function (x) { return x.collection === c.collection && x.img; }), q = pool.filter(function (x) { return x.owned; })[0] || pool[0]; if (q) art = q.img; } // M12: your own wallet pets first
       return { id: id, name: c.name || id, on: id === cur, applies: applies, locked: !applies || !caseUnlocked(id), level: K.lvl, collection: c.collection || null,
@@ -383,8 +411,8 @@
     var opts = DATA.swaps[slot].options, lk = S.looks[petDef().id] || {}, id = lk[slot];
     function pick(k) { return opts.filter(function (o) { return o[0] === k && instOpen(o[0]); })[0]; }
     // Nov 2 2026 (Azgog): weapon pets hold the instrument picked in Choose look (lk.inst), respecting level unlocks.
-    // An Extras pick (foam sword, wrench, Blunana) or an older hand pick still wins when it is open. Nothing picked or open: bass.
-    if (slot === 'hand') return (id && !INST[id] && pick(id)) || (INST[lk.inst] && pick(lk.inst)) || (id && pick(id)) || opts[0];
+    // An Extras pick (foam sword, wrench, Blunana) or an older hand pick still wins when it is open. Nothing picked or open: no instrument (locked ones stay locked).
+    if (slot === 'hand') return (id && !INST[id] && pick(id)) || (INST[lk.inst] && pick(lk.inst)) || (id && pick(id)) || (opts[0] && pick(opts[0][0])) || null;
     return pick(id) || opts[0];
   }
   function equippedInst() { // what the pet plays in Jam
@@ -392,6 +420,32 @@
     return INST[id] && instOpen(id) ? id : null;
   }
   function instOpt(k) { return INST_OPTS.filter(function (o) { return o[0] === k; })[0]; }
+  var INST_SHORT = { bass: 'Bass', guitar: 'Guitar', drumsticks: 'Drums', mic: 'Mic', keytar: 'Keytar', keys: 'Piano', shaker: 'Shakers', horn: 'Trumpet', pad: 'Pad', didg: 'Didgeridoo' };
+  function setEquippedInst(k) {
+    if (!INST[k]) return false;
+    if (!instOpen(k)) { play('tap'); toast('Unlocks at Level ' + INST[k] + ' 🔒'); return false; }
+    var lk = S.looks[petDef().id] = S.looks[petDef().id] || {};
+    lk.inst = k; delete lk.hand; // same field as Choose look, so Stats 'Your look' stays in sync
+    save(); paintJamInst(); return true;
+  }
+  function paintJamInst() {
+    var box = $('jamInstGrid'); if (!box) return;
+    box.textContent = '';
+    var cur = equippedInst();
+    INST_OPTS.forEach(function (o) {
+      var k = o[0], open = instOpen(k), on = cur === k;
+      var b = el('button', 'jaminstbtn' + (on ? ' on' : '') + (open ? '' : ' locked'));
+      b.type = 'button'; b.dataset.inst = k;
+      b.setAttribute('aria-label', INST_NAME[k] + (open ? (on ? ', selected' : '') : ', unlocks at Level ' + INST[k]));
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      if (!open) b.setAttribute('aria-disabled', 'true');
+      b.appendChild(instIcon(k, o[2]));
+      b.appendChild(el('span', 'jaminstnm', INST_SHORT[k] || INST_NAME[k]));
+      if (!open) b.appendChild(el('span', 'jaminstlv', 'Lv ' + INST[k]));
+      b.onclick = function () { play('tap'); if (open) setEquippedInst(k); else toast('Unlocks at Level ' + INST[k] + ' 🔒'); };
+      box.appendChild(b);
+    });
+  }
   function newUnlocks(before, after) { return INST_OPTS.filter(function (o) { return INST[o[0]] > before && INST[o[0]] <= after; }).map(function (o) { return o[2] + ' ' + INST_NAME[o[0]] + ' unlocked!'; }).concat(JAM.level > before && JAM.level <= after ? ['🎶 Long Jam unlocked!'] : []); }
   // M13: Blunanas, not yellow bananas. The 🍌 emoji is always drawn as the blue $BLUNANA art (assets/banana.png).
   function bluIcon() { var i = document.createElement('img'); i.className = 'blu'; i.src = 'assets/banana.png'; i.alt = 'Blunana'; i.setAttribute('role', 'img'); i.setAttribute('aria-label', 'Blunana'); i.draggable = false; return i; }
@@ -410,19 +464,19 @@
       var row = el('div', 'trow'); row.appendChild(el('span', 'tk', t.type));
       var v = el('span', 'tv');
       if (t.slot) { slots++; var o = lookFor(t.slot); v.appendChild(bluText(el('span'), o[1] + ' ' + o[2])); v.appendChild(el('b', 'yourlook', 'Your look')); }
-      else { v.appendChild(document.createTextNode(t.value)); if (typeof t.share === 'number') { var r = rarity(t.share); v.appendChild(el('b', 'rar-' + r[1], r[0] + ' · ' + (t.share < 1 ? t.share.toFixed(1) : Math.round(t.share)) + '%')); } }
+      else { v.appendChild(document.createTextNode(t.value)); var sh = traitShare(d, t); if (typeof sh === 'number') { var r = rarity(sh); v.appendChild(el('b', 'rar-' + r[1], shareTxt(sh))); } }
       row.appendChild(v); list.appendChild(row);
     });
     if (!hasHand(d)) { var ie = equippedInst(); if (ie) { var io = instOpt(ie), ir = el('div', 'trow'); ir.appendChild(el('span', 'tk', 'Instrument')); var iv = el('span', 'tv'); iv.appendChild(document.createTextNode(io[1] + ' ' + io[2])); iv.appendChild(el('b', 'yourlook', 'Your look')); ir.appendChild(iv); list.appendChild(ir); } }
     renderRarity();
     $('lookBtn').style.display = ''; // instruments are for every pet
-    $('familyNote').textContent = showOrig && d.traits.some(function (t) { return t.orig; }) ? 'Showing original traits (18+ setting). Turn it off in Settings on Home.' : (slots || hidden) ? 'Some traits are hidden or swapped to keep BLUP3TS family friendly.' : 'Just for looks · rarity from Orbis';
+    $('familyNote').textContent = showOrig && d.traits.some(function (t) { return t.orig; }) ? 'Showing original traits (18+ setting). Turn it off in Settings on Home.' : (slots || hidden) ? 'Some traits are hidden or swapped to keep BLUP3TS family friendly.' : 'Just for looks · rarity from GraveMarket';
   }
   function openLooks() {
     var box = $('lookList'), d = petDef(); box.textContent = '';
     function optBtn(o, on, pick) { // locked instruments show 'Unlocks at Level N' and can't be picked
       var open = instOpen(o[0]), b = el('button', 'lopt' + (on ? ' on' : '') + (open ? '' : ' locked'));
-      b.dataset.opt = o[0]; b.appendChild(bluText(el('span', 'le'), open ? o[2] : '🔒')); b.appendChild(el('span', 'ln', o[1]));
+      b.dataset.opt = o[0]; b.appendChild(open ? instIcon(o[0], o[2]) : bluText(el('span', 'le'), '🔒')); b.appendChild(el('span', 'ln', o[1]));
       if (!open) { b.appendChild(el('span', 'lul', 'Unlocks at Level ' + INST[o[0]])); b.setAttribute('aria-disabled', 'true'); b.onclick = function () { play('tap'); toast('Unlocks at Level ' + INST[o[0]] + ' 🔒'); }; return b; }
       if (on) b.appendChild(el('span', 'lc', '✓'));
       b.onclick = function () { play('tap'); pick(); save(); openLooks(); renderTraits(); }; return b;
@@ -509,8 +563,8 @@
       var wr = el('div', 'prowwrap' + (on ? ' on' : '')); wr.appendChild(b); wr.appendChild(favBtn(d, 'row')); // star is a sibling of the row button, never inside it
       list.appendChild(wr);
     });
-    // Capos in Wallet mode: locked, 'Coming soon' (CAPO_WALLET_ENABLED false). Same pattern as BABI3S. Pretend mode keeps them playable.
-    if (capoWalletLocked()) {
+    // Capos in Wallet mode: locked, 'Coming soon' only while the Capo collection is still enabled. Nov 19: collection is off, so this row stays hidden.
+    if (capoRowOn()) {
       var cr = el('div', 'prow locked'); var cav = el('div', 'pav lockbg'); var ci = el('img'); ci.src = 'capo/capo_logo.png'; ci.alt = ''; cav.appendChild(ci);
       var ck = el('div', 'lock'); ck.innerHTML = '<svg width="28" height="32" viewBox="0 0 30 34" aria-hidden="true"><path d="M8 15V10a7 7 0 0 1 14 0v5" fill="none" stroke="#F2C94C" stroke-width="3.5" stroke-linecap="round"/><rect x="3" y="14" width="24" height="18" rx="5" fill="#F2C94C"/><circle cx="15" cy="22" r="2.6" fill="#3a2c00"/><rect x="13.8" y="23" width="2.4" height="5" rx="1.2" fill="#3a2c00"/></svg>'; cav.appendChild(ck); cr.appendChild(cav);
       var ct = el('div', 'ptext'); ct.appendChild(el('div', 'pn', 'Capos')); ct.appendChild(el('div', 'ps', 'Coming soon')); cr.appendChild(ct); list.appendChild(cr);
@@ -579,7 +633,7 @@
     if (OVS.some(function (o) { return $(o).classList.contains('show'); })) return setTimeout(function () { levelUp(l, before); }, 600);
     $('lvNum').textContent = l; $('lvTxt').textContent = petDef().collection.slice(0, -1) + ' got stronger!';
     var un = newUnlocks(before || l - 1, l), u = $('lvUnlock'); u.textContent = un.join(' '); u.hidden = !un.length;
-    show('ov-level'); play('levelup');
+    show('ov-level'); play('levelup'); emit('levelup', { level: l, before: before || l - 1, pet: petDef().id });
   }
 
   // ===== Feed (pretend $BLUNANA only) =====
@@ -590,27 +644,27 @@
     $('feedBal').textContent = live ? '…' : fmt(S.bal);
     if (API.paintPlay) API.paintPlay();
     if (live && API.refreshToken) API.refreshToken();
-    var box = $('foods'); box.textContent = '';
+    var box = $('foods'); box.textContent = ''; var ft = $('feedTop'); if (ft) ft.textContent = ''; if ($('feedScroll')) $('feedScroll').scrollTop = 0;
     FOODS.forEach(function (f) {
       var cost = live && API.feedCost ? API.feedCost(f) : f.cost;
       var b = el('button', 'food' + (f.trial ? ' trial' : '')); b.disabled = live ? API.feedLocked(f) : S.bal < f.cost; b.dataset.tier = f.id;
       var fi = el('div', 'fi');
       fi.appendChild(BLUP3TS_EAT.icon(f.id));
       b.appendChild(fi);
-      var fn = el('div', 'fn'); fn.appendChild(el('b', null, f.tier + ' · ' + f.name)); if (f.trial) fn.firstChild.appendChild(el('i', 'tryit', 'Try it')); fn.appendChild(el('span', null, '+' + f.full + ' food · +' + f.str + ' STR')); b.appendChild(fn);
+      var capo = isCapo(petDef()), lbl = capo ? feedName(f, petDef()) : f.tier + ' · ' + f.name; b.setAttribute('aria-label', 'Feed ' + lbl + ', ' + fmt(cost) + ' $BLUNANA'); var fn = el('div', 'fn'); fn.appendChild(el('b', null, lbl)); if (f.trial) fn.firstChild.appendChild(el('i', 'tryit', 'Try it')); fn.appendChild(el('span', null, '+' + f.full + ' food · +' + f.str + ' STR')); b.appendChild(fn);
       var fc = el('div', 'fc'); var ci = el('img'); ci.src = 'assets/blunana_badge.png'; ci.alt = ''; fc.appendChild(ci); fc.appendChild(document.createTextNode(fmt(cost))); b.appendChild(fc);
       b.onclick = function () { if (live) API.payFeed(petDef(), f); else feed(f); };
       box.appendChild(b);
     });
-    if (live && API.feedNote) box.insertBefore(API.feedNote(), box.firstChild);
+    if (live && API.feedNote) { var fnb = API.feedNote(); fnb.classList.add('feedtopnote'); if (ft) ft.appendChild(fnb); else box.insertBefore(fnb, box.firstChild); } // Nov 19: wallet note sits right under BETA, outside the scroll
     if (live && API.paintClaim) API.paintClaim();
-    else if (S.mode === 'wallet' && API.realFeedSection) box.insertBefore(API.realFeedSection(petDef(), FOODS), box.firstChild);
+    else if (S.mode === 'wallet' && API.realFeedSection) box.insertBefore(API.realFeedSection(petDef(), feedView(FOODS, petDef())), box.firstChild);
     var sf = $('solFeeFine'); if (sf) sf.hidden = !(live && (window.BLUP3TS_CONFIG || {}).SOL_FEE_ENABLED === true); // PREVIEW MOCK: fee line only, no SOL is sent
-    if (window.BLUP3TS_EMPIRE && BLUP3TS_EMPIRE.feedSection) BLUP3TS_EMPIRE.feedSection(box, petDef(), FOODS); /* $EMPIRE feeds: Capo pets, flag EMPIRE_FEEDS_ENABLED */
-    if (live) box.querySelectorAll('button[data-tier]').forEach(function (b) { if (solFeeFor(b.dataset.tier)) b.appendChild(el('i', 'solfeetag', '+ SOL fee')); }); // Nov 3: Snack, Meal, Feast only
+    if (window.BLUP3TS_EMPIRE && BLUP3TS_EMPIRE.feedSection) BLUP3TS_EMPIRE.feedSection(box, petDef(), feedView(FOODS, petDef())); /* $EMPIRE feeds: Capo pets, flag EMPIRE_FEEDS_ENABLED */
+    if (live) box.querySelectorAll('button[data-tier]').forEach(function (b) { if (solFeeFor(b.dataset.tier)) b.appendChild(el('i', 'solfeetag', '+ SOL fee')); }); // Snack, Meal, Feast only
     show('ov-feed');
   }
-  // Feed SOL fee (Azgog, Nov 3): Snack, Meal and Feast only (SOL_FEE_TIERS). Nibble never has one, for every pet and token.
+  // Feed SOL fee (Azgog, Nov 3, reconfirmed Nov 19): Snack, Meal and Feast only (SOL_FEE_TIERS). Nibble never has one.
   function solFeeFor(tier) { var c = window.BLUP3TS_CONFIG || {}, t = Array.isArray(c.SOL_FEE_TIERS) ? c.SOL_FEE_TIERS : ['snack', 'meal', 'feast']; return c.SOL_FEE_ENABLED === true && tier !== 'nibble' && t.indexOf(tier) >= 0; }
   // the real eating sequence lives in eat.js; this part only handles the game numbers
   var eating = false, dispFull = 0, dispText = 0, eatLog = null, textTween = null;
@@ -634,7 +688,7 @@
     S.bal -= f.cost; p.full = Math.min(100, p.full + f.full); p.joy = Math.min(100, p.joy + f.joy); p.str += gainXp(petDef().id, featStr(petDef(), f.str)); p.eaten += f.n;
     if (real) S.bal += f.cost; // real feeds don't touch the pretend balance
     var endFull = p.full, petId = petDef().id;
-    eating = true; dispFull = startFull; dispText = startFull; save(); try { document.dispatchEvent(new CustomEvent('blup3ts:fed')); } catch (e) {} /* charm sparkle */
+    eating = true; dispFull = startFull; dispText = startFull; save(); try { document.dispatchEvent(new CustomEvent('blup3ts:fed', { detail: { pet: petDef().id, level: petLevel() } })); } catch (e) {} /* charm sparkle */
     eatLog = { tier: f.id, bites: 0, planned: BLUP3TS_EAT.plan[f.id].bites, startFull: startFull, endFull: endFull, fills: [], startedAt: performance.now(), done: false, balAfter: S.bal };
     render();
     var pd = petDef(), m = MOUTH[petId] || (Array.isArray(pd.mouth) && pd.mouth.length === 2 ? pd.mouth : null) || (pd.collection === 'ZMB3YS' ? [.5, .62] : [.6, .68]);
@@ -650,7 +704,7 @@
       onDone: function () {
         eating = false; eatLog.done = true; eatLog.ms = Math.round(performance.now() - eatLog.startedAt);
         render(); burst('heart', 4 + f.n);
-        toast(real ? 'Fed with ' + (API.payWord ? API.payWord() : '$BLUNANA') + ' ✔' : '−' + fmt(f.cost) + ' pretend', !real);
+        var cn = isCapo(pd) ? feedName(f, pd) + '! ' : ''; /* Capo feed bubble names the food; others unchanged */ toast(cn + (real ? 'Fed with ' + (API.payWord ? API.payWord() : '$BLUNANA') + ' ✔' : '−' + fmt(f.cost) + ' pretend'), !real);
         if (real && API.refreshToken) API.refreshToken();
         var after = levelFor(S.pets[petId].str); if (after > before) setTimeout(function () { levelUp(after, before); }, 250);
       }
@@ -664,11 +718,47 @@
   var BEAT = (function () { // config.js JAM_BEAT, checked
     var c = (window.BLUP3TS_CONFIG || {}).JAM_BEAT || {}, n = function (v, d, lo, hi) { return typeof v === 'number' && isFinite(v) && v >= lo && v <= hi ? v : d; };
     var b = { bpm: n(c.BPM, 120, 40, 240), offset: n(c.OFFSET_MS, 10, -500, 500), perfect: n(c.PERFECT_MS, 80, 20, 200), good: n(c.GOOD_MS, 160, 40, 300), lat: n(c.LATENCY_MS, 70, 0, 400), vlat: n(c.VISUAL_LATENCY_MS, 30, 0, 200), pp: n(c.PERFECT_PTS, 2, 0, 12), gp: n(c.GOOD_PTS, 1, 0, 12), max: n(c.TAP_BONUS_MAX, 12, 0, 12) };
-    if (b.good < b.perfect) b.good = b.perfect; b.period = 60000 / b.bpm; return b;
+    b.slat = n(c.SYNTH_LATENCY_MS, 30, 0, 300); // synth beats: WebAudio takes off the output latency itself, this is only the touch delay
+    if (b.good < b.perfect) b.good = b.perfect; b.bpm0 = b.bpm; b.period = 60000 / b.bpm; return b;
   })();
   var barHold = false, jamT0 = 0, beatPts = 0, lastBeat = null, judged = { perfect: 0, good: 0, miss: 0 }, lastJudge = null, barE = [], barShape = [];
   function audioClock() { var a = sounds.jam_loop; return soundOn && a && !a.paused && a.currentTime > 0 ? a.currentTime * 1000 : null; }
-  function beatClock() { var t = audioClock(); return t === null ? { t: perfNow() - jamT0, lat: BEAT.vlat, src: 'visual' } : { t: t - BEAT.offset, lat: BEAT.lat, src: 'audio' }; } // ms on the beat grid
+  var clkLast = 0, clkAdd = 0; // the 8-bit mp3 loops: count whole loops so beat numbers keep going up
+  function beatClock() { // ms on the beat grid since the beat started
+    if (synthOn && JS()) { var e = JS().beatElapsed(); if (e !== null) return { t: e * 1000, lat: BEAT.slat + JS().outputLatency() * 1000, src: 'synth' }; } // lat: speaker delay + touch delay, taken off taps only
+    var t = audioClock(); if (t === null) return { t: perfNow() - jamT0, lat: BEAT.vlat, src: 'visual' };
+    if (t < clkLast - 1000) clkAdd += ((sounds.jam_loop.duration || 8) * 1000); clkLast = t;
+    return { t: t + clkAdd - BEAT.offset, lat: BEAT.lat, src: 'audio' };
+  }
+  function resetClock() { clkLast = 0; clkAdd = 0; }
+
+  // ===== Beats (Nov 10, round 3): pick a beat in the Jam chooser. Every instrument follows its key, chords and tempo.
+  // 8-bit Original plays audio/jam_loop.mp3 as before; the others are made on the phone by jam_synth.js (no downloads),
+  // loudness matched to the 8-bit loop. Seasonal: this month's beat joins the list. Community Groove: after a Community Jam goal.
+  var synthOn = false, jamWait = false, jamOpts = {};
+  function calMonth() { var T = window.BLUP3TS_TRAITS; if (T && T.monthForTest) { var n = T.monthForTest(); if (n >= 1 && n <= 12) return n; } return new Date().getMonth() + 1; }
+  function JS() { return window.BLUP3TS_JAM || null; }
+  function eatCtx() { return window.BLUP3TS_EAT && BLUP3TS_EAT.ctx ? BLUP3TS_EAT.ctx() : null; }
+  function beatsAll() { return JS() ? JS().BEATS : { chip8: { id: 'chip8', name: '8-bit Original', emoji: '🕹️', bpm: 120, style: 'file', roots: [] } }; }
+  function beatList() {
+    var J = JS(); if (!J) return ['chip8'];
+    var l = J.BASE_BEATS.slice(), m = J.seasonalFor(calMonth()); if (m) l.push(m.id);
+    if (window.BLUP3TS_FUN && BLUP3TS_FUN.communityBeat && BLUP3TS_FUN.communityBeat()) l.push('community');
+    return l;
+  }
+  var beatId = (function () { try { var v = JSON.parse(store && store.getItem(P + 'beat')); return typeof v === 'string' ? v : 'chip8'; } catch (e) { return 'chip8'; } })();
+  function curBeat() { if (beatList().indexOf(beatId) < 0) beatId = 'chip8'; return beatsAll()[beatId] || beatsAll().chip8; }
+  function applyTempo() { var b = curBeat(); BEAT.bpm = b.style === 'file' ? BEAT.bpm0 : b.bpm; BEAT.period = 60000 / BEAT.bpm; }
+  function preloadBeat(id, cb) { var b = beatsAll()[id || beatId], c = eatCtx(), J = JS(); if (!b || b.style === 'file' || !c || !J) { if (cb) cb(); return; } J.loadBeat(c, b.id, function () { if (cb) cb(); }); }
+  function setBeat(id) { if (beatList().indexOf(id) < 0) return false; beatId = id; try { if (store) store.setItem(P + 'beat', JSON.stringify(id)); } catch (e) {} applyTempo(); preloadBeat(); return true; }
+  function beatStart() { // the chosen beat starts now (sound on only)
+    var b = curBeat(); synthOn = false; if (!soundOn) return;
+    if (b.style === 'file') return play('jam_loop');
+    var c = eatCtx(), J = JS(); if (!c || !J || !J.beatReady(c, b.id) || !BLUP3TS_EAT.out) return;
+    synthOn = !!J.startBeat(c, BLUP3TS_EAT.out(), b.id, 0.06);
+  }
+  function beatStop() { stop('jam_loop'); if (JS() && JS().stopBeat) JS().stopBeat(); synthOn = false; }
+  function emit(n, d) { try { document.dispatchEvent(new CustomEvent('blup3ts:' + n, { detail: d || {} })); } catch (e) {} }
   function perfNow() { return window.performance && performance.now ? performance.now() : Date.now(); }
   function judgeAt(tt) { // tt: tap time on the beat grid (latency already taken off). Nearest beat decides.
     var P = BEAT.period, idx = Math.round(tt / P), d = Math.abs(tt - idx * P);
@@ -683,24 +773,37 @@
   var LONG_X = 1.5; // Long Jam: ~1.5x mood, 1.5x hunger cost, needs 1.5x food to start
   function longJamOpen() { return petLevel() >= JAM.level; }
   function openJam() { // below the level: straight into the usual Jam. From the level: Quick (default) or Long, player picks
-    if (eating || jamTimer) return;
-    if (!longJamOpen()) return startJam(false);
-    var p = pet(), enough = p.full >= RULES.minFullToJam * LONG_X;
-    $('jamQuick').textContent = '🎸 Quick Jam · ' + JAM.quick + 's'; $('jamLongBtn').textContent = '🎶 Long Jam · ' + JAM.long + 's';
-    $('jamLongBtn').disabled = !enough; $('jamChNote').textContent = enough ? 'Long Jam: more mood, uses more food. Both are free.' : 'Long Jam needs ' + Math.ceil(RULES.minFullToJam * LONG_X) + '% food. Feed first, or pick Quick.';
+    if (eating || jamTimer || jamWait) return;
+    unlock(); applyTempo(); preloadBeat(); // the beat renders while the player picks (a few ms at a time)
+    var p = pet(), lo = longJamOpen(), enough = p.full >= RULES.minFullToJam * LONG_X;
+    $('jamQuick').textContent = '🎸 Quick Jam · ' + JAM.quick + 's'; $('jamLongBtn').textContent = lo ? '🎶 Long Jam · ' + JAM.long + 's' : '🔒 Long Jam · Level ' + JAM.level;
+    $('jamLongBtn').disabled = !lo || !enough; $('jamChNote').textContent = !lo ? 'Long Jam unlocks at Level ' + JAM.level + '. Jam is always free.' : enough ? 'Long Jam: more mood, uses more food. Both are free.' : 'Long Jam needs ' + Math.ceil(RULES.minFullToJam * LONG_X) + '% food. Feed first, or pick Quick.';
+    emit('jamchooser', { beat: beatId }); // extras.js paints the beat button, Songbook and Duo band jam
+    paintJamInst();
     show('ov-jamch'); $('jamQuick').focus({ preventScroll: true });
   }
   $('jamQuick').onclick = function () { play('tap'); hideOverlays(); startJam(false); };
   $('jamLongBtn').onclick = function () { if (this.disabled) return; play('tap'); hideOverlays(); startJam(true); };
-  function startJam(long) {
-    if (eating || jamTimer) return;
+  function startJam(long, opts) { // opts (round 3): { seconds, song, duo, long } from the Songbook or Duo band jam
+    if (eating || jamTimer || jamWait) return;
+    opts = opts && typeof opts === 'object' ? opts : {};
     long = !!long && longJamOpen();
     var p = pet();
     if (p.full < RULES.minFullToJam * (long ? LONG_X : 1)) { trick('shake', 700); return toast(long ? 'Too hungry for a Long Jam 🍌' : 'Too hungry to jam 🍌'); }
-    jamLong = long; jamTaps = 0; jamJoy0 = p.joy; jamT0 = perfNow(); beatPts = 0; lastBeat = null; lastJudge = null; judged = { perfect: 0, good: 0, miss: 0 }; jamEnd = Date.now() + (long ? JAM.long : JAM.quick) * 1000;
+    stopJukebox(); unlock(); applyTempo();
+    var bd = curBeat(), ac = eatCtx(), J = JS();
+    if (soundOn && bd.style !== 'file' && ac && J && !J.beatReady(ac, bd.id)) { // first time on a slow phone: wait for the beat so the music and the grid line up
+      jamWait = true; toast('🎵 Tuning up: ' + bd.name);
+      return J.loadBeat(ac, bd.id, function () { jamWait = false; startJam(long, opts); });
+    }
+    jamOpts = opts; duoHits = { 1: {}, 2: {} }; p2Last = null; resetClock();
+    var secs = Number.isFinite(opts.seconds) && opts.seconds >= 3 && opts.seconds <= 120 ? opts.seconds : (long ? JAM.long : JAM.quick);
+    jamLong = long; jamTaps = 0; jamJoy0 = p.joy; jamT0 = perfNow(); beatPts = 0; lastBeat = null; lastJudge = null; judged = { perfect: 0, good: 0, miss: 0 }; jamEnd = Date.now() + secs * 1000;
     $('longHint').hidden = longJamOpen(); $('longHint').textContent = 'Long Jam unlocks at Level ' + JAM.level;
-    var ji = equippedInst(), jo = ji && instOpt(ji); $('jamGroove').textContent = jo ? jo[2] + ' ' + INST_NAME[ji] + ' · 8-bit groove' : '🎸 8-bit groove';
-    show('ov-jam'); $('jamJoy').style.width = p.joy + '%'; play('jam_loop');
+    var ji = equippedInst(), jo = ji && instOpt(ji), gv = $('jamGroove'); gv.textContent = ''; if (jo) { gv.appendChild(instIcon(ji, jo[2])); gv.appendChild(document.createTextNode(' ' + INST_NAME[ji] + ' · ' + bd.name)); } else gv.textContent = (bd.emoji || '🎸') + ' ' + bd.name;
+    if (ji && window.BLUP3TS_EAT && BLUP3TS_EAT.jamPrepare) BLUP3TS_EAT.jamPrepare(ji, jamStats(), BEAT.period);
+    show('ov-jam'); $('jamJoy').style.width = p.joy + '%'; clearTimeout(previewBeat.t); beatStop(); beatStart(); if (synthOn) jamT0 = perfNow() + 60;
+    emit('jamstart', { beat: bd.id, seasonal: !!bd.month, community: !!bd.community, inst: ji, long: long, song: opts.song || null, duo: !!opts.duo, period: BEAT.period, seconds: secs });
     $('jamTap').hidden = false; // 'Tap your pet to jam!' prompt: shows every time Jam starts, hides on the first tap
     var bars = document.querySelectorAll('#eq i');
     barE = [].map.call(bars, function () { return 0; }); barShape = [].map.call(bars, function (b, i) { return [.7, .9, 1, .8, .95, 1, .85, .7][i % 8]; });
@@ -719,23 +822,34 @@
   }
   function endJam(silent) {
     if (!jamTimer) return;
-    clearInterval(jamTimer); clearInterval(eqTimer); jamTimer = null; stop('jam_loop'); $('jamTap').hidden = true; $('jamPet').classList.remove('tick'); $('stage').classList.remove('beat'); if ($('jamPop')) $('jamPop').hidden = true;
+    clearInterval(jamTimer); clearInterval(eqTimer); jamTimer = null; beatStop(); $('jamTap').hidden = true; $('jamPet').classList.remove('tick'); $('stage').classList.remove('beat'); if ($('jamPop')) $('jamPop').hidden = true;
     var p = pet();
     var k = jamLong ? LONG_X : 1; p.joy = Math.min(100, jamJoy0 + Math.round((RULES.jamJoy + jamBonus()) * k)); /* on-beat bonus capped at TAP_BONUS_MAX (12), the same cap as before */ p.full = Math.max(0, p.full - Math.round(RULES.jamCost * k)); p.jams++; // levels come only from feeding $BLUNANA: Jam gives mood, costs hunger, adds no strength
+    var together = 0; if (jamOpts.duo) { Object.keys(duoHits[1]).forEach(function (b) { if (duoHits[2][b]) together++; }); p.joy = Math.min(100, p.joy + Math.min(DUO_MAX, together)); } // Duo band jam: band mood bonus (mood only, capped)
     save(); render();
+    emit('jamend', { beat: beatId, inst: equippedInst(), judged: JSON.parse(JSON.stringify(judged)), taps: jamTaps, long: jamLong, song: jamOpts.song || null, duo: !!jamOpts.duo, together: together, bandBonus: jamOpts.duo ? Math.min(DUO_MAX, together) : 0, silent: !!silent, seasonal: !!curBeat().month, community: !!curBeat().community });
     if (!silent) {
       $('ov-jam').classList.remove('show'); ovOpen = null; render(); trick('hop', 900); burst('note', 8); toast(jamLong ? '🎶 What a long jam! Mood way up' : '🎸 What a jam! Mood up');
     }
   }
   $('jamBtn').onclick = function () { play('tap'); openJam(); };
   $('jamTap').onclick = function () { $('jamPet').click(); }; // the prompt bubble is part of the picture's tap area
+  // Jam instruments (jam_synth.js): pet stats shape the sound. Level adds layers, mood picks minor/major, low hunger
+  // lays back and plays half-time, strength adds punch, rarity gives richer riffs. Jam never adds strength or levels.
+  function jamStats() { var p = pet(), r = rarityInfo(); return { level: petLevel(), joy: p.joy, full: p.full, str: p.str, rarity: r && r.tier ? r.tier.id : 'common', beatId: beatId }; }
+  function jamNoteInfo() { // the next 16th note on the beat grid (a tap up to 30 ms after a 16th plays right away)
+    var bc = beatClock(), Q = BEAT.period / 4, k = Math.ceil((bc.t - 30) / Q), at = k * Q, st = jamStats();
+    st.delayMs = Math.max(0, at - bc.t); st.beat = ((Math.floor(k / 4) % 16) + 16) % 16; st.slot = ((k % 4) + 4) % 4; st.periodMs = BEAT.period; return st;
+  }
   function jamTapAt(tt) { // one tap on the pet picture at beat-grid time tt
     if (!jamTimer) return null;
     $('jamTap').hidden = true;
     var j = judgeAt(tt); if (j.grade !== 'miss' && lastBeat === j.beat) j.grade = 'miss'; // one scored tap per beat, no spamming
     if (j.grade !== 'miss') lastBeat = j.beat;
     jamTaps++; judged[j.grade]++; lastJudge = j; beatPts += j.grade === 'perfect' ? BEAT.pp : j.grade === 'good' ? BEAT.gp : 0;
-    var ji = equippedInst(); if (ji && window.BLUP3TS_EAT) BLUP3TS_EAT.inst(ji); else play('tap'); // short tap sound over the music (sound off: silent)
+    var ji = equippedInst(); if (ji && window.BLUP3TS_EAT) BLUP3TS_EAT.inst(ji, jamNoteInfo()); else play('tap'); // instrument phrase on the beat grid (sound off: silent)
+    if (j.grade !== 'miss') duoHits[1][j.beat] = 1;
+    emit('jamtap', { grade: j.grade, beat: j.beat, off: j.off, inst: ji, player: 1 });
     var b = $('jamPet'); b.classList.add('beat'); setTimeout(function () { b.classList.remove('beat'); }, 90);
     var jump = j.grade === 'perfect' ? 1 : j.grade === 'good' ? .62 : .22;
     barE = barE.map(function (e, i) { return Math.min(1, Math.max(e, jump * barShape[i] * (.85 + Math.random() * .15))); });
@@ -753,7 +867,50 @@
     }
     return j;
   }
-  $('jamPet').onclick = function () { if (!jamTimer) return; var bc = beatClock(); jamTapAt(bc.t - bc.lat); };
+  var jamPD = 0;
+  function petTap() { if (!jamTimer) return; if (jamOpts.duo) return jamTapP2(); var bc = beatClock(); jamTapAt(bc.t - bc.lat); } // Duo band jam: the Jam picture is player 2's, the big picture is player 1's
+  $('jamPet').addEventListener('pointerdown', function (e) { if (e.button > 0) return; jamPD = perfNow(); petTap(); }); // iPhone: finger down is the beat (click comes later)
+  $('jamPet').onclick = function (e) { if (perfNow() - jamPD < 800 && e && e.detail) return; petTap(); };
+
+  // ===== Duo band jam: player 2 taps their own pad on the other Duo screen and plays another unlocked instrument =====
+  var duoHits = { 1: {}, 2: {} }, p2Last = null, p2Inst = null, DUO_MAX = 6;
+  function openInsts(id) { return INST_OPTS.filter(function (o) { return instOpen(o[0], id); }).map(function (o) { return o[0]; }); }
+  function p2Pick(k) { var l = openInsts(); if (k && l.indexOf(k) >= 0) p2Inst = k; if (!p2Inst || l.indexOf(p2Inst) < 0) p2Inst = l.filter(function (x) { return x !== equippedInst(); })[0] || l[0] || null; return p2Inst; }
+  function jamTapP2() {
+    if (!jamTimer || !jamOpts.duo) return null;
+    var bc = beatClock(), j = judgeAt(bc.t - bc.lat); if (j.grade !== 'miss' && p2Last === j.beat) j.grade = 'miss';
+    if (j.grade !== 'miss') { p2Last = j.beat; duoHits[2][j.beat] = 1; }
+    var k = p2Pick(); if (k && window.BLUP3TS_EAT) BLUP3TS_EAT.inst(k, jamNoteInfo());
+    emit('jamtap', { grade: j.grade, beat: j.beat, off: j.off, inst: k, player: 2 }); return j;
+  }
+
+  // ===== Jukebox (Band builder reward): the band plays itself over a beat. Just for listening: no mood, no levels. =====
+  var jbox = null;
+  function stopJukebox() { if (!jbox) return; clearInterval(jbox.t); jbox = null; if (!jamTimer) beatStop(); emit('jukebox', { on: false }); }
+  function jukebox(insts, beats) {
+    if (jamTimer || jamWait) return false; stopJukebox();
+    if (!soundOn) { toast('Turn the sound on to hear the jukebox 🔊'); return false; }
+    unlock(); applyTempo(); var bd = curBeat(), ac = eatCtx(), J = JS();
+    if (bd.style !== 'file' && ac && J && !J.beatReady(ac, bd.id)) { toast('🎵 Tuning up: ' + bd.name); preloadBeat(bd.id, function () { jukebox(insts, beats); }); return true; }
+    insts = (insts || []).filter(function (k) { return INST[k]; }).slice(0, 4); var st = jamStats(); st.level = Math.max(st.level, 7); // the band plays with a full sound
+    insts.forEach(function (k) { if (window.BLUP3TS_EAT && BLUP3TS_EAT.jamPrepare) BLUP3TS_EAT.jamPrepare(k, st, BEAT.period); });
+    resetClock(); jamT0 = perfNow(); beatStart(); if (synthOn) jamT0 += 60;
+    var done = -1, n = Math.max(8, Math.min(64, beats || 32));
+    jbox = { insts: insts, t: setInterval(function () {
+      var bc = beatClock(), P = BEAT.period, next = Math.ceil((bc.t + 20) / P);
+      if (next > done && next * P - bc.t < 140) { // schedule the next beat a little ahead
+        done = next; if (next >= n) return stopJukebox();
+        insts.forEach(function (k, i) { if (i && next % 2 && insts.length > 3) return; var info = JSON.parse(JSON.stringify(st)); info.delayMs = Math.max(0, next * P - bc.t); info.beat = ((next % 16) + 16) % 16; info.slot = 0; info.periodMs = P; if (window.BLUP3TS_EAT) BLUP3TS_EAT.inst(k, info); });
+        emit('jukebox', { on: true, beat: next, of: n });
+      }
+    }, 25) };
+    emit('jukebox', { on: true, beat: 0, of: n }); return true;
+  }
+  function previewBeat(id) { // 4 seconds of a beat in the picker (sound on only)
+    if (jamTimer || !soundOn) return false; stopJukebox(); unlock(); var keep = beatId;
+    var go = function () { var b0 = beatId; beatId = id; beatStart(); beatId = b0; clearTimeout(previewBeat.t); previewBeat.t = setTimeout(function () { if (!jamTimer && !jbox) beatStop(); }, 4000); };
+    var b = beatsAll()[id]; if (!b) return false; if (b.style === 'file' || (eatCtx() && JS() && JS().beatReady(eatCtx(), id))) go(); else preloadBeat(id, go); beatId = keep; return true;
+  }
 
   // ===== Other buttons =====
   function start() { S.started = true; save(); showPage('home'); }
@@ -770,7 +927,7 @@
   var patAt = 0;
   $('petImg').addEventListener('click', function () { // pat the pet: bounce + a heart + a toast
     if (eating || jamTimer || page !== 'home') return; var now = Date.now(); if (now - patAt < 450) return; patAt = now;
-    play('tap'); trick('hop', 900); var cx = carePat(); toast(petDef().name + ' loves pats! 💛' + (cx ? ' +' + cx + ' Care XP' : ''));
+    play('tap'); trick('hop', 900); var cx = carePat(); toast(petDef().name + ' loves pats! 💛' + (cx ? ' +' + cx + ' Care XP' : '')); emit('pat', { pet: petDef().id });
     var fx = $('fx'), pw = $('petWrap'), h = el('span', 'patheart', '💛');
     h.style.left = (pw.offsetLeft + pw.offsetWidth / 2) + 'px'; h.style.top = (pw.offsetTop + pw.offsetHeight * .2) + 'px';
     fx.appendChild(h); setTimeout(function () { if (h.parentNode) h.parentNode.removeChild(h); }, 1100);
@@ -780,8 +937,33 @@
   $('moodPill').onclick = function () { play('tap'); var m = mood(pet()); toast(m[0] + ' ' + (MOOD_TIP[m[1]] || 'Tap Feed or Jam to play together.')); };
   $('tileHunger').onclick = function () { play('tap'); toast('Hunger shows how full your pet is. Tap Feed to fill it up.'); };
   $('tileStr').onclick = $('tileLvl').onclick = function () { play('tap'); showPage('stats'); };
-  $('balCoin').onclick = function () { play('tap'); bump(this, 'spin', 900); toast(S.mode === 'wallet' && API.payWord ? API.payWord() + ' · community wallet' : 'Pretend $BLUNANA, play money'); };
-  $('sideBtn').onclick = function () { play('tap'); hideOverlays(); if (!S.started) start(); showPage('home'); };
+  $('balCoin').onclick = function () { play('tap'); bump(this, 'spin', 900); toast(S.mode === 'wallet' && API.payWord ? API.payWord() + (API.playToken && API.playToken() === 'blunana' ? ' · community wallet' : ' · test token') : 'Pretend $BLUNANA, play money'); };
+  // Side button menu: press to open over the watch screen, press again, tap outside or Esc to close. Crown unchanged.
+  var SHOW_BLUPA1RS = false; // BLUPA1RS row stays hidden (Nov 10); true brings it back
+  function sideMenuEl() {
+    var m = $('sideMenu'); if (m) return m;
+    m = document.createElement('div'); m.id = 'sideMenu'; m.className = 'sidemenu'; m.setAttribute('role', 'menu'); m.setAttribute('aria-label', 'Watch menu'); m.hidden = true;
+    m.innerHTML = '<button type="button" class="smrow" role="menuitem" data-act="fun" aria-label="Fun: care streak, diary, songbook, band and Saturday jam"><span aria-hidden="true">🎉</span>Fun</button>' +
+      '<button type="button" class="smrow" role="menuitem" data-act="settings" aria-label="Settings: sound and game settings"><span aria-hidden="true">⚙️</span>Settings</button>' +
+      (SHOW_BLUPA1RS ? '<a class="smrow" role="menuitem" data-act="blupa1rs" href="https://www.mnk3ylabs.com/preview/blupa1rs/" target="_blank" rel="noopener noreferrer" aria-label="BLUPA1RS, opens in a new tab"><span aria-hidden="true">💞</span>BLUPA1RS</a>' : '') +
+      '<button type="button" class="smrow" role="menuitem" data-act="wallet" aria-label="Wallet: connect or pick a wallet"><span aria-hidden="true">👛</span>Wallet</button>';
+    m.addEventListener('click', function (e) {
+      var r = e.target.closest('.smrow'); if (!r) return;
+      play('tap'); closeSideMenu(); var act = r.dataset.act;
+      if (act === 'fun') { if (window.BLUP3TS_FUN) BLUP3TS_FUN.open(); return; }
+      if (act === 'settings') { if (window.BLUP3TS_HOME && BLUP3TS_HOME.settings) BLUP3TS_HOME.settings(); else { var sb = $('settingsBtn'); if (sb) sb.click(); } }
+      else if (act === 'wallet') { var cb = $('connectBtn'); if (cb) cb.click(); }
+    });
+    $('screen').appendChild(m); return m;
+  }
+  function sideMenuOpen() { var m = $('sideMenu'); return !!(m && !m.hidden); }
+  function openSideMenu() { var m = sideMenuEl(); m.hidden = false; $('sideBtn').setAttribute('aria-expanded', 'true'); }
+  function closeSideMenu() { var m = $('sideMenu'); if (m) m.hidden = true; $('sideBtn').setAttribute('aria-expanded', 'false'); }
+  window.BLUP3TS_SIDEMENU = { open: openSideMenu, close: closeSideMenu, isOpen: sideMenuOpen };
+  $('sideBtn').setAttribute('aria-label', 'Side button: watch menu'); $('sideBtn').setAttribute('aria-haspopup', 'menu'); $('sideBtn').setAttribute('aria-expanded', 'false');
+  $('sideBtn').onclick = function (e) { if (e) e.stopPropagation(); play('tap'); if (!S.started) start(); if (sideMenuOpen()) closeSideMenu(); else openSideMenu(); }; // works from the very first screen too
+  document.addEventListener('click', function (e) { if (sideMenuOpen() && !e.target.closest('#sideMenu') && !e.target.closest('#sideBtn')) closeSideMenu(); }, true);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && sideMenuOpen()) closeSideMenu(); });
   [].forEach.call(document.querySelectorAll('#screen .betatap'), function (n) { n.onclick = function () { play('tap'); toast('New stuff on the way, share ideas on Discord'); }; });
   if ($('soundBtn')) $('soundBtn').onclick = function () { setSound(!soundOn); };
   if ($('spkHome')) $('spkHome').onclick = function (e) { e.stopPropagation(); setSound(!soundOn); }; // Home corner: quick mute / unmute
@@ -827,7 +1009,7 @@
   function isFull() { return S.layout === 'phone'; } // M13: the Phone view (open foldable)
   (function () { var pi = $('petImg'), fp = $('foldPet'); if (!pi || !fp || !window.MutationObserver) return; // M13: left screen shows the pet while menus are open
     var sync = function () { fp.src = pi.src; }; sync(); new MutationObserver(sync).observe(pi, { attributes: true, attributeFilter: ['src'] }); })();
-  function foldSide() { return S.fold === 'h' ? true : S.fold === 'v' ? false : window.innerWidth > window.innerHeight && window.innerWidth >= 640; } // M13: Auto = side by side when wide/landscape
+  function foldSide() { return S.fold === 'h' || window.innerWidth > window.innerHeight; } // Duo: Horizontal = side by side; Portrait (and old saved Auto / Stacked) = one above the other. Held sideways = always Horizontal
   function caseFxFit(full, side) { // the case art SVG follows the device: gold bits on top, drips/slime hang off the bottom edge
     var fx = document.querySelector('.casefx'); if (!fx) return;
     var H = full ? (side ? 598 : 934) : 660, dy = full ? (side ? 542 : 878) - 588 : 0;
@@ -875,8 +1057,9 @@
     [].forEach.call(dt.children, function (b) { var r = b.getBoundingClientRect(), dx = 0;
       tiles.forEach(function (t) { if (r.left < t.right && r.right > t.left && r.top < t.bottom && r.bottom > t.top) dx = Math.max(dx, t.right + 1 - r.left); });
       dx = Math.min(dx, window.innerWidth - r.right); if (dx > 0) { b.style.transform = 'translateX(' + (dx / f) + 'px)'; b.style.setProperty('--dx', (-dx / f) + 'px'); } });
-    // Duo portrait: the pet picture moves left into the space beside the dots rail (shrinks only if that is not enough), so the dots never cover it
-    if (pw && gv && gv.classList.contains('full')) {
+    // Duo Portrait: keep the pet frame centred. Visible dots sit in the right margin and do not cover the picture.
+    // The wider tap area may overlap, but shifting or shrinking the picture pulls it off centre. Horizontal is unchanged.
+    if (pw && gv && gv.classList.contains('full') && !gv.classList.contains('fold-v')) {
       var pr = pw.getBoundingClientRect(), dl = Math.min.apply(null, [].map.call(dt.children, function (b) { return b.getBoundingClientRect().left; })), over = (pr.right - (dl - 4)) / f;
       if (over > 0) { var l0 = pw.offsetLeft, w0 = pw.offsetWidth, right = l0 + w0 - over, nl = Math.max(16, right - w0), nw = right - nl;
         pw.style.left = nl + 'px'; pw.style.width = nw + 'px'; pw.style.height = nw + 'px'; }
@@ -949,14 +1132,30 @@
 
   // hooks for automated checks
   // ===== API for home.js and wallet.js =====
+  // round 3: what extras.js (Fun hub, Songbook, combo, Duo band jam, Community Jam) uses
+  var JAMAPI = {
+    beats: beatsAll, list: beatList, current: function () { return curBeat(); }, set: setBeat, preview: previewBeat, preload: preloadBeat,
+    open: openJam, start: function (o) { hideOverlays(); startJam(!!(o && o.long), o); }, running: function () { return !!jamTimer; }, opts: function () { return jamOpts; },
+    clock: function () { return jamTimer || jbox ? beatClock() : null; }, period: function () { return BEAT.period; }, windows: function () { return { perfect: BEAT.perfect, good: BEAT.good }; },
+    tapP1: function () { if (!jamTimer) return null; var bc = beatClock(); return jamTapAt(bc.t - bc.lat); }, tapP2: jamTapP2, p2Inst: p2Pick, openInsts: openInsts, equipped: equippedInst, instName: function (k) { return INST_NAME[k] || k; }, instLevel: function (k) { return INST[k]; }, instIcon: function (k) { var o = instOpt(k); return instIcon(k, o ? o[2] : '🎵'); },
+    pets: function () { return DATA.pets.filter(function (d) { return !(isCapo(d) && capoWalletLocked()); }).map(function (d) { return { id: d.id, name: d.name, collection: d.collection, img: d.img, level: petLevel(d.id), insts: openInsts(d.id) }; }); },
+    pet: function () { return { id: petDef().id, name: petDef().name, level: petLevel() }; },
+    stats: jamStats, jukebox: jukebox, stopJukebox: stopJukebox, jukeboxOn: function () { return !!jbox; },
+    fill: function () { // combo fill: a drum fill on the beat grid (sound on only)
+      if (!jamTimer || !window.BLUP3TS_EAT) return; var info = jamNoteInfo(); info.beat = 15; info.level = Math.max(info.level, 7); BLUP3TS_EAT.inst('drumsticks', info);
+    },
+    soundOn: function () { return soundOn; }, duoMax: DUO_MAX, emit: emit, toast: function (t) { toast(t); }, burst: function (k, n) { burst(k, n); }
+  };
   var API = window.BLUP3TS_APP = {
+    jam: JAMAPI,
+    feedName: function (f, d) { return feedName(f, d || petDef()); }, CAPO_FEED_NAMES: CAPO_FEED_NAMES,
     cases: caseList, casePreviews: casePreviews, setCase: function (id, d) { var ok = setCase(id, d); if (ok) render(); return ok; }, caseOf: caseOf, caseUnlocked: caseUnlocked, caseBase: caseBase, caseCfg: caseCfg,
     state: function () { return S; }, save: save, render: render, toast: toast, el: el, fmt: fmt, play: play, mood: mood, levelFor: levelFor, foods: FOODS,
     isEating: function () { return eating; }, petDef: petDef, petState: function (id) { if (!S.pets[id]) S.pets[id] = newPet(); return S.pets[id]; },
     pets: function () { return DATA.pets; },
     // M11: while a wallet is connected (Wallet mode) only the wallet's own pets are shown; starters stay in DATA.pets (hidden) and come back on disconnect
     refreshPets: function () { if (page === 'pets') renderPets(); }, // M13: wallet state changed -> redraw the pet list (Add my own row)
-    visiblePets: visiblePets, shownPets: function () { return noLockedCapo(visiblePets()); }, capoWalletLocked: capoWalletLocked, isCapo: isCapo, setStarterFilter: function (fn) { hideStarters = typeof fn === 'function' ? fn : function () { return false; }; },
+    visiblePets: visiblePets, shownPets: function () { return noLockedCapo(visiblePets()); }, playablePet: playablePet, capoWalletLocked: capoWalletLocked, isCapo: isCapo, setStarterFilter: function (fn) { hideStarters = typeof fn === 'function' ? fn : function () { return false; }; },
     setActive: function (id) { if (eating) return false; if (!noLockedCapo(DATA.pets).some(function (p) { return p.id === id; })) return false; S.active = id; save(); setPetArt(); render(); if (page === 'pets') renderPets(); if (page === 'stats') renderTraits(); return true; },
     addPets: function (list) { rarCache = {}; DATA.pets = DATA.pets.filter(function (p) { return !p.owned; }).concat(list); list.forEach(function (p) { if (!S.pets[p.id]) S.pets[p.id] = newPet(); }); setPetArt(); render(); save(); },
     // A pet's progress belongs to the wallet holding it. A different holder starts again at zero.
@@ -983,8 +1182,9 @@
       if (!deskOn()) l = 'watch';
       S.layout = l === 'watch' ? 'watch' : 'phone';
       save(); fit(); render();
+      if (window.BLUP3TS_HOME && BLUP3TS_HOME.renderLayoutBtn) BLUP3TS_HOME.renderLayoutBtn();
     }, layout: function () { return S.layout; }, fit: fit, // 'full' (older name) = Phone
-    MODES: ['watch', 'phone'], setFold: function (f) { S.fold = f === 'v' || f === 'h' ? f : 'auto'; save(); fit(); }, fold: function () { return S.fold; },
+    MODES: ['watch', 'phone'], setFold: function (f) { S.fold = f === 'v' || f === 'h' ? f : 'auto'; save(); fit(); if (window.BLUP3TS_HOME && BLUP3TS_HOME.renderLayoutBtn) BLUP3TS_HOME.renderLayoutBtn(); }, fold: function () { return S.fold; },
     rarity: rarityInfo, origOn: origOn, setOrig: function (on, adult) { if (adult === true) S.adult = true; S.orig = !!on && S.adult === true; save(); if (page === 'stats') renderTraits(); },
     renderTraits: renderTraits,
     adoptLinks: adoptLinks, adoptChooser: adoptChooser, solFeeFor: solFeeFor, applyCase: applyCase, el: el,

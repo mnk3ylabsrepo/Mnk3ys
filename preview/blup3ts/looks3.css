@@ -1,0 +1,12 @@
+.looks3 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; width:calc(100% - 32px); max-width:460px; margin-top:14px; }
+.l3btn { font:inherit; color:inherit; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; padding:10px 6px; border-radius:18px; border:2px solid #2c3a52; background:rgba(20,27,36,.6); min-width:0; }
+.l3btn img { width:40px; height:40px; } .l3btn b { font-weight:1000; font-size:15px; } .l3btn small { color:var(--dim); font-weight:700; font-size:11px; text-align:center; line-height:1.15; }
+.l3btn:active { transform:scale(.96); } #facesBtn { border-color:#5b4690; } #charmsBtn { border-color:#2a7a5a; } #storeBtn3 { border-color:#8a5a2a; }
+body.desk .looks3 { align-self:stretch; width:100%; max-width:none; margin:0; gap:8px; }
+body.desk .l3btn { padding:5px 4px; flex-direction:row; justify-content:center; gap:6px; } body.desk .l3btn img { width:26px; height:26px; } body.desk .l3btn small { display:none; }
+/* Nov 19 (Azgog): square tiles on phone and desk Home, label under icon, never a stretched pill */
+.l3btn { aspect-ratio:1/1; justify-content:center; overflow:hidden; }
+.l3btn b, .l3btn small { max-width:100%; }
+body.desk .l3btn { flex-direction:column; justify-content:center; gap:3px; padding:6px 3px; border-radius:14px; }
+body.desk .l3btn img { width:30px; height:30px; }
+body.desk .l3btn b { font-size:12px; line-height:1.1; white-space:nowrap; }

@@ -1,7 +1,7 @@
 // BLUP3TS rarity tiers (P2 prep, display only). Tiers come from config.js RARITY_TIERS (percent of each
 // collection's size). Perks (strength per feed, Store discount) apply ONLY when RARITY_PERKS_ENABLED is true;
 // while it is false every perk is 0, so nothing in the game changes. Feed costs are the same for everyone.
-// The rank shown here is a PREVIEW: a starter pet uses its saved Orbis rank; any other pet gets an estimate from
+// The rank shown here: a pet with a GraveMarket rank (by mint) uses that; any other pet gets an estimate from
 // the local trait counts in rarity.js (traits treated as independent). Real ranking moves server-side in P2.
 // Works for any collection that has trait counts in rarity.js (MNK3YS, ZMB3YS today; LP Dollz and future
 // partners show 'Rank coming soon' until their counts are added).
@@ -60,8 +60,10 @@
   function preview(cfg, pet, rarityCounts, hash) {
     var coll = ((cfg && cfg.COLLECTIONS) || []).filter(function (c) { return c.name === pet.collection || c.id === pet.collection; })[0] || null;
     var supply = (coll && coll.supply) || pet.of || null;
-    if (pet && Number.isInteger(pet.rank) && pet.rank > 0) { var of = pet.of || supply; return { rank: pet.rank, of: of, tier: tierFor(cfg, pet.rank, of), source: 'orbis', preview: true }; }
     var counts = rarityCounts && pet && rarityCounts[pet.collection];
+    var rk = pet && pet.mint && counts && counts.ranks && counts.ranks[pet.mint];
+    if (Number.isInteger(rk) && rk > 0) { var of = counts.total || pet.of || supply; return { rank: rk, of: of, tier: tierFor(cfg, rk, of), source: 'gravemarket', preview: true }; }
+    if (pet && Number.isInteger(pet.rank) && pet.rank > 0) { var of = pet.of || supply; return { rank: pet.rank, of: of, tier: tierFor(cfg, pet.rank, of), source: pet.rankSource || 'orbis', preview: true }; }
     if (!counts || !hash) return { rank: null, of: supply, tier: null, source: 'none', preview: true };
     var vals = {}; (pet.rawTraits || pet.traits || []).forEach(function (t) { if (t && t.type && t.value != null && !t.hidden && !t.slot) vals[hash(t.type)] = hash(t.value); });
     var est = estimateRank(counts, vals, counts.total, pet.collection);

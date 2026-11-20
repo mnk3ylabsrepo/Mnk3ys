@@ -98,13 +98,29 @@
 
   // ---------- 8-bit WebAudio ----------
   var ctx = null, enabled = false, noiseBuf = null;
-  var master = null, vol = 1; // M13: one master volume (0..1) for all game sound effects + instruments
-  function out() { if (!master) { master = ctx.createGain(); master.gain.value = vol; master.connect(ctx.destination); } return master; }
+  var master = null, limiter = null, vol = 1; // M13: one master volume (0..1) for all game sound effects + instruments
+  function out() {
+    if (!master) {
+      master = ctx.createGain(); master.gain.value = vol;
+      // Shared peak limiter on the mixed output (synth beats + instruments + SFX) so summed peaks stay at or under 0 dBFS.
+      // High threshold, high ratio, fast attack and a short release: catches overshoot without pumping or changing overall loudness much.
+      limiter = ctx.createDynamicsCompressor();
+      limiter.threshold.value = -1.2; limiter.knee.value = 2; limiter.ratio.value = 20;
+      limiter.attack.value = 0.003; limiter.release.value = 0.06;
+      master.connect(limiter); limiter.connect(ctx.destination);
+    }
+    return master;
+  }
   function setVolume(v) { vol = Math.max(0, Math.min(1, +v || 0)); if (master && ctx) { try { master.gain.setValueAtTime(vol, ctx.currentTime); } catch (e) { master.gain.value = vol; } } }
   var Ctx = window.AudioContext || window.webkitAudioContext;
   function unlockAudio() { // call inside a tap
     if (!Ctx) return;
-    try { if (!ctx) ctx = new Ctx(); if (ctx.state === 'suspended') ctx.resume(); } catch (e) { ctx = null; }
+    // iPhone (round 3): play through the ring/silent switch like a music app (Safari 16.4+), resume after a call or the
+    // lock screen ('interrupted'), and play one silent sample inside the tap so older iOS opens the audio route
+    try { if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback'; } catch (e) {}
+    var fresh = false;
+    try { if (!ctx) { ctx = new Ctx(); fresh = true; } if (ctx.state !== 'running' && ctx.resume) { var r = ctx.resume(); if (r && r.catch) r.catch(function () {}); } } catch (e) { ctx = null; }
+    if (ctx && fresh) { try { var sb = ctx.createBuffer(1, 1, ctx.sampleRate), ss = ctx.createBufferSource(); ss.buffer = sb; ss.connect(ctx.destination); ss.start(0); } catch (e) {} }
     if (ctx) loadSamples();
     if (ctx && !noiseBuf) { noiseBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * .08), ctx.sampleRate); var ch = noiseBuf.getChannelData(0); for (var i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1; }
   }
@@ -269,14 +285,23 @@
     sStep[kind] = step + 1;
     try { var s = ctx.createBufferSource(), g = ctx.createGain(); s.buffer = b; g.gain.value = SGAIN[kind] || .6; s.connect(g); g.connect(out()); s.start(ctx.currentTime); sLast = name; return true; } catch (e) { return false; }
   }
-  function inst(kind) {
-    lastInst = kind || null; if (!ready() || !kind) return; if (playSample(kind)) return; var t = ctx.currentTime + .005, k = instN++ % 4;
+  // Nov 10: with info (beat, 16th slot, pet stats) the Jam instruments come from jam_synth.js, played on the beat grid
+  // through its equaliser pass; the one-shot samples and the 8-bit notes below stay as fallbacks.
+  function inst(kind, info) {
+    lastInst = kind || null; if (!ready() || !kind) return;
+    if (info && window.BLUP3TS_JAM) { try { if (BLUP3TS_JAM.play(ctx, out(), kind, info)) { sLast = 'jam:' + kind; return; } } catch (e) {} }
+    if (playSample(kind)) return; var t = ctx.currentTime + .005, k = instN++ % 4;
     var sc = [0, 3, 5, 7], up = function (f) { return f * Math.pow(2, sc[k] / 12); };
     if (kind === 'bass') { tone('triangle', up(82), 0, t, .22, .2); tone('square', up(82), 0, t, .06, .05); }
     else if (kind === 'guitar') { tone('square', up(196), up(194), t, .2, .07); tone('square', up(294), 0, t + .01, .16, .04); }
     else if (kind === 'drumsticks') { var n = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(); n.buffer = noiseBuf; f.type = 'highpass'; f.frequency.value = k % 2 ? 5000 : 1500; g.gain.setValueAtTime(.22, t); g.gain.exponentialRampToValueAtTime(0.0001, t + .06); n.connect(f); f.connect(g); g.connect(out()); n.start(t); n.stop(t + .08); if (!(k % 2)) tone('triangle', 140, 50, t, .1, .2); }
     else if (kind === 'mic') { tone('sine', up(440), up(452), t, .24, .12); tone('sine', up(880), 0, t, .1, .03); }
     else if (kind === 'keytar') { tone('sawtooth', up(523), 0, t, .14, .05); tone('square', up(659), 0, t + .07, .12, .04); }
+    else if (kind === 'keys') { tone('sine', up(330), 0, t, .3, .1); tone('sine', up(494), 0, t, .3, .06); }
+    else if (kind === 'horn') { tone('sawtooth', up(392), up(392), t, .16, .05); }
+    else if (kind === 'shaker') { var n2 = ctx.createBufferSource(), f2 = ctx.createBiquadFilter(), g2 = ctx.createGain(); n2.buffer = noiseBuf; f2.type = 'bandpass'; f2.frequency.value = 6000; g2.gain.setValueAtTime(.0001, t); g2.gain.linearRampToValueAtTime(.18, t + .012); g2.gain.exponentialRampToValueAtTime(0.0001, t + .07); n2.connect(f2); f2.connect(g2); g2.connect(out()); n2.start(t); n2.stop(t + .08); }
+    else if (kind === 'pad') { tone('triangle', up(196), 0, t, .5, .08); tone('triangle', up(247), 0, t, .5, .06); }
   }
-  window.BLUP3TS_EAT = { inst: inst, lastInst: function () { return lastInst; }, run: run, cancel: cancel, icon: icon, plan: PLAN, unlockAudio: unlockAudio, setVolume: setVolume, volume: function () { return { set: vol, node: master ? master.gain.value : null }; }, setEnabled: function (on) { enabled = !!on; }, audioState: function () { return ctx ? ctx.state : 'none'; }, samples: function () { return { loaded: Object.keys(sbuf), last: sLast }; } };
+  function jamPrepare(kind, st, periodMs) { if (ready() && kind && window.BLUP3TS_JAM && BLUP3TS_JAM.prepare) try { BLUP3TS_JAM.prepare(ctx, kind, st, periodMs); } catch (e) {} } // drop-in recording + pre-render the phrases
+  window.BLUP3TS_EAT = { ctx: function () { return ctx; }, out: function () { return ctx ? out() : null; }, limiter: function () { if (!ctx) return null; out(); return limiter; }, inst: inst, jamPrepare: jamPrepare, lastInst: function () { return lastInst; }, run: run, cancel: cancel, icon: icon, plan: PLAN, unlockAudio: unlockAudio, setVolume: setVolume, volume: function () { return { set: vol, node: master ? master.gain.value : null }; }, setEnabled: function (on) { enabled = !!on; }, audioState: function () { return ctx ? ctx.state : 'none'; }, samples: function () { return { loaded: Object.keys(sbuf), last: sLast }; } };
 })();

@@ -8,8 +8,47 @@
 
   // ---------- views ----------
   var view = 'home', VIEWS = { home: 'homeView', game: 'gameView', nfts: 'nftsView' };
+  var homePicked = false;
   function curEl() { return $(VIEWS[view]); }
+  function petList() {
+    var list = A.shownPets ? A.shownPets() : A.visiblePets ? A.visiblePets() : A.pets();
+    if (A.favs) list = A.favs.sort(list);
+    return list;
+  }
+  function pickedReady() {
+    if (!homePicked) return false;
+    var d = A.petDef();
+    return petList().some(function (q) { return q.id === d.id; });
+  }
+  function paintPlay() {
+    var btn = $('playBtn'), hint = $('playHint'), list = petList(), ready = pickedReady();
+    if (btn) {
+      btn.style.visibility = '';
+      btn.disabled = !ready;
+      if (ready) {
+        btn.removeAttribute('aria-disabled');
+        btn.textContent = '▶ Play';
+        btn.classList.remove('needpick');
+      } else {
+        btn.setAttribute('aria-disabled', 'true');
+        btn.textContent = 'Pick a P3t to play';
+        btn.classList.add('needpick');
+      }
+    }
+    if (hint) {
+      if (ready) { hint.hidden = true; hint.textContent = ''; }
+      else {
+        hint.hidden = false;
+        hint.textContent = list.length ? 'Pick your P3t first' : (A.state().mode === 'wallet' ? 'Connect a wallet or try a starter P3t first' : 'Pick your P3t first');
+      }
+    }
+  }
   function goGame(layout) {
+    if (view !== 'game' && !pickedReady()) {
+      A.play('tap');
+      htoast('Pick your P3t first');
+      return;
+    }
     // Mobile / non-desk: always open Watch (the correct phone UI). Duo stays a desktop option.
     if (!window.matchMedia('(min-width: 700px) and (min-height: 600px)').matches) layout = 'watch';
     if (layout === 'full' || layout === 'phone' || layout === 'watch') A.setLayout(layout); // 'full' = older name for Phone
@@ -22,9 +61,9 @@
       requestAnimationFrame(function () { requestAnimationFrame(function () { gv.classList.remove('entering'); }); }); }, 320);
   }
   function goHome() {
-    if (view === 'home') return; var gv = curEl(); view = 'home'; A.play('tap'); A.hideOverlays();
+    if (view === 'home') return; var gv = curEl(); view = 'home'; homePicked = false; A.play('tap'); A.hideOverlays();
     var hv = $('homeView');
-    gv.classList.remove('on'); hv.classList.add('on', 'entering'); renderCarousel(true); window.scrollTo(0, 0);
+    gv.classList.remove('on'); hv.classList.add('on', 'entering'); renderCarousel(true); paintPlay(); window.scrollTo(0, 0);
     requestAnimationFrame(function () { requestAnimationFrame(function () { hv.classList.remove('entering'); }); });
   }
   function goNfts() {
@@ -32,26 +71,27 @@
     var nv = $('nftsView'); from.classList.remove('on'); nv.classList.add('on', 'entering'); renderNfts(); window.scrollTo(0, 0);
     requestAnimationFrame(function () { requestAnimationFrame(function () { nv.classList.remove('entering'); }); });
   }
-  $('playBtn').onclick = function () { goGame(); };
+  $('playBtn').onclick = function () { if (!pickedReady()) { htoast('Pick your P3t first'); return; } goGame(); };
   $('gameNfts').onclick = goNfts; $('nftsHome').onclick = goHome;
-  // M13: exactly two views. The switch shows both: Watch | Phone. Phone has its own layout picker (Auto / Stacked / Side by side).
-  var FOLD_NAME = { auto: 'Auto', v: 'Stacked', h: 'Side by side' }, FOLD_NEXT = { auto: 'v', v: 'h', h: 'auto' };
+  // M13: exactly two views. The switch shows both: Watch | Phone. Phone has its own layout picker (Portrait / Horizontal).
+  var FOLD_NAME = { v: 'Portrait', h: 'Horizontal' }, FOLD_NEXT = { v: 'h', h: 'v' }; // Duo: only Portrait and Horizontal (old saved Auto / Stacked show as Portrait)
   function renderLayoutBtn() {
     var ph = A.layout() === 'phone';
     [].forEach.call(document.querySelectorAll('#layoutBtn [data-view]'), function (b) { var on = b.dataset.view === A.layout(); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
-    var fp = $('foldPick'); if (fp) { var nm = FOLD_NAME[A.fold()] || 'Auto'; fp.hidden = !ph; fp.dataset.fold = A.fold(); $('foldTxt').textContent = nm; fp.setAttribute('aria-label', 'Duo layout: ' + nm + '. Tap to change'); }
+    var fp = $('foldPick'); if (fp) { var nm = FOLD_NAME[A.fold()] || 'Portrait'; fp.hidden = !ph; fp.dataset.fold = A.fold(); $('foldTxt').textContent = nm; fp.setAttribute('aria-label', 'Duo layout: ' + nm + '. Tap to change'); }
   }
   [].forEach.call(document.querySelectorAll('#layoutBtn [data-view]'), function (b) { b.onclick = function () { if (A.layout() === b.dataset.view) { if (view === 'game') { A.play('tap'); A.hideOverlays(); A.showPage('home'); } return; } A.play('tap'); // no Watch tab any more: tapping the view you are in goes back to the pet screen
        A.setLayout(b.dataset.view); renderLayoutBtn(); window.scrollTo(0, 0); }; });
-  if ($('foldPick')) $('foldPick').onclick = function () { A.play('tap'); A.setFold(FOLD_NEXT[A.fold()] || 'auto'); renderLayoutBtn(); }; // rotate button: Auto -> Stacked -> Side by side
+  if ($('foldPick')) $('foldPick').onclick = function () { A.play('tap'); A.setFold(FOLD_NEXT[A.fold()] || 'h'); renderLayoutBtn(); }; // rotate button: Portrait <-> Horizontal
 
   // ---------- My NFTs: grid of your pets (owned in Wallet mode, starters in Pretend), filter by collection ----------
   var nftFilter = 'all';
   function collList() { return ((window.BLUP3TS_CONFIG || {}).COLLECTIONS || []).filter(function (c) { return c.enabled !== false; }); }
   function nftPets() {
     var all = A.pets(), owned = all.filter(function (d) { return d.owned; }), vis = A.visiblePets ? A.visiblePets() : all;
-    if (vis !== all) return owned.filter(function (d) { return !(A.capoWalletLocked && A.capoWalletLocked() && A.isCapo(d)); }); // M11: wallet connected -> only the wallet's own pets (can be none)
-    return A.state().mode === 'wallet' && owned.length ? owned : all.filter(function (d) { return !d.owned && !(A.capoWalletLocked && A.capoWalletLocked() && A.isCapo(d)); });
+    var playable = function (d) { return A.playablePet ? A.playablePet(d) : !(A.capoWalletLocked && A.capoWalletLocked() && A.isCapo(d)); };
+    if (vis !== all) return owned.filter(playable); // M11: wallet connected -> only the wallet's own pets (can be none). Nov 19: also hide disabled collections.
+    return (A.state().mode === 'wallet' && owned.length ? owned : all.filter(function (d) { return !d.owned; })).filter(playable);
   }
   function renderNfts() {
     var list = nftPets(), chips = $('nftChips'), grid = $('nftGrid'), hid = !!(A.visiblePets && A.visiblePets() !== A.pets()), wallet = hid || (A.state().mode === 'wallet' && list.some(function (d) { return d.owned; }));
@@ -75,7 +115,7 @@
       im.src = d.img; art.appendChild(im); if (r && r.tier && r.tier.id !== 'common') art.appendChild(el('span', 'ntier rar-' + r.tier.id, r.tier.name)); c.appendChild(art);
       c.appendChild(el('div', 'nname', d.name));
       c.appendChild(el('div', 'nsub', (d.owned ? '👛 ' : '') + d.collection + ' · Lv ' + A.levelFor(st.str) + ' · ' + m[0]));
-      c.onclick = function () { if (!A.setActive(d.id)) { if (A.isEating()) htoast('Busy eating 🍌'); return; } goGame('full'); };
+      c.onclick = function () { if (!A.setActive(d.id)) { if (A.isEating()) htoast('Busy eating 🍌'); return; } homePicked = true; goGame('full'); };
       grid.appendChild(c);
     });
   }
@@ -103,7 +143,7 @@
     return s;
   }
   function cardFor(d, i) {
-    var st = A.petState(d.id), m = A.mood(st), on = d.id === A.petDef().id;
+    var st = A.petState(d.id), m = A.mood(st), on = homePicked && d.id === A.petDef().id;
     var c = el('button', 'pcard' + (on ? ' on' : '') + (d.owned ? ' owned' : '')); c.setAttribute('role', 'option'); c.setAttribute('aria-selected', on ? 'true' : 'false'); c.dataset.id = d.id; c.tabIndex = on ? 0 : -1; // one tab stop; arrows move
     c.style.setProperty('--bob', (i % 4) * -0.6 + 's');
     var art = el('div', 'pcart'); var im = el('img'); im.alt = d.name; im.loading = 'lazy'; im.decoding = 'async'; im.draggable = false;
@@ -138,7 +178,9 @@
       if (sp) BLUP3TS_BLU.text(sp, '🍌 ' + Math.round(st.full) + '%'); if (f) f.style.width = st.full + '%';
     });
     var d = A.petDef(), st = A.petState(d.id);
-    if (list.some(function (q) { return q.id === d.id; })) $('carStatus').textContent = 'Active: ' + d.name + ' · Level ' + A.levelFor(st.str) + ' · Hunger ' + Math.round(st.full) + '% full';
+    if (homePicked && list.some(function (q) { return q.id === d.id; })) $('carStatus').textContent = 'Active: ' + d.name + ' · Level ' + A.levelFor(st.str) + ' · Hunger ' + Math.round(st.full) + '% full';
+    else $('carStatus').textContent = '\u00a0';
+    paintPlay();
   }
   function renderCarousel(scrollToActive) {
     if (view === 'nfts') renderNfts();
@@ -149,8 +191,8 @@
     car.appendChild(lockedCard());
     if (x && list.length) car.appendChild(x);
     var d = A.petDef(), st = A.petState(d.id), none = !list.some(function (q) { return q.id === d.id; });
-    $('carStatus').textContent = none ? '\u00a0' : 'Active: ' + d.name + ' · Level ' + A.levelFor(st.str) + ' · Hunger ' + Math.round(st.full) + '% full';
-    $('playBtn').textContent = '▶ Play'; $('playBtn').style.visibility = none ? 'hidden' : ''; $('playBtn').disabled = none; // keeps its space: no jumpy layout
+    $('carStatus').textContent = (homePicked && !none) ? ('Active: ' + d.name + ' · Level ' + A.levelFor(st.str) + ' · Hunger ' + Math.round(st.full) + '% full') : '\u00a0';
+    paintPlay();
     if (scrollToActive) { var a = car.querySelector('.pcard.on'); if (a) centerOn(a, false); } else if (desk) car.scrollTop = keep; else car.scrollLeft = keep;
   }
   function centerOn(card, smooth) {
@@ -165,14 +207,23 @@
   }
   function select(id, smooth) {
     if (!A.setActive(id)) { if (A.isEating()) htoast('Busy eating 🍌'); return; }
+    homePicked = true;
     A.play('tap'); renderCarousel(false);
     var c = $('carousel').querySelector('.pcard[data-id="' + cssId(id) + '"]'); if (c) { centerOn(c, smooth); c.focus({ preventScroll: true }); }
   }
   function cssId(s) { return String(s).replace(/[^A-Za-z0-9-]/g, ''); }
   function step(dir) {
-    var cards = [].slice.call($('carousel').querySelectorAll('.pcard:not(.locked):not(.addcard)')), cur = A.petDef().id, i = 0;
-    cards.forEach(function (c, k) { if (c.dataset.id === cur) i = k; });
-    var n = cards[Math.max(0, Math.min(cards.length - 1, i + dir))]; if (n) select(n.dataset.id, true);
+    var cards = [].slice.call($('carousel').querySelectorAll('.pcard:not(.locked):not(.addcard)')), i = 0;
+    if (homePicked) {
+      var cur = A.petDef().id;
+      cards.forEach(function (c, k) { if (c.dataset.id === cur) i = k; });
+      var n = cards[Math.max(0, Math.min(cards.length - 1, i + dir))]; if (n) select(n.dataset.id, true);
+      return;
+    }
+    var focus = document.activeElement;
+    cards.forEach(function (c, k) { if (c === focus) i = k; });
+    var n2 = cards[Math.max(0, Math.min(cards.length - 1, i + dir))];
+    if (n2) { centerOn(n2, true); n2.focus({ preventScroll: true }); }
   }
   $('carPrev').onclick = function () { step(-1); }; $('carNext').onclick = function () { step(1); };
   var car = $('carousel');
@@ -192,8 +243,7 @@
       ['connectBtn', 'modeWallet'].forEach(function (id) { var b = $(id); b.hidden = true; b.disabled = true; b.style.display = 'none'; });
       var seg = $('modeSeg'); if (seg) { seg.hidden = true; seg.style.display = 'none'; }
       if ($('tokenSeg')) $('tokenSeg').hidden = true;
-      if ($('blutestClaim')) $('blutestClaim').hidden = true;
-      if ($('blutestBal')) $('blutestBal').hidden = true;
+      if ($('tokenSeg')) $('tokenSeg').hidden = true;
       $('modeNote').textContent = 'Pretend mode: play money only.';
       return;
     }
@@ -202,9 +252,16 @@
     var w = A.state().mode === 'wallet';
     $('modePretend').setAttribute('aria-pressed', w ? 'false' : 'true'); $('modeWallet').setAttribute('aria-pressed', w ? 'true' : 'false');
     $('modePretend').classList.toggle('a', !w); $('modeWallet').classList.toggle('a', w);
-    if ($('tokenSeg')) $('tokenSeg').hidden = true;
-    if ($('blutestClaim')) $('blutestClaim').hidden = true;
-    if ($('blutestBal')) $('blutestBal').hidden = true;
+    var Wlt = window.BLUP3TS_WALLET, kind = Wlt && Wlt.playToken ? Wlt.playToken() : 'test', testOn = kind !== 'blunana';
+    var tokenSeg = $('tokenSeg');
+    if (tokenSeg) {
+      tokenSeg.hidden = !w;
+      tokenSeg.classList.toggle('on', w && !testOn);
+      tokenSeg.setAttribute('aria-checked', w && !testOn ? 'true' : 'false');
+      tokenSeg.setAttribute('aria-label', 'Play token, ' + (testOn ? 'BLUTEST' : 'BLUNANA'));
+    }
+    if ($('tokenTest')) $('tokenTest').classList.toggle('on', w && testOn);
+    if ($('tokenBlunana')) $('tokenBlunana').classList.toggle('on', w && !testOn);
     $('connectBtn').style.display = w ? '' : 'none';
     var W = window.BLUP3TS_WALLET;
     $('modeNote').textContent = w ? (W ? W.modeNote() : 'Wallet mode is on its way in the next update. Pretend mode works now.') : 'Pretend mode: play money only. No wallet needed.';
@@ -214,6 +271,14 @@
   function setMode(m) { if (m === 'wallet' && !A.walletOn()) return; A.play('tap'); A.setMode(m); if (window.BLUP3TS_WALLET) BLUP3TS_WALLET.onMode(m); renderMode(); renderCarousel(true); }
   $('modePretend').onclick = function () { setMode('pretend'); };
   $('modeWallet').onclick = function () { var was = A.state().mode === 'wallet'; setMode('wallet'); var Wl = window.BLUP3TS_WALLET; if (!was && Wl && Wl.afterWalletMode) Wl.afterWalletMode(); }; // M11: on phones, tapping Wallet goes straight to connect
+  function pickToken(kind) {
+    var Wl = window.BLUP3TS_WALLET; if (!Wl || !Wl.setPlayToken) return;
+    A.play('tap'); Wl.setPlayToken(kind);
+  }
+  if ($('tokenSeg')) $('tokenSeg').onclick = function () {
+    var Wl = window.BLUP3TS_WALLET, kind = Wl && Wl.playToken ? Wl.playToken() : 'test';
+    pickToken(kind === 'blunana' ? 'test' : 'blunana');
+  };
   $('connectBtn').onclick = function () { if (!A.walletOn()) return; if (window.BLUP3TS_WALLET) BLUP3TS_WALLET.onConnectClick(); else openSheet('Wallet mode', [p('Wallet mode is on its way in the next update.'), p('Pretend mode works now and needs no wallet.')]); };
   // M13: the old 'Add my own' path (jump to Home, flip to Wallet mode, then connect or reload) is gone; wallet.js addOwnTap does it in place.
 
@@ -279,6 +344,10 @@
       };
       nodes.push(b, el('p', 'muted', 'Only changes trait names on your own connected NFTs in Wallet mode. Never on starter pets. Saved on this device only.'));
     }
+    var snd = el('button', 'sbtn setsound'); snd.id = 'setSoundToggle'; snd.type = 'button'; snd.setAttribute('role', 'switch'); // Sound on/off, same saved state as the mute buttons
+    var sync = function () { var on = !!(A.soundOn && A.soundOn()); snd.textContent = on ? '🔊 Sound: on' : '🔇 Sound: off'; snd.setAttribute('aria-checked', on ? 'true' : 'false'); snd.setAttribute('aria-label', on ? 'Sound is on. Turn sound off' : 'Sound is off. Turn sound on'); };
+    snd.onclick = function () { A.setSound(!A.soundOn()); sync(); A.play('tap'); }; sync();
+    nodes.push(snd);
     if (window.BLUP3TS_FS) nodes = nodes.concat(BLUP3TS_FS.settingNodes()); // 'Start in full screen' switch
     openSheet('Settings', nodes);
   }
@@ -324,13 +393,18 @@
     if (window.BLUP3TS_STORE && BLUP3TS_STORE.on()) { var sb = el('button', 'sbtn storeopen', '🛍️ Store: faces and charms'); sb.onclick = function () { A.play('tap'); BLUP3TS_STORE.open(); }; nodes.push(sb); }
     openSheet('Looks · watch case', nodes);
   }
-  $('looksBtn').onclick = function () { A.play('tap'); looks(); };
-  (function () { var c = window.BLUP3TS_CONFIG || {}; var s = $('looksSub'); if (s && c.CASE_UNLOCK_LEVEL) s.textContent = 'Watch cases · unlock at Level ' + c.CASE_UNLOCK_LEVEL; })();
+  // Home bottom bar (Nov 10): Faces, Charms, Store. Faces = the watch-face picker (was the Looks row),
+  // Charms = Store charms only, Store = the full Store. If the Store is off, Charms and Store fall back to the face picker.
+  function openFaces() { A.play('tap'); looks(); }
+  function openCharms() { A.play('tap'); if (!(window.BLUP3TS_STORE && BLUP3TS_STORE.open(null, 'item'))) looks(); }
+  function openStore() { A.play('tap'); if (!(window.BLUP3TS_STORE && BLUP3TS_STORE.open())) looks(); }
+  $('facesBtn').onclick = openFaces; $('charmsBtn').onclick = openCharms; $('storeBtn3').onclick = openStore;
+  window.BLUP3TS_LOOKS3 = { faces: openFaces, charms: openCharms, store: openStore };
   function howTo() {
     var ol = el('ol');
     [['Pick a pet', 'swipe the row and tap one. BABI3S are coming soon.'], ['Press Play', 'your pet opens on the watch.'],
-     ['Feed', 'pick a Nibble, Snack, Meal or Feast and watch it eat. Pretend mode uses play $BLUNANA.'], ['Jam', 'tap along to the 8-bit groove. It\'s free and lifts the mood.'],
-     ['Stats', 'see traits from Orbis and choose a music look, bass first 🎸.'], ['Come back', 'pets get hungry over time, so check in.']].forEach(function (s) {
+     ['Feed', 'pick a Nibble, Snack, Meal or Feast and watch it eat. Pretend mode uses play $BLUNANA.'], ['Jam', 'tap along to the beat with your instrument. It\'s free and lifts the mood.'],
+     ['Stats', 'see traits and rarity from GraveMarket and choose a music look, bass first 🎸.'], ['Come back', 'pets get hungry over time, so check in.']].forEach(function (s) {
       var li = el('li'); li.appendChild(el('b', null, s[0] + ': ')); li.appendChild(document.createTextNode(s[1])); ol.appendChild(li); });
     openSheet('How to play', [ol, el('p', 'muted', 'Tip: on the watch, tap the Digital Crown or the dots to change screens. 🏠 Home brings you back here.')]);
   }
@@ -343,15 +417,16 @@
   }
   $('faqBtn').onclick = function () { A.play('tap'); faq(); };
 
-  window.BLUP3TS_HOME = { looks: looks, miniWatch: miniWatch, goNfts: goNfts, renderNfts: renderNfts, settings: settings, renderCarousel: renderCarousel, renderMode: renderMode, openSheet: openSheet, faq: faq, closeSheet: closeSheet, p: p, toast: htoast, goHome: goHome, setMode: setMode, goGame: goGame, view: function () { return view; } };
+  window.BLUP3TS_HOME = { looks: looks, miniWatch: miniWatch, goNfts: goNfts, renderNfts: renderNfts, settings: settings, renderCarousel: renderCarousel, renderMode: renderMode, openSheet: openSheet, faq: faq, closeSheet: closeSheet, p: p, toast: htoast, goHome: goHome, setMode: setMode, goGame: goGame, view: function () { return view; }, renderLayoutBtn: renderLayoutBtn, picked: function () { return !!homePicked; }, pickedReady: pickedReady, paintPlay: paintPlay };
   A.onReset = function () { renderCarousel(true); renderMode(); if (view === 'nfts') renderNfts(); renderLayoutBtn(); };
+  window.addEventListener('resize', function () { renderLayoutBtn(); });
   renderLayoutBtn();
   renderSound(A.soundOn()); renderMode(); renderCarousel(true);
   (function paintTicker() {
     var track = $('tickerTrack'); if (!track) return;
     function line(n) {
       var bal = n == null ? 'The community wallet holds the $BLUNANA spent in BLUP3TS.' : 'The community wallet holds ' + Math.round(n).toLocaleString('en-US') + ' $BLUNANA.';
-      return bal + ' Feeding with $BLUNANA sends tokens into that wallet, and it all goes back into the ecosystem: new pets, watch styles, features and events. Pretend mode uses play money only — no real $BLUNANA.';
+      return bal + ' Feeding with $BLUNANA sends tokens into that wallet, and it all goes back into the project: new pets, watch styles, features and events. Pretend mode and BLUTEST are just for fun and use no real $BLUNANA.';
     }
     function draw(n) {
       track.textContent = '';

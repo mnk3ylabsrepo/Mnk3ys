@@ -24,7 +24,7 @@
   function connection() { return conn || new SOL.Connection(C.RPC_URL, 'confirmed'); }
   function load(k) { try { var v = JSON.parse(localStorage.getItem(k) || '{}'); return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; } catch (e) { return {}; } }
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-  var PRICE_NA = 'Price unavailable, try again shortly';
+  var PRICE_NA = "Couldn't load right now, try again shortly";
 
   // ---------- quotes from the dev's server (fail closed) ----------
   function getJSON(ep, q) {
@@ -117,7 +117,7 @@
     var sec = el('div', 'realfeed empirefeed'); sec.appendChild(el('div', 'rfhead', 'Feed with $EMPIRE'));
     if (!owner() || !pd.owned) { sec.appendChild(el('p', 'rfnote', 'Connect your wallet and pick your own Capo to feed it $EMPIRE.')); box.appendChild(sec); return; }
     sec.appendChild(el('p', 'rfnote', 'Same meal size as $BLUNANA, worked out live when you tap. It goes to the community wallet and back into the project.'));
-    foods.forEach(function (f) { var b = el('button', 'food rf empire', f.tier + ' · $EMPIRE'); b.dataset.empireTier = f.id; if (A.solFeeFor && A.solFeeFor(f.id)) b.appendChild(el('i', 'solfeetag', '+ SOL fee'));
+    foods.forEach(function (f) { var b = el('button', 'food rf empire', f.tier + ' · $EMPIRE'); b.dataset.empireTier = f.id; b.setAttribute('aria-label', 'Feed ' + f.tier + ' with $EMPIRE'); if (A.solFeeFor && A.solFeeFor(f.id)) b.appendChild(el('i', 'solfeetag', '+ SOL fee'));
       b.onclick = function () { A.play('tap'); askEmpireFeed(pd, f); }; sec.appendChild(b); });
     box.appendChild(sec);
   }
@@ -149,27 +149,42 @@
 
   // ---------- Store ----------
   var SKEY = 'blup3ts.web.store.', CKEY = 'blup3ts.web.charms';
-  function items() { return (Array.isArray(C.STORE_ITEMS) ? C.STORE_ITEMS : []).filter(function (it) {
-    return it && /^[a-z_]{3,32}$/.test(it.id) && (it.kind === 'face' || it.kind === 'item') && (it.token === 'empire' || it.token === 'blunana') && Number.isInteger(it.price) && it.price >= 0 && typeof it.collection === 'string'; }); }
+  function catalog() { var list = Array.isArray(C.STORE_ITEMS) ? C.STORE_ITEMS.filter(function (it) { return it && it.enabled !== false && it.token !== 'empire'; }) : []; if (window.BLUP3TS_TRAITS && BLUP3TS_TRAITS.charms) list = list.concat(BLUP3TS_TRAITS.charms()); return list; } // go-live: hide disabled and $EMPIRE / Capo items so the Store is $BLUNANA (and trait charms) only
+  function items() { return catalog().filter(function (it) {
+    return it && /^[a-z_]{3,32}$/.test(it.id) && (it.kind === 'face' || it.kind === 'item') && (it.traitGroup || it.token === 'empire' || it.token === 'blunana') && Number.isInteger(it.price) && it.price >= 0 && (typeof it.collection === 'string' || !!it.traitGroup); }); }
   function item(id) { return items().filter(function (x) { return x.id === id; })[0] || null; }
   function storeOn() { return C.STORE_ENABLED === true && items().length > 0; }
-  function owns(id) { var o = owner(), it = item(id); if (!o || !it) return false; if (it.price === 0) return FREE.paid(id); var r = load(SKEY + o)[id]; return !!(r && typeof r.sig === 'string'); }
+  function forPet(it, pd) { if (!it || !pd) return false; if (it.traitGroup) return !!(window.BLUP3TS_TRAITS && BLUP3TS_TRAITS.has(pd, it.traitGroup)); return it.collection === pd.collection; }
+  function owns(id, pd) { var it = item(id); if (it && it.traitGroup) return forPet(it, pd || A.petDef()); var o = owner(); if (!o || !it) return false; if (it.price === 0) return FREE.paid(id); var r = load(SKEY + o)[id]; return !!(r && typeof r.sig === 'string'); }
   function isStoreFace(id) { var it = item(id); return !!(it && it.kind === 'face'); }
   function tokenOf(it) { return it.token === 'empire' ? { mint: E.mint, decimals: E.decimals, sym: '$EMPIRE', to: E.recipient, icon: '🏛️' } : { mint: C.REAL_BLUNANA_MINT, decimals: C.BLUNANA_DECIMALS, sym: '$BLUNANA', to: C.BLUNANA_RESERVE_WALLET, icon: '🍌' }; }
+  function setLabel(b, it) { // Nov 19 (Azgog, voice): archived Blunana art (blunana-cut.png) instead of the yellow emoji next to $BLUNANA amounts
+    var txt = label(it); b.textContent = '';
+    if (txt.indexOf('\uD83C\uDF4C ') === 0) { var im = document.createElement('img'); im.src = 'assets/blunana_store_icon.png?v=h20261119d'; im.alt = ''; im.className = 'blnicon'; var rest = txt.slice(3), sp = rest.indexOf(' '), row = document.createElement('span'); row.className = 'blnrow'; row.appendChild(im); row.appendChild(document.createTextNode(sp > 0 ? rest.slice(0, sp) : rest)); b.appendChild(row); if (sp > 0) { var u = document.createElement('span'); u.className = 'blnunit'; u.textContent = rest.slice(sp + 1); b.appendChild(u); } b.classList.add('blnbtn'); }
+    else b.textContent = txt;
+  }
   function label(it) { if (owns(it.id)) return '✓ Yours'; if (it.price === 0) return C.FREE_UNLOCK_SOL_FEE_ENABLED === true ? '◎ One-time SOL unlock' : 'Free'; var t = tokenOf(it); return t.icon + ' ' + fmt(it.price) + ' ' + t.sym; }
   function charms() { return load(CKEY); }
-  function charmFor(pd) { var id = pd && charms()[pd.id], it = item(id); return it && it.kind === 'item' && it.collection === pd.collection && owns(id) ? it : null; }
-  function equip(pd, id) { var it = item(id); if (!pd || (id && (!it || it.kind !== 'item' || it.collection !== pd.collection || !owns(id)))) return false; var m = charms(); if (id) m[pd.id] = id; else delete m[pd.id]; save(CKEY, m); paintCharm(pd); return true; }
+  function charmFor(pd) { var id = pd && charms()[pd.id], it = item(id); return it && it.kind === 'item' && forPet(it, pd) && owns(id, pd) ? it : null; }
+  function equip(pd, id) { var it = item(id); if (!pd || (id && (!it || it.kind !== 'item' || !forPet(it, pd) || !owns(id, pd)))) return false; var m = charms(); if (id) m[pd.id] = id; else delete m[pd.id]; save(CKEY, m); paintCharm(pd); return true; }
   // Charm on the TOP band beside the badge (Nov 3): hangs from a small loop, gentle swing, sparkle on Feed, tap = cosmetic reaction only.
   var CHARM_LINES = { 'Caporegime Del $Empire': ['Capo approved 👌', 'Looking sharp, boss', 'Family style 🎩'], MNK3YS: ['Ooh ooh, banana time! 🍌', 'Monkey approved 🐒', 'Swing swing!'], ZMB3YS: ['Brains? No, bones! 🦴', 'Zombie approved 🧟', 'Glow time 💚'] };
   function sparkle(w) { if (!w) return; var s = el('i', 'charmspark'); s.setAttribute('aria-hidden', 'true'); w.appendChild(s); setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 700); }
+  var lastCharmTap = 0;
   function tapCharm(w) {
-    var it = item(w.dataset.charm); if (!it) return; A.play('tap'); // A.play already respects mute
+    var it = item(w.dataset.charm); if (!it) return;
+    if (window.BLUP3TS_TRAITS && BLUP3TS_TRAITS.onCharmTap) { // trait charms (and shared bubble / cooldown / FX)
+      if (it.traitGroup || (window.BLUP3TS_TRAITS.charmMeta && BLUP3TS_TRAITS.charmMeta(it.id))) return BLUP3TS_TRAITS.onCharmTap(w, it);
+    }
+    var now = Date.now(); if (now - lastCharmTap < 800) return; lastCharmTap = now;
+    A.play('tap'); // A.play already respects mute
     w.classList.remove('tapped'); void w.offsetWidth; w.classList.add('tapped'); sparkle(w);
-    var L = CHARM_LINES[it.collection] || ['Nice! ✨'], b = document.getElementById('charmBubble');
+    var L = CHARM_LINES[it.collection] || ['Nice!'], b = document.getElementById('charmBubble');
     if (!b) { b = el('span', 'charmbubble'); b.id = 'charmBubble'; b.setAttribute('role', 'status'); w.parentNode.appendChild(b); }
-    b.textContent = L[(w.__n || 0) % L.length]; w.__n = (w.__n || 0) + 1; b.hidden = false; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
-    clearTimeout(b.__t); b.__t = setTimeout(function () { b.hidden = true; b.classList.remove('show'); }, 1600);
+    b.textContent = L[(w.__n || 0) % L.length]; w.__n = (w.__n || 0) + 1; b.hidden = false; b.classList.remove('show','left','right','below'); void b.offsetWidth;
+    if (window.BLUP3TS_TRAITS && BLUP3TS_TRAITS.placeBubble) BLUP3TS_TRAITS.placeBubble(b, w, w.parentNode);
+    b.classList.add('show');
+    clearTimeout(b.__t); b.__t = setTimeout(function () { b.hidden = true; b.classList.remove('show'); }, 2200);
   } // cosmetic only: no stats, no XP, no save
   function paintCharm(pd) {
     var st = document.getElementById('stage'); if (!st) return; var w = document.getElementById('charmBtn'), it = charmFor(pd || A.petDef());
@@ -200,20 +215,22 @@
     });
     return true;
   }
-  function open(focusId) {
+  function open(focusId, kind) { // kind: 'item' = charms only, 'face' = faces only, empty = everything (home bottom bar)
     if (!storeOn()) return false; var pd = A.petDef(), grid = el('div', 'storegrid');
-    items().forEach(function (it) {
+    items().filter(function (it) { return !kind || it.kind === kind; }).forEach(function (it) {
       var card = el('div', 'storecard' + (it.collection === CAPO ? ' capo' : '')); card.dataset.item = it.id; if (focusId === it.id) card.classList.add('focus');
       var im = el('img', 'storeart'); im.src = it.art; im.alt = ''; card.appendChild(im);
-      card.appendChild(el('b', 'storename', it.name)); card.appendChild(el('span', 'storefor', (it.kind === 'face' ? 'Watch face' : 'Charm') + ' · ' + (it.collection === CAPO ? 'Capo pets only' : it.collection + ' pets')));
-      var mine = owns(it.id), b = el('button', 'sbtn storebuy' + (mine ? ' owned' : ''));
-      if (mine && it.kind === 'item') { var on = charms()[pd.id] === it.id; b.textContent = on ? '✓ On your pet' : 'Put it on'; b.onclick = function () { A.play('tap'); if (!equip(pd, on ? null : it.id)) toast('This one is for ' + it.collection + ' pets 🔒'); open(it.id); }; }
+      var gname = it.traitGroup && window.BLUP3TS_TRAITS ? BLUP3TS_TRAITS.groupName(it.traitGroup) : '';
+      card.appendChild(el('b', 'storename', it.name)); card.appendChild(el('span', 'storefor', (it.kind === 'face' ? 'Watch face' : 'Charm') + ' · ' + (it.traitGroup ? ('free for ' + gname + ' pets') : (it.collection === CAPO ? 'Capo pets only' : it.collection + ' pets'))));
+      var mine = owns(it.id, pd), b = el('button', 'sbtn storebuy' + (mine ? ' owned' : ''));
+      if (mine && it.kind === 'item') { var on = charms()[pd.id] === it.id; b.textContent = on ? '✓ On your pet' : 'Put it on'; b.onclick = function () { A.play('tap'); if (!equip(pd, on ? null : it.id)) toast(it.traitGroup ? ('This one is for ' + gname + ' pets 🔒') : ('This one is for ' + it.collection + ' pets 🔒')); open(it.id, kind); }; }
       else if (mine) { b.textContent = '✓ Yours · wear it'; b.onclick = function () { A.play('tap'); if (A.setCase(it.id, pd)) { H.closeSheet(); } else toast('This one is for ' + it.collection + ' pets 🔒'); }; }
+      else if (it.traitGroup) { b.textContent = 'For ' + gname + ' pets'; b.classList.add('soon'); b.onclick = function () { A.play('tap'); toast('This charm is free for ' + gname + ' pets'); }; }
       else if (capoSoon(it)) { b.textContent = '🔒 Coming soon'; b.classList.add('soon'); b.onclick = function () { A.play('tap'); buy(it.id); }; }
-      else { b.textContent = label(it); b.onclick = function () { A.play('tap'); buy(it.id, function () { open(it.id); }); }; }
+      else { setLabel(b, it); b.onclick = function () { A.play('tap'); buy(it.id, function () { open(it.id, kind); }); }; }
       card.appendChild(b); grid.appendChild(card);
     });
-    H.openSheet('Store', [H.p('One-time, per connected wallet. Everything goes back into the project. Store items have no SOL fee.'), grid]);
+    H.openSheet(kind === 'item' ? 'Charms' : kind === 'face' ? 'Store · faces' : 'Store', [H.p('Store items are one-time, per connected wallet, and go back into the project, with no SOL fee. Trait charms are free for pets that have the matching trait.'), grid]);
     return true;
   }
 

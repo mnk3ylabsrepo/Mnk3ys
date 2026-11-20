@@ -2,7 +2,7 @@
  * Each one is a watch case (colours on the case edge, band, rim, crown) using the same case-art SVG layer as the
  * originals (motif 'drip': same drip shapes and count, same stretch / pinch-off / drop motion, incl. the goo_mock2
  * extra drips). Only the colours change, set in faces_mock.css. The screen background is not touched.
- * Preview: all 6 are unlocked for every pet. Unlock levels are Azgog's choice.
+ * Faces start locked. Paid faces unlock with a connected wallet (BLUTEST in test play). Christmas Morning is free from its FACE_FREE_FROM date.
  * Registered for app.js caseCfg() through window.BLUP3TS_FACES (config.js is untouched). */
 (function () {
   'use strict';

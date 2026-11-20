@@ -1,6 +1,6 @@
 // BLUP3TS starter pets + look swaps, bundled locally.
-// Trait shares come from a saved copy of the Orbis trait index (MNK3YS 4,975 NFTs, ZMB3YS 5,550 NFTs, Oct 22 2026).
-// More starter MNK3YS (Oct 22 2026): picked from the public Orbis trait index for variety plus one rare (rank 16);
+// Trait shares and ranks are applied at load from rarity.js (GraveMarket, Nov 19 2026).
+// More starter MNK3YS (Oct 22 2026): picked for variety plus one standout (MNK3Y #4182);
 // pictures saved locally in pets/ at 512px. Chosen with no flagged traits, so the pictures stay family friendly.
 // Family friendly: traits the app's TraitFilter flags are already removed here. Hand and mouth items
 // become a free music look (bass first); other flagged traits are hidden.
@@ -319,6 +319,36 @@ window.BLUP3TS_DATA = {
      "keytar",
      "Keytar",
      "🎹",
+     "Music"
+    ],
+    [
+     "keys",
+     "Electric Piano",
+     "🎹",
+     "Music"
+    ],
+    [
+     "shaker",
+     "Shakers",
+     "🪇",
+     "Music"
+    ],
+    [
+     "horn",
+     "Trumpet",
+     "🎺",
+     "Music"
+    ],
+    [
+     "pad",
+     "Synth Pad",
+     "🎛️",
+     "Music"
+    ],
+    [
+     "didg",
+     "Didgeridoo",
+     "🪵",
      "Music"
     ],
     [

@@ -1,0 +1,95 @@
+/* Round 3 (Nov 10 2026): beat picker, Fun hub, Songbook, jam combo, Duo band jam, Community Jam. Painted art only. */
+/* iPhone: no double-tap zoom or 300 ms wait on the things you tap fast */
+.jampet, .duop1, .jamch .btn, .beatrow button, .funtab, .songplay { touch-action:manipulation; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+
+/* ----- Jam chooser ----- */
+.jamch { gap:9px; padding:12px 14px; }
+.jamch .btn { height:54px; font-size:22px; }
+.jamch .beatpick { background:#11182a; color:#fff; border:2px solid var(--case-rim,#48D8FC); font-size:19px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 14px; }
+.jamxrow { display:flex; gap:9px; }
+.jamxrow .btn { flex:1; height:48px; font-size:17px; background:rgba(242,201,76,.16); color:var(--gold,#F2C94C); padding:0 8px; }
+.jamxrow .btn[hidden] { display:none; }
+.jamxrow #jamDuoBtn.on { background:rgba(125,255,138,.22); color:#9dffab; box-shadow:inset 0 0 0 2px rgba(125,255,138,.6); }
+
+/* ----- in the Jam: combo meter, song lane, Saturday banner, confetti ----- */
+.combometer { position:absolute; z-index:31; top:150px; left:18px; width:92px; display:flex; flex-direction:column; align-items:center; gap:0; background:var(--card2,#1a2033); border-radius:16px; padding:6px 4px; font-weight:900; font-size:16px; color:#fff; }
+.combometer b { font-size:22px; line-height:1.1; } .combometer span { font-size:12px; color:rgba(255,255,255,.6); white-space:nowrap; }
+.gameview.fold-v .combometer { top:40px; left:auto; right:14px; } .gameview.fold-h .combometer { top:130px; }
+.combometer.hot { box-shadow:0 0 0 2px #ff8a3d, 0 0 16px rgba(255,138,61,.6); }
+.songlane { position:relative; z-index:32; flex:none; margin-top:6px; background:rgba(10,14,30,.92); border-radius:16px; padding:5px 10px 7px; box-shadow:0 0 0 2px rgba(242,201,76,.5); }
+.overlay.jam.songmode #eq { display:none; }
+.songlane[hidden] { display:none; }
+.sltitle { font-size:14px; font-weight:900; color:var(--gold,#F2C94C); text-align:center; margin-bottom:4px; }
+.slrow { display:grid; grid-template-columns:repeat(16,1fr); gap:3px; }
+.slrow b { height:16px; border-radius:5px; background:rgba(255,255,255,.08); }
+.slrow b.n { background:rgba(72,216,252,.35); }
+.slrow b.bar { margin-left:3px; }
+.slrow b.now { outline:2px solid #fff; }
+.slrow b.n.hit { background:#7dff8a; }
+.cjbanner { position:absolute; z-index:31; top:150px; right:18px; width:92px; text-align:center; font-size:12px; line-height:1.25; font-weight:900; color:#9dffab; background:rgba(125,255,138,.12); border-radius:16px; padding:6px 4px; box-shadow:inset 0 0 0 2px rgba(125,255,138,.45); }
+.gameview.fold-v .cjbanner { top:100px; right:auto; left:14px; } .gameview.fold-h .cjbanner { top:130px; }
+.cjbanner[hidden] { display:none; }
+.confetti { position:absolute; z-index:40; top:40px; width:9px; height:14px; border-radius:2px; pointer-events:none; }
+.stkpop { position:absolute; z-index:80; left:50%; top:42%; width:150px; height:150px; pointer-events:none; filter:drop-shadow(0 6px 14px rgba(0,0,0,.5)); }
+
+/* ----- Duo band jam: player 1 = the big picture screen, player 2 = the Jam screen ----- */
+.duop1 { display:none; }
+.gameview.fold-v .duop1:not([hidden]), .gameview.fold-h .duop1:not([hidden]) { display:block; position:absolute; z-index:36; left:0; top:0; right:0; height:395px; width:auto; padding:0; border:0; border-radius:0; background:transparent; }
+.gameview.fold-h .duop1:not([hidden]) { right:auto; bottom:0; width:392px; height:auto; }
+.duop1 .ring { position:absolute; inset:14px; border-radius:30px; border:3px dashed rgba(255,92,138,.55); pointer-events:none; }
+.duop1.hitfx .ring { animation:duohit .2s ease-out; }
+.duop1 .chip { position:absolute; left:50%; bottom:22px; transform:translateX(-50%); display:flex; align-items:center; gap:6px; white-space:nowrap; background:rgba(40,10,24,.9); color:#ffd0df; border:2px solid rgba(255,92,138,.8); border-radius:18px; padding:4px 12px; font-size:15px; font-weight:900; pointer-events:none; }
+.duop1 .chip .le img.instimg, .duobar .le img.instimg { width:24px; height:24px; }
+@keyframes duohit { from { border-color:#fff; box-shadow:0 0 30px rgba(255,92,138,.9); } to { border-color:rgba(255,92,138,.55); box-shadow:none; } }
+.duobar { position:absolute; z-index:35; left:14px; right:14px; bottom:6px; display:flex; align-items:center; gap:8px; background:rgba(8,24,36,.92); border:2px solid rgba(72,216,252,.75); border-radius:18px; padding:4px 8px; font-size:14px; font-weight:900; color:#bff3ff; }
+.duobar[hidden] { display:none; }
+.duobar .p2 { display:flex; align-items:center; gap:6px; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.duoswap { width:38px; height:34px; flex:none; border-radius:12px; font-size:17px; padding:0; background:#11182a; border:2px solid rgba(72,216,252,.7); }
+.duotogether { flex:none; color:#9dffab; }
+.overlay.jam:has(.duobar:not([hidden])) #jamTxt { visibility:hidden; }
+@media (prefers-reduced-motion: reduce) { .duop1.hitfx .ring { animation:none; } }
+
+/* ----- sheets: beat picker, Fun hub, Songbook ----- */
+.beatlist, .songlist { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+.beatrow { display:flex; gap:8px; align-items:stretch; }
+.beatrow .beatpickbtn { flex:1; height:auto; min-height:58px; justify-content:flex-start; text-align:left; font-size:16px; padding:6px 12px; border-radius:16px; background:rgba(255,255,255,.06); color:inherit; gap:10px; }
+.beatrow.sel .beatpickbtn { box-shadow:inset 0 0 0 2px var(--cyan,#48D8FC); background:rgba(72,216,252,.12); }
+.beatrow .be { font-size:26px; } .beatrow .bt { display:flex; flex-direction:column; flex:1; min-width:0; } .beatrow .bt small { font-size:12px; font-weight:700; opacity:.75; }
+.beatrow .tag { font-size:11px; font-weight:900; color:#1a1200; background:var(--gold,#F2C94C); border-radius:10px; padding:2px 7px; white-space:nowrap; }
+.beatrow .beatprev { width:52px; height:auto; flex:none; font-size:18px; border-radius:16px; background:rgba(242,201,76,.16); color:var(--gold,#F2C94C); }
+.funtabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.funtab { width:auto; height:36px; font-size:14px; padding:0 11px; border-radius:18px; background:rgba(255,255,255,.07); color:inherit; }
+.funtab.on { background:rgba(72,216,252,.2); color:var(--cyan,#48D8FC); box-shadow:inset 0 0 0 2px rgba(72,216,252,.6); }
+.funcard { background:rgba(255,255,255,.05); border-radius:16px; padding:12px; margin-bottom:10px; display:flex; flex-direction:column; gap:8px; }
+.funcard .big { font-size:28px; font-weight:900; }
+.funcard .btn { height:50px; font-size:18px; }
+.chain { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+.chain .link { display:flex; flex-direction:column; align-items:center; gap:2px; background:rgba(255,255,255,.06); border-radius:12px; padding:6px 0; }
+.chain .link i { font-style:normal; font-size:22px; } .chain .link small { font-size:11px; opacity:.7; }
+.chain .link.today { box-shadow:inset 0 0 0 2px var(--gold,#F2C94C); }
+.stampcount { font-weight:900; margin:6px 0; }
+.stkgrid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.stk { display:flex; flex-direction:column; align-items:center; text-align:center; gap:2px; padding:6px 4px; border-radius:14px; background:rgba(255,255,255,.04); }
+.stk img { width:64px; height:64px; object-fit:contain; filter:grayscale(1) brightness(.45); opacity:.55; }
+.stk.on img { filter:none; opacity:1; }
+.stk b { font-size:12px; } .stk small { font-size:10px; opacity:.7; line-height:1.2; }
+.seats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.seat { display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px; border-radius:14px; background:rgba(255,255,255,.04); text-align:center; }
+.seat.on { background:rgba(125,255,138,.1); box-shadow:inset 0 0 0 2px rgba(125,255,138,.45); }
+.seat .le img.instimg { width:40px; height:40px; } .seat small { font-weight:900; opacity:.7; } .seat .who { font-size:12px; opacity:.8; } .seat .empty { font-size:30px; opacity:.4; }
+.bandcard.full { box-shadow:inset 0 0 0 2px var(--gold,#F2C94C); }
+.sbhead { display:flex; align-items:center; gap:8px; font-size:18px; } .sbhead .le img.instimg { width:34px; height:34px; }
+.songrow { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.05); border-radius:14px; padding:8px 10px; }
+.songrow .si { flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; } .songrow .si small { font-size:12px; opacity:.75; }
+.songrow .songplay { width:auto; height:42px; font-size:16px; padding:0 14px; flex:none; }
+.sdots { display:grid; grid-template-columns:repeat(16,1fr); gap:2px; max-width:220px; }
+.sdots i { height:7px; border-radius:3px; background:rgba(255,255,255,.1); } .sdots i.n { background:rgba(72,216,252,.6); } .sdots i.bar { margin-left:2px; }
+.cjcard .bar { height:16px; }
+/* side menu: new sticker badge on Fun */
+.smrow[data-act="fun"] { position:relative; }
+.smrow[data-act="fun"][data-badge]:not([data-badge=""])::after { content:attr(data-badge); position:absolute; right:18px; top:50%; transform:translateY(-50%); min-width:26px; height:26px; border-radius:13px; background:var(--pink,#ff5c8a); color:#fff; font-size:15px; display:flex; align-items:center; justify-content:center; padding:0 6px; }
+/* iPhone home bar: sheets keep their last row above it */
+.sheetbody { padding-bottom:calc(14px + env(safe-area-inset-bottom, 0px)); }
+
+/* Duo band jam: locked until two instruments are open (Guitar at Level 3) */
+#jamDuoBtn.locked { opacity:.72; }

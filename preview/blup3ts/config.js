@@ -19,8 +19,8 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   FLOOR_ENDPOINT: '/api/blup3ts-floor',
   // Same-origin proxy. The Helius key stays on the server. Absolute, because the Solana client rejects a relative URL.
   RPC_URL: (typeof location === 'undefined' ? 'https://www.mnk3ylabs.com' : location.origin) + '/api/blup3ts-rpc',
-  // BLUTEST minting is retired (SOL cost). Wallet play uses real $BLUNANA only; Pretend stays free play money.
-  TEST_PLAY: false,
+  // Preview live play uses this test token, never the real $BLUNANA mint below, once TEST_PLAY is on.
+  TEST_PLAY: true,
   TEST_TOKEN_SYMBOL: 'BLUTEST',
   TEST_TOKEN_NAME: 'BLUP3TS Test',
 
@@ -35,7 +35,7 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
 
   // $BLUNANA (pinned). Classic SPL token, 6 decimals. Pretend mode never touches this mint.
   REAL_BLUNANA_MINT: 'C9vfeaCLhJy7sykgKnfzi6RikawQNoGtRKwsaupKavmV',
-  BLUNANA_MINT: 'C9vfeaCLhJy7sykgKnfzi6RikawQNoGtRKwsaupKavmV',
+  BLUNANA_MINT: '2arvp34u8Fzcq6UBRqq5dmWuMncwJ9pggMKUwZbRoGPv',
   BLUNANA_DECIMALS: 6,
 
   // Playable NFT collections. standard: 'core' (Metaplex Core: membership = update authority Collection(addr))
@@ -45,22 +45,22 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   //    (Shared/Core/CollectionGate.swift, re-read on mainnet Oct 22 2026).
   //  - LP Dollz: 4 Magic Eden 'lp_doll' listings (LP Doll #3946, #2983, #1324, #1200) all carry a VERIFIED
   //    Token Metadata collection GiAuA3e7...; that collection NFT is named 'LP Dollz'. Checked Oct 22 2026.
-  // Adopt chooser (Azgog, Nov 3): tapping Adopt shows Orbis + Magic Eden; each opens that pet's own page in a new tab
+  // Adopt chooser (Nov 19): tapping Adopt shows GraveMarket + Orbis; each opens that pet's own page in a new tab
   // (per pet: {mint}), else the collection page (COLLECTIONS[].adopt). Nothing is ever bought in the game.
-  ADOPT_ITEM_URLS: { orbis: 'https://www.orbisonsol.io/marketplace/item/{mint}', me: 'https://magiceden.io/item-details/{mint}' },
+  ADOPT_ITEM_URLS: { gm: 'https://gravemarket.io/item/{mint}', orbis: 'https://www.orbisonsol.io/marketplace/item/{mint}' },
   CORE_PROGRAM: 'CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d',
   COLLECTIONS: [
     { id: 'mnk3ys', name: 'MNK3YS', one: 'MNK3Y', standard: 'core', address: 'HJfPjNV3AeDGRRyJfmYrQhsQaTkoct4novtBj4Nq4atU', verified: true, supply: 5000, partner: null, enabled: true,
-      adopt: { orbis: 'https://www.orbisonsol.io/marketplace/mnk3ys', me: 'https://magiceden.io/marketplace/mnk3ys' } },
+      adopt: { gm: 'https://gravemarket.io/collection/mnk3ys', orbis: 'https://www.orbisonsol.io/marketplace/mnk3ys' } },
     { id: 'zmb3ys', name: 'ZMB3YS', one: 'ZMB3Y', standard: 'core', address: 'GtR8jyrwDvhmCi1oLG1dtErFU2xb8YpbM8Xtot8yagbq', verified: true, supply: 5555, partner: null, enabled: true,
-      adopt: { orbis: 'https://www.orbisonsol.io/marketplace/zmb3ys', me: 'https://magiceden.io/marketplace/zmb3ys' } },
-    { id: 'ldz', name: 'LP Dollz', one: 'LP Doll', standard: 'token-metadata', address: 'GiAuA3e7E3onswrPnMqgtErTX4oQeQuoF9Cy1Sg2fJ8b', verified: true, supply: 4443, partner: 'ldz', enabled: true,
+      adopt: { gm: 'https://gravemarket.io/collection/zmb3ys', orbis: 'https://www.orbisonsol.io/marketplace/zmb3ys' } },
+    { id: 'ldz', name: 'LP Dollz', one: 'LP Doll', standard: 'token-metadata', address: 'GiAuA3e7E3onswrPnMqgtErTX4oQeQuoF9Cy1Sg2fJ8b', verified: true, supply: 4443, partner: 'ldz', enabled: false, // go-live: MNK3YS + ZMB3YS only (LPDOLLZ_ENABLED also false)
       marketplace: 'https://www.orbisonsol.io/marketplace/lp-dollz' },
     // Caporegime Del $Empire (Nov 2 2026): Core CollectionV1 BzJea2jN..., name + 500/500 read on mainnet Nov 2 2026;
     // Magic Eden listing mints (Capo # 182, # 298, # 353) resolve to it. Magic Eden is also used for data lookups.
-    { id: 'capo', name: 'Caporegime Del $Empire', one: 'Capo', standard: 'core', address: 'BzJea2jNqDByBjg99ZaopGYKngK5DnnvuYM1NtkhXmw4', verified: true, supply: 500, partner: null, enabled: true,
+    { id: 'capo', name: 'Caporegime Del $Empire', one: 'Capo', standard: 'core', address: 'BzJea2jNqDByBjg99ZaopGYKngK5DnnvuYM1NtkhXmw4', verified: true, supply: 500, partner: null, enabled: false, // go-live: MNK3YS + ZMB3YS only (CAPO_WALLET_ENABLED also false)
       marketplace: 'https://www.orbisonsol.io/marketplace/caporegime-del-empire',
-      adopt: { orbis: 'https://www.orbisonsol.io/marketplace/caporegime-del-empire', me: 'https://magiceden.io/marketplace/caporegime_del_empire' } }
+      adopt: { orbis: 'https://www.orbisonsol.io/marketplace/caporegime-del-empire' } }
   ],
 
   // Partner communities. Money fields (poolShare, joinFee, reserveMatch) are COS numbers. Real feeds are ON (REAL_PAYMENTS_ENABLED below); partner join fees are not charged in the app.
@@ -72,7 +72,7 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   PARTNERS: [
     { id: 'ldz', name: 'LP Dollz', collection: 'GiAuA3e7E3onswrPnMqgtErTX4oQeQuoF9Cy1Sg2fJ8b', tokenMint: 'E5ZVeBMazQAYq4UEiSNRLxfMeRds9SKL31yPan7j5GJK', tokenSymbol: 'LDZ', tokenDecimals: 9,
       pool: '5agAmsULnt4eeiKNjxQgAJyGYNbzkwoTaFWCFvtt5vN5', poolDex: 'Raydium CPMM', poolPair: 'BLUNANA/LDZ', supply: 4443,
-      poolShare: 0.20, reserveMatch: true, joinFee: 0, tier: 'founding', enabled: true, note: 'Founding partner. Pool share matched by the reserve.' },
+      poolShare: 0.20, reserveMatch: true, joinFee: 0, tier: 'founding', enabled: false, note: 'Founding partner. Hidden in this go-live pack (MNK3YS + ZMB3YS only).' },
     { id: 'gotm', name: 'GOTM', collection: null, tokenMint: 'AAqZ6CECabwnYLm3FDqPrVQotXLPGQ3BJSfecYmXeJU5', tokenSymbol: 'GOTM', tokenDecimals: 9,
       pool: '4wDbtd1R9jzxpNR5o7S4RPdJpUeP4Wd21jxYPtwskLsb', poolDex: 'Meteora', poolPair: 'BLUNANA/GOTM', supply: null,
       poolShare: 0.10, reserveMatch: false, joinFee: 250, tier: 'standard', enabled: false, note: 'must reseed shared pool' },
@@ -87,7 +87,7 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
 
   // $BLUNANA per feed. Same numbers in Pretend and Wallet mode. The transfer builder has these pinned too
   // and refuses to build if this table and its own copy disagree.
-  FEED_COSTS: { nibble: 100, snack: 250, meal: 1000, feast: 2500 },
+  FEED_COSTS: { nibble: 200, snack: 500, meal: 2000, feast: 5000 }, // Azgog go-live: doubled. Transfer builder in vendor/blup3ts-sol.js must match.
 
   // One knob for every $BLUNANA amount (feeds now, Store costs later): each amount x COST_SCALE, rounded to whole
   // tokens, at least 1. Must be a positive finite number, otherwise 1 is used.
@@ -103,7 +103,11 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   LEVEL_STEP_AFTER: 2000,
 
   // Instruments unlock by level (free, never sold). Pets already past a level get it right away.
-  INSTRUMENT_LEVELS: { bass: 2, guitar: 3, drumsticks: 4, mic: 5, keytar: 6 },
+  INSTRUMENT_LEVELS: { bass: 2, guitar: 3, drumsticks: 4, mic: 5, keytar: 6, keys: 7, shaker: 8, horn: 9, pad: 10, didg: 11 }, // didg: Level 11, the first step after the Level 10 ladder (7,000 strength)
+  // Jam recordings (optional). Empty = the built-in instrument models in jam_synth.js. To use a real recording, put an
+  // mp3 in audio/jam/ and name it here per pet rarity ('all' = every rarity), e.g. bass: { all: 'bass_all.mp3', legendary: 'bass_legendary.mp3' }.
+  // A recording is one beat long (0.5 s at 120 BPM, may ring longer), starts on the tap's 16th note and is loudness-matched automatically.
+  JAM_RECORDINGS: { folder: 'audio/jam/', bass: {}, guitar: {}, drumsticks: {}, mic: {}, keytar: {}, keys: {}, shaker: {}, horn: {}, pad: {}, didg: {} },
 
   // Jam length. From LONG_JAM_LEVEL the player may pick a Long Jam (optional): about 1.5x mood and 1.5x hunger
   // cost, needs 1.5x the usual food to start. Jam never adds strength.
@@ -115,7 +119,10 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   // LATENCY_MS: taps are judged this much earlier when the music plays (phone audio delay);
   // VISUAL_LATENCY_MS when sound is off (screen delay). Mood: Perfect/Good add points, Miss none;
   // the points are capped at TAP_BONUS_MAX (same cap as before), so a jam never gives more mood than before.
-  JAM_BEAT: { BPM: 120, OFFSET_MS: 10, PERFECT_MS: 80, GOOD_MS: 160, LATENCY_MS: 70, VISUAL_LATENCY_MS: 30, PERFECT_PTS: 2, GOOD_PTS: 1, TAP_BONUS_MAX: 12 },
+  JAM_BEAT: { BPM: 120, OFFSET_MS: 10, PERFECT_MS: 80, GOOD_MS: 160, LATENCY_MS: 70, VISUAL_LATENCY_MS: 30, SYNTH_LATENCY_MS: 30, PERFECT_PTS: 2, GOOD_PTS: 1, TAP_BONUS_MAX: 12 },
+  // Community Jam (Saturdays, America/Halifax time): everyone's Perfect taps fill one shared goal that unlocks a free beat.
+  // OFF until the server is ready. Off = a local preview that only counts this phone's taps.
+  COMMUNITY_JAM: { ENABLED: false, API: '', TIME_ZONE: 'America/Halifax', DAY: 6, PREVIEW_GOAL: 300 },
 
   // Game boost from burning one cNFT of a pinned collection. OFF until both are set (see README_WEB.md).
   BURN_BOOST_ENABLED: false,
@@ -124,7 +131,7 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   // Wallet connect master switch (read-only: public address + NFT check only). false = Pretend mode only.
   WALLET_CONNECT_ENABLED: true,
   // M10 go-live: the NFT check gives back ONLY these collections (LP Dollz left out for now; the LP Doll starter pet stays).
-  NFT_CHECK_COLLECTIONS: ['mnk3ys', 'zmb3ys', 'capo'],
+  NFT_CHECK_COLLECTIONS: ['mnk3ys', 'zmb3ys'], // go-live: Capo and LP Dollz off
   // Wallets offered (Wallet Standard). Read-only connect, public address only.
   WALLETS: ['Phantom', 'Solflare', 'Backpack'],
   // Optional 'sign a message' proof. OFF for launch: P1 never asks the wallet to sign anything.
@@ -133,8 +140,10 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   // ON: Wallet mode feeds for real. The BLUTEST/BLUNANA switch picks the token: BLUTEST goes to RESERVE_WALLET,
   // real $BLUNANA goes to BLUNANA_RESERVE_WALLET.
   REAL_PAYMENTS_ENABLED: true,
-  // PREVIEW MOCK (Nov 2 2026): SOL fee per feed. UI line only, NO SOL transfer is wired. Stays false until the real-mode checklist is done and Azgog says build it.
-  SOL_FEE_ENABLED: false,
+  // Go-live: SOL_FEE_ENABLED turns on the UI "+ SOL fee" tag and the feed fine print only.
+  // NO SOL transfer is added to feed txs, and there is no feed quote endpoint yet.
+  // Real charging stays off until the quote endpoint and feed tx wiring ship.
+  SOL_FEE_ENABLED: true,
   SOL_FEE_USD_PER_FEED: 0.05,
   // Azgog, Nov 3: the feed SOL fee is for Snack, Meal and Feast only. Nibble never has a SOL fee (every pet, $BLUNANA and $EMPIRE).
   SOL_FEE_TIERS: ['snack', 'meal', 'feast'],
@@ -198,6 +207,11 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
       bandBg: 'repeating-linear-gradient(135deg,rgba(255,255,255,.10) 0 2px,transparent 2px 12px),linear-gradient(#2a1260,#120830)',
       rim: '#9fe8ff', accent: '#ff7ad9', glow: 'rgba(159,232,255,.50)', crown: 'repeating-linear-gradient(#e3d1ff 0 3px,#6a3bd1 3px 6px)',
       logo: 'capo/capo_logo.png', motif: 'drip' },
+    galaxy_glow: { name: 'Galaxy Glow', collection: null, traitGroup: 'galaxy', // free for MNK3YS / ZMB3YS galaxy pets (Capo Galaxy Glow stays Capo-only)
+      caseBg: 'radial-gradient(120% 80% at 25% 10%,#b98cff 0,rgba(185,140,255,0) 45%),linear-gradient(150deg,#5b2bb5,#24104f 48%,#120830 70%,#4a22a0)',
+      bandBg: 'repeating-linear-gradient(135deg,rgba(255,255,255,.10) 0 2px,transparent 2px 12px),linear-gradient(#2a1260,#120830)',
+      rim: '#9fe8ff', accent: '#ff7ad9', glow: 'rgba(159,232,255,.50)', crown: 'repeating-linear-gradient(#e3d1ff 0 3px,#6a3bd1 3px 6px)',
+      logo: null, motif: 'drip' },
     capo_golden: { name: 'Golden Robe', collection: 'Caporegime Del $Empire',
       caseBg: 'radial-gradient(120% 80% at 25% 10%,#fff1a8 0,rgba(255,241,168,0) 45%),linear-gradient(150deg,#f2c230,#b78512 48%,#6e4c08 70%,#e0ad22)',
       bandBg: 'repeating-linear-gradient(135deg,rgba(255,255,255,.14) 0 2px,transparent 2px 12px),linear-gradient(#8a5f0c,#4a3205)',
@@ -274,10 +288,10 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   STORE_ENABLED: true,
   STORE_REAL_BUYS_ENABLED: false,
   STORE_ITEMS: [
-    { id: 'capo_night', kind: 'face', name: 'Empire Night', collection: 'Caporegime Del $Empire', token: 'empire', price: 10000, art: 'store/capo_night.png' }, // FINAL
-    { id: 'capo_velvet', kind: 'face', name: 'Velvet Rose', collection: 'Caporegime Del $Empire', token: 'empire', price: 10000, art: 'store/capo_velvet.png' }, // FINAL
-    { id: 'charm_fedora', kind: 'item', name: 'Fedora', collection: 'Caporegime Del $Empire', token: 'empire', price: 5000, art: 'store/charm_fedora.png' }, // FINAL
-    { id: 'charm_rose', kind: 'item', name: 'Rose', collection: 'Caporegime Del $Empire', token: 'empire', price: 5000, art: 'store/charm_rose.png' }, // FINAL
+    { id: 'capo_night', kind: 'face', name: 'Empire Night', collection: 'Caporegime Del $Empire', token: 'empire', price: 10000, art: 'store/capo_night.png', enabled: false }, // hidden go-live
+    { id: 'capo_velvet', kind: 'face', name: 'Velvet Rose', collection: 'Caporegime Del $Empire', token: 'empire', price: 10000, art: 'store/capo_velvet.png', enabled: false }, // hidden go-live
+    { id: 'charm_fedora', kind: 'item', name: 'Fedora', collection: 'Caporegime Del $Empire', token: 'empire', price: 5000, art: 'store/charm_fedora.png', enabled: false }, // hidden go-live
+    { id: 'charm_rose', kind: 'item', name: 'Rose', collection: 'Caporegime Del $Empire', token: 'empire', price: 5000, art: 'store/charm_rose.png', enabled: false }, // hidden go-live
     { id: 'charm_banana', kind: 'item', name: 'Blunana Buddy', collection: 'MNK3YS', token: 'blunana', price: 50000, art: 'store/charm_banana.png' }, // FINAL
     { id: 'charm_bone', kind: 'item', name: 'Glow Bone', collection: 'ZMB3YS', token: 'blunana', price: 50000, art: 'store/charm_bone.png' } // FINAL
   ],

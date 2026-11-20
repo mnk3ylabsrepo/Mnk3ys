@@ -9,11 +9,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#05070d">
 <title>BLUP3TS · MNK3YLabs</title>
-<meta name="description" content="Play BLUP3TS: a pet game for MNK3YS, ZMB3YS, Caporegime Del $Empire and LP Dollz. Feed your pet pretend $BLUNANA bananas, jam to 8-bit music and check its Orbis traits. Free to play with pretend $BLUNANA. Every $BLUNANA spent goes back into building the $BLUNANA and MNK3YLabs ecosystems.">
+<meta name="description" content="Play BLUP3TS: a pet game for MNK3YS and ZMB3YS. Feed your pet pretend $BLUNANA bananas, jam to 8-bit music and check its GraveMarket traits. Free to play with pretend $BLUNANA. Every $BLUNANA spent goes back into the project. BABI3S coming soon.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MNK3YLabs">
 <meta property="og:title" content="BLUP3TS · MNK3YLabs">
-<meta property="og:description" content="Feed your MNK3Y pretend $BLUNANA bananas, jam to 8-bit music and check its traits. Beta. Free to play with pretend $BLUNANA. Every $BLUNANA spent goes back into building the $BLUNANA and MNK3YLabs ecosystems.">
+<meta property="og:description" content="Feed your MNK3Y pretend $BLUNANA bananas, jam to 8-bit music and check its traits. Beta. Free to play with pretend $BLUNANA. Every $BLUNANA spent goes back into the project.">
 <meta property="og:url" content="https://www.mnk3ylabs.com/blup3ts/">
 <meta property="og:image" content="https://www.mnk3ylabs.com/blup3ts/og.png">
 <meta property="og:image:width" content="1200">
@@ -32,10 +32,15 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BLUP3TS">
 <meta name="application-name" content="BLUP3TS">
-<link rel="stylesheet" href="style.css?v=h20261119a">
-<link rel="stylesheet" href="faces_mock.css?v=h20261103j"><!-- FACES (preview only) -->
-<link rel="stylesheet" href="face_unlocks.css?v=h20261103j"><!-- FACE UNLOCKS (preview only) -->
-<link rel="stylesheet" href="lb_rewards.css?v=h20261103j"><!-- LB REWARDS (preview only) -->
+<link rel="stylesheet" href="style.css?v=h20261120a">
+<link rel="stylesheet" href="home_pick.css?v=h20261120a"><!-- Home: NFT strip above Play + pick-first gate -->
+<link rel="stylesheet" href="faces_mock.css?v=h20261120a"><!-- FACES (preview only) -->
+<link rel="stylesheet" href="face_unlocks.css?v=h20261120a"><!-- FACE UNLOCKS (preview only) -->
+<link rel="stylesheet" href="lb_rewards.css?v=h20261120a"><!-- LB REWARDS (preview only) -->
+<link rel="stylesheet" href="looks3.css?v=h20261120a"><!-- Home bottom bar: Faces, Charms, Store -->
+<link rel="stylesheet" href="duo_open.css?v=h20261120a"><!-- Duo opening (Watch to Duo) -->
+<link rel="stylesheet" href="extras.css?v=h20261120a"><!-- beats, Fun hub, Songbook, combo, Duo band jam -->
+<link rel="stylesheet" href="traits.css?v=h20261120a"><!-- Trait reactions + charm speech / tap FX -->
 <script>
 (function () {
   document.documentElement.classList.add('booting');
@@ -55,7 +60,7 @@
 <div class="ticker" id="ecoTicker"><div class="tickertrack" id="tickerTrack"></div></div>
 <div class="livenotes" id="liveNotes" aria-live="polite"></div>
 
-<section class="view homeview on" id="homeView" role="main" aria-label="BLUP3TS home">
+<section class="view homeview home-pick on" id="homeView" role="main" aria-label="BLUP3TS home">
   <button class="spk spkhome" id="spkHome" aria-label="Sound is off. Turn sound on" aria-pressed="false">🔇</button>
   <div class="bgfx" aria-hidden="true"><i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="stars"></i></div>
   <div class="leftcol">
@@ -64,11 +69,19 @@
         <img class="hlabs" id="homeLogo" src="/assets/preview2/gorilla-logo.png" alt="MNK3YLabs logo" role="button" tabindex="0" width="64" height="64">
         <span class="wmark">BLU<b>P3TS</b></span><em class="beta-tag betatap" role="button" tabindex="0" aria-label="Beta: what is coming">BETA</em>
       </h1>
-      <p class="htag">Feed your pet bananas, jam to 8-bit tunes and watch it grow. Starring MNK3YS, ZMB3YS and Caporegime Del $Empire. BABI3S coming soon.</p>
+      <p class="htag">Feed your pet bananas, jam to 8-bit tunes and watch it grow. Starring MNK3YS and ZMB3YS. BABI3S coming soon.</p>
     </header>
+    <div class="carwrap">
+      <button class="carnav prev" id="carPrev" aria-label="Previous P3t">‹</button>
+      <div class="carousel" id="carousel" tabindex="-1" role="listbox" aria-label="Pick your P3t"></div>
+      <button class="carnav next" id="carNext" aria-label="Next P3t">›</button>
+      <!-- Credit fix (Nov 1): centred directly under the pet cards -->
+    <a class="wm2 wmlink wmunder" id="homeWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Made by Azgog (@azgog): Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
+    </div>
     <div class="homestack">
       <div class="carstatus" id="carStatus" aria-live="polite"></div>
-      <button class="playbtn" id="playBtn">▶ Play</button>
+      <p class="playhint" id="playHint">Pick your P3t first</p>
+      <button class="playbtn needpick" id="playBtn" disabled aria-disabled="true">Pick a P3t to play</button>
       <div class="hbtns">
         <div class="acctpair">
           <button type="button" class="discordrow out" id="discordBtn"><span class="discordmark" id="discordMark" aria-hidden="true"></span><img id="discordPfp" alt="" width="36" height="36" hidden><span id="discordName">Sign in with Discord</span></button>
@@ -78,7 +91,7 @@
           <div class="modeseg" id="modeSeg" role="group" aria-label="Mode" hidden>
             <button id="modePretend" aria-pressed="true">Pretend</button><button id="modeWallet" aria-pressed="false">Wallet</button>
           </div>
-          <button type="button" class="toksw" id="tokenSeg" role="switch" aria-checked="false" aria-label="Play token" hidden></button>
+          <button type="button" class="toksw" id="tokenSeg" role="switch" aria-checked="false" aria-label="Play token, BLUTEST" hidden><span id="tokenTest">BLUTEST</span><span class="toksw-track" aria-hidden="true"><span class="toksw-thumb"></span></span><span id="tokenBlunana">BLUNANA</span></button>
         </div>
         <div class="toolrow">
           <button class="hb" id="howBtn">❓ How to play</button>
@@ -88,19 +101,17 @@
         <button class="hb" id="settingsBtn">⚙️ Settings</button>
       </div>
       <p class="modenote" id="modeNote"></p>
-      <button type="button" class="btn b-cyan blutest-claim" id="blutestClaim" hidden></button>
+      <button type="button" class="btn b-cyan blutest-claim" id="blutestClaim" hidden><span class="blutest-mark" aria-hidden="true"></span><span class="blutest-label">Get 100,000 BLUTEST</span></button>
       <p class="blutest-bal" id="blutestBal" hidden></p>
       <button class="hb boostbtn" id="boostBtn" hidden disabled aria-disabled="true">✨ Burn cNFT for a boost · Coming soon</button>
-      <button class="looksrow" id="looksBtn"><span class="lk">🎨</span><span><b>Looks</b><br><small id="looksSub">Watch cases · unlock at Level 3</small></span><span class="soonpill">⌚ Cases</span></button>
+      <div class="looks3" id="looks3" role="group" aria-label="Looks">
+        <button class="l3btn" id="facesBtn" type="button"><img src="assets/icons/faces.svg?v=h20261120a" alt=""><b>Faces</b><small>Pick a watch face</small></button>
+        <button class="l3btn" id="charmsBtn" type="button"><img src="assets/icons/charms.svg?v=h20261120a" alt=""><b>Charms</b><small>Hang a charm</small></button>
+        <button class="l3btn" id="storeBtn3" type="button"><img src="assets/icons/store.svg?v=h20261120a" alt=""><b>Store</b><small>Get new items</small></button>
+      </div>
     </div>
   </div>
-  <div class="carwrap">
-    <button class="carnav prev" id="carPrev" aria-label="Previous pet">‹</button>
-    <div class="carousel" id="carousel" tabindex="-1" role="listbox" aria-label="Pick your pet"></div>
-    <button class="carnav next" id="carNext" aria-label="Next pet">›</button>
-    <!-- Credit fix (Nov 1): centred directly under the pet cards -->
-  <a class="wm2 wmlink wmunder" id="homeWm" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer" aria-label="Made by Azgog (@azgog): Connect with BLUP3TS on X">Made by Azgog (@azgog)</a>
-  </div>
+
 </section>
 
 <section class="view nftsview" id="nftsView" aria-label="My NFTs">
@@ -143,7 +154,7 @@
       <button class="crown" id="crown" aria-label="Digital Crown: next screen"></button>
       <button class="sidebtn" id="sideBtn" aria-label="Side button: watch Home"></button>
       <div class="screen" id="screen">
-        <div class="topbar"><span class="ttl" id="ttl">BLUP3TS</span><span class="clock" id="clock">10:09</span></div>
+        <div class="topbar"><span class="ttl" id="ttl">BLUP3TS</span><span class="tright"><span class="netstat" id="netStat" hidden aria-hidden="true"></span><span class="clock" id="clock">10:09</span></span></div>
         <div class="concept betatap" role="button" tabindex="0" aria-label="Beta: what is coming">BETA</div>
         <div class="dots" id="dots"></div>
 
@@ -190,9 +201,9 @@
             <div><div class="row sb"><span id="sLvlL">⭐ Level 1</span><span class="c-gold" id="sLvl"></span></div><div class="bar big"><i class="f-gold" id="sLvlBar"></i></div></div>
           </div>
           <div class="card rarbox" id="rarityBox"></div>
-          <a class="adoptlink extlink" id="adoptLink" href="https://www.orbisonsol.io/marketplace/mnk3ys" target="_blank" rel="noopener noreferrer" hidden>🐾 Adopt</a>
+          <button type="button" class="adoptlink" id="adoptLink" hidden>🐾 Adopt</button>
           <div class="card">
-            <div class="cardh">Traits <span class="dim small">rarity from Orbis</span></div>
+            <div class="cardh">Traits <span class="dim small">GraveMarket</span></div>
             <div id="traitList"></div>
             <button class="btn b-tcyan look" id="lookBtn">🎵 Choose look</button>
             <div class="fine" id="familyNote">Some traits are hidden or swapped to keep BLUP3TS family friendly.</div>
@@ -221,10 +232,12 @@
 
         <!-- OVERLAYS -->
         <div class="overlay" id="ov-feed">
+          <div id="feedTop"></div>
           <div class="ovhdr"><button class="close" data-close aria-label="Close">✕</button><span class="baltag"><img class="coin" src="assets/blunana_badge.png" alt=""><span id="feedBal"></span> <span id="feedWord">pretend</span></span></div>
-          <div id="foods"></div>
+          <div class="feedscroll" id="feedScroll"><div id="foods"></div>
           <div class="fine center" id="feedFine">Pretend $BLUNANA · play money · no real tokens</div>
-          <div class="fine center solfee" id="solFeeFine" hidden>A small SOL fee that supports BLUP3TS development. Snack, Meal and Feast only: Nibble has no SOL fee.</div><!-- PREVIEW MOCK: only while SOL_FEE_ENABLED is on, Wallet-mode feeds only. UI only, no SOL transfer -->
+          <div class="fine center solfee" id="solFeeFine" hidden>A small SOL fee that supports BLUP3TS development. Snack, Meal and Feast only: Nibble has no SOL fee.</div><!-- UI only while SOL_FEE_ENABLED is on, Wallet-mode feeds only. No SOL transfer -->
+          </div>
         </div>
 
         <div class="overlay" id="ov-look">
@@ -251,10 +264,21 @@
 
         <div class="overlay" id="ov-jamch">
           <div class="ovhdr"><button class="close" data-close aria-label="Close">✕</button><span class="ovt">Jam · free</span></div>
+          <div class="jamchscroll" id="jamChScroll">
           <div class="jamch">
+            <button class="btn beatpick" id="jamBeatBtn" type="button" aria-haspopup="dialog">🕹️ Beat: 8-bit Original</button>
+            <div class="jaminst" id="jamInstPick">
+              <div class="jaminsth">Instrument</div>
+              <div class="jaminstgrid" id="jamInstGrid"></div>
+            </div>
             <button class="btn b-pink" id="jamQuick">🎸 Quick Jam · 8s</button>
             <button class="btn b-tcyan" id="jamLongBtn">🎶 Long Jam · 16s</button>
+            <div class="jamxrow">
+              <button class="btn jamx" id="jamSongBtn" type="button" aria-haspopup="dialog">📖 Songbook</button>
+              <button class="btn jamx" id="jamDuoBtn" type="button" aria-pressed="false" hidden>👫 Duo band jam</button>
+            </div>
             <div class="fine center" id="jamChNote"></div>
+          </div>
           </div>
         </div>
 
@@ -271,7 +295,7 @@
         <div class="overlay soonov" id="ov-soon">
           <div class="soonicon">👛</div>
           <div class="soont">Wallet mode</div>
-          <div class="fine center pad">Go to Home and pick Wallet mode to play with your own MNK3YS, ZMB3YS and Caporegime Del $Empire. Pretend mode needs no wallet.</div>
+          <div class="fine center pad">Go to Home and pick Wallet mode to play with your own MNK3YS and ZMB3YS. Pretend mode needs no wallet.</div>
           <button class="btn b-cyan" data-close>Got it</button>
         </div>
 
@@ -415,29 +439,34 @@
   <div class="muted">BLUP3TS by MNK3YLabs · Just a game: Pretend mode uses no real tokens.</div>
 </footer>
 
-<script src="config.js?v=h20261119a"></script>
-<script src="faces_mock.js?v=h20261103j"></script><!-- FACES (preview only) -->
-<script src="lb_face.js?v=h20261103j"></script><!-- LB REWARDS (preview only) -->
-<script src="data.js?v=h20261103j"></script>
-<script src="starters.js?v=h20261103j"></script>
-<script src="art.js?v=h20261103j"></script>
-<script src="filter.js?v=h20261103j"></script>
-<script src="rarity.js?v=h20261103j"></script>
-<script src="tiers.js?v=h20261103j"></script>
-<script src="eat.js?v=h20261103j"></script>
-<script src="app.js?v=h20261119a"></script>
-<script src="faq.js?v=h20261103j"></script>
-<script src="home.js?v=h20261119a"></script>
-<script src="fullscreen.js?v=h20261103j"></script>
-<script src="vendor/blup3ts-sol.js?v=h20261103j"></script>
-<script src="boost.js?v=h20261103j"></script>
-<script src="wallet.js?v=h20261119a"></script>
-<script src="face_unlocks.js?v=h20261103j"></script><!-- FACE UNLOCKS (preview only) -->
-<script src="empire_store.js?v=h20261103j"></script><!-- $EMPIRE feeds + Store + free unlock SOL fee (flags) -->
-<script src="lb_auth.js?v=h20261103j"></script><!-- RANKS SECURITY: wallet proof + feed receipts -->
-<script src="lb_rewards.js?v=h20261103j"></script><!-- LB REWARDS (preview only) -->
-<script src="leaderboard.js?v=h20261103j"></script>
-<script src="discord.js?v=h20261103j"></script>
-<script src="live.js?v=h20261103j"></script>
+<script src="config.js?v=h20261120a"></script>
+<script src="faces_mock.js?v=h20261120a"></script><!-- FACES (preview only) -->
+<script src="lb_face.js?v=h20261120a"></script><!-- LB REWARDS (preview only) -->
+<script src="data.js?v=h20261120a"></script>
+<script src="starters.js?v=h20261120a"></script>
+<script src="art.js?v=h20261120a"></script>
+<script src="filter.js?v=h20261120a"></script>
+<script src="rarity.js?v=h20261120a"></script>
+<script src="tiers.js?v=h20261120a"></script>
+<script src="jam_synth.js?v=h20261120a"></script>
+<script src="eat.js?v=h20261120a"></script>
+<script src="app.js?v=h20261120a"></script>
+<script src="netstat.js?v=h20261120a"></script><!-- LTE / Wi-Fi next to the clock -->
+<script src="faq.js?v=h20261120a"></script>
+<script src="home.js?v=h20261120a"></script>
+<script src="fullscreen.js?v=h20261120a"></script>
+<script src="vendor/blup3ts-sol.js?v=h20261120a"></script>
+<script src="boost.js?v=h20261120a"></script>
+<script src="wallet.js?v=h20261120a"></script>
+<script src="face_unlocks.js?v=h20261120a"></script><!-- FACE UNLOCKS (preview only) -->
+<script src="empire_store.js?v=h20261120a"></script><!-- $EMPIRE feeds + Store + free unlock SOL fee (flags) -->
+<script src="lb_auth.js?v=h20261120a"></script><!-- RANKS SECURITY: wallet proof + feed receipts -->
+<script src="lb_rewards.js?v=h20261120a"></script><!-- LB REWARDS (preview only) -->
+<script src="leaderboard.js?v=h20261120a"></script>
+<script src="discord.js?v=h20261120a"></script>
+<script src="live.js?v=h20261120a"></script>
+<script src="duo_open.js?v=h20261120a"></script><!-- Duo opening (Watch to Duo) -->
+<script src="extras.js?v=h20261120a"></script><!-- beats, care streak, diary, combo, Songbook, band, Community Jam, Duo band jam -->
+<script src="traits.js?v=h20261120a"></script><!-- Trait reactions + trait charms -->
 </body>
 </html>

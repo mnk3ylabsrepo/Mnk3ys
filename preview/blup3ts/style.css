@@ -136,10 +136,12 @@ main { display:flex; flex-direction:column; align-items:center; width:100%; }
 .statsbars { display:flex; flex-direction:column; gap:12px; font-size:20px; font-weight:800; }
 .card { background:var(--card); border-radius:18px; padding:10px 14px; margin-top:12px; }
 .cardh { font-size:17px; font-weight:900; color:var(--cyan); margin-bottom:4px; display:flex; justify-content:space-between; align-items:baseline; }
-.trow { display:flex; justify-content:space-between; align-items:center; gap:8px; min-height:30px; }
-.trow .tk { font-size:16px; color:var(--dim); font-weight:600; white-space:nowrap; }
-.trow .tv { text-align:right; font-size:16px; font-weight:800; }
-.trow .tv b { font-size:12px; margin-left:4px; white-space:nowrap; }
+.trow { display:flex; justify-content:space-between; align-items:center; gap:8px; min-height:30px; min-width:0; }
+.trow .tk { font-size:16px; color:var(--dim); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:48%; flex:0 0 auto; }
+#perkRow { align-items:flex-start; }
+#perkRow .tk { max-width:none; }
+.trow .tv { text-align:right; font-size:16px; font-weight:800; min-width:0; flex:1 1 auto; display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:baseline; gap:6px; }
+.trow .tv b { font-size:12px; margin-left:0; white-space:nowrap; }
 .rar-legendary { color:#ffb347; } .rar-rare { color:var(--gold); } .rar-uncommon { color:var(--gold); } .rar-common { color:var(--dim); } .yourlook { color:var(--cyan); }
 .look { height:46px; font-size:19px; margin-top:8px; }
 .facts { display:flex; flex-direction:column; gap:4px; font-size:18px; font-weight:700; }
@@ -888,7 +890,7 @@ a.wm2.wmlink { display:inline-flex; align-items:center; justify-content:center; 
 
 /* M13 batch: small, subtle 'Adopt on Orbis' link on a live floor starter's Stats page */
 .adoptlink { display:flex; align-items:center; justify-content:center; width:max-content; max-width:100%; margin:4px auto 12px; min-height:calc(44px / var(--fs, 1)); padding:0 16px; box-sizing:border-box;
-  border-radius:22px; font-size:15px; font-weight:800; color:var(--cyan); background:rgba(72,216,252,.08); border:1px solid rgba(72,216,252,.3); text-decoration:none; }
+  border-radius:22px; font-family:inherit; font-size:15px; font-weight:800; color:var(--cyan); background:rgba(72,216,252,.08); border:1px solid rgba(72,216,252,.3); text-decoration:none; cursor:pointer; -webkit-appearance:none; appearance:none; }
 .adoptlink:active { background:rgba(72,216,252,.18); }
 .adoptlink:focus-visible { outline:3px solid var(--cyan); outline-offset:2px; }
 .adoptlink[hidden] { display:none; }
@@ -1184,14 +1186,12 @@ body.desk .pcwrap { min-width:0; }
 .stage[data-case="capo"][data-motif="drip"] .casefx .fx-drip { filter:drop-shadow(0 0 4px rgba(255,77,77,.6)); }
 .mw[data-case="capo"][data-motif="drip"] .mfx i { background:linear-gradient(#ff9a9a,#ff4d4d 55%,#a3191a); }
 
-/* ===== Adopt chooser (Azgog, Nov 3): Orbis + Magic Eden pixel badges, 44px+ tap targets, links only ===== */
+/* ===== Adopt chooser (Nov 19): GraveMarket + Orbis badges, 44px+ tap targets, links only ===== */
 .adoptpick { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:10px 0 4px; }
 .adoptmkt { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; min-width:112px; min-height:96px; padding:10px 12px; box-sizing:border-box;
   border-radius:14px; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.14); color:#fff; text-decoration:none; font-weight:800; }
 .adoptmkt:active { background:rgba(72,216,252,.18); } .adoptmkt:focus-visible { outline:3px solid var(--cyan); outline-offset:2px; }
-.mktbadge { width:48px; height:48px; image-rendering:pixelated; background-size:100% 100%; border-radius:6px; }
-.mkt-orbis { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Crect width='12' height='12' fill='%230b0b2a'/%3E%3Cpath fill='%238b5cf6' d='M4 2h4v1h1v1h1v4h-1v1h-1v1H4V9H3V8H2V4h1V3h1z'/%3E%3Cpath fill='%23c4b5fd' d='M4 3h2v1H5v1H4z'/%3E%3Cpath fill='%2348D8FC' d='M1 6h1v1h8V6h1v1h-1v1H2V7H1z'/%3E%3C/svg%3E"); }
-.mkt-me { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Crect width='12' height='12' fill='%231a0b1f'/%3E%3Cpath fill='%23e42575' d='M1 3h2v1h1v1h1V4h1V3h1v6H6V6H5v1H4V6H3v3H1z'/%3E%3Cpath fill='%23ff8a3d' d='M8 3h3v1H9v1h2v1H9v2h2v1H8z'/%3E%3C/svg%3E"); }
+.mktbadge { width:48px; height:48px; object-fit:contain; border-radius:8px; display:block; background:transparent; }
 .mktname { font-size:14px; }
 
 /* ===== STORE + $EMPIRE feeds + free unlock fee (Nov 3, preview, flags) ===== */
@@ -1202,6 +1202,9 @@ body.desk .pcwrap { min-width:0; }
 .storebuy { min-height:44px; width:100%; font-size:13px; } .storebuy.owned { background:rgba(124,255,58,.14); }
 .sbtn.storeopen { min-height:44px; width:100%; margin-top:8px; }
 .solfeetag { display:inline-block; margin-left:6px; padding:1px 6px; border-radius:8px; font-size:10px; font-style:normal; background:rgba(159,232,255,.16); color:#9fe8ff; }
+/* Nov 19: fee tag pinned bottom right on one line, so Snack, Meal and Feast tags line up and never clip */
+.food { position:relative; }
+.food > .solfeetag { position:absolute; right:14px; bottom:5px; margin:0; white-space:nowrap; line-height:15px; font-size:11px; font-weight:800; }
 .food.empire { border-color:rgba(255,214,90,.5); }
 .stage[data-case="capo_night"] #cxMkDrip stop:nth-child(1) { stop-color:#fff1a8; }
 .stage[data-case="capo_night"] #cxMkDrip stop:nth-child(2) { stop-color:#ffd65a; }
@@ -1246,3 +1249,95 @@ body.desk .pcwrap { min-width:0; }
 @keyframes charmSpark { 0% { transform:scale(.4); opacity:1; } 100% { transform:scale(1.5); opacity:0; } }
 @keyframes charmPop { 0% { transform:scale(.6); opacity:0; } 100% { transform:scale(1); opacity:1; } }
 @media (prefers-reduced-motion: reduce) { .bandcharm, .bandcharm.tapped { animation:none; } .charmspark { animation:none; opacity:.8; } .charmbubble.show { animation:none; } }
+
+/* Side button menu (CSS only) */
+.sidemenu { position:absolute; inset:0; z-index:60; display:flex; flex-direction:column; justify-content:center; gap:12px; padding:0 44px; background:rgba(0,0,0,.82); }
+.sidemenu[hidden] { display:none; }
+.smrow { display:flex; align-items:center; gap:14px; min-height:66px; padding:0 22px; border-radius:33px; border:2px solid var(--case-rim,#48D8FC); background:#11182a; color:#fff; font-family:inherit; font-weight:800; font-size:22px; line-height:1; text-decoration:none; text-align:left; cursor:pointer; box-shadow:0 0 14px var(--case-glow,transparent); }
+.smrow:active, .smrow:focus-visible { background:#1d2a48; outline:2px solid var(--case-accent,#F2C94C); }
+#screen .sidemenu .smrow { font-family:inherit; font-weight:900; font-size:22px; letter-spacing:.02em; color:#fff; -webkit-font-smoothing:antialiased; }
+
+/* ===== Nov 10 merge: Duo opening, home bottom bar, side menu ===== */
+/* Side button menu in Duo Horizontal: opens on the right-hand screen, clear of the crown, dots and the side button itself */
+.gameview.fold-h .sidemenu { left:408px; padding:0 60px; }
+/* Duo has two layouts, Portrait and Horizontal. Held sideways it is always Horizontal, so no layout button there */
+@media (orientation: landscape) { .gameview .gamebar #foldPick { display:none; } }
+/* 'Portrait' is a longer label than 'Auto': keep the Duo top controls on one centred row on small phones, so the Duo device sits exactly where it does live */
+@media (max-width: 420px) { .gameview.full .gamebar { flex-wrap:nowrap; gap:4px; } .gameview.full .gamebar .foldbtn { padding:0 9px; gap:4px; } .gameview.full .gamebar .viewswitch .homebtn { padding:0 10px; } }
+/* the home bottom bar replaces the Looks row; desktop column keeps it full width */
+body.desk .leftcol .looks3 { align-self:stretch; }
+/* ===== Nov 10: first screen without the stats tiles (Hunger / Strength / Level live on the Stats screen).
+   The picture, mood pill and name row stay exactly where they are; Feed and Jam sit centred in the space left under the name row. */
+#pg-home .statgrid, #pg-home .fullinfo { display:none; }
+.gameview #pg-home .homebtns { top:360px; }
+/* Round 3 (Nov 10): Duo Portrait and Horizontal show the stats again (too much empty space without them). Watch stays clean. */
+.gameview.fold-v #pg-home .statgrid, .gameview.fold-h #pg-home .statgrid { display:grid; }
+.gameview.fold-v #pg-home .fullinfo, .gameview.fold-h #pg-home .fullinfo { display:block; }
+/* spacing tidied so the lower / right screen is evenly filled (the picture and its spot stay exactly as live) */
+.gameview.fold-v #pg-home .statgrid { top:504px; }
+.gameview.fold-v #pg-home .fullinfo { top:602px; }
+.gameview.fold-v #pg-home .homebtns { top:652px; }
+.gameview.fold-v #pg-home .homebtns .btn { height:78px; }
+.gameview.fold-h .moodpill { top:92px; }
+.gameview.fold-h .concept { top:99px; }
+.gameview.fold-h .verified { top:138px; }
+.gameview.fold-h #pg-home .statgrid { top:172px; }
+.gameview.fold-h #pg-home .fullinfo { top:264px; }
+.gameview.fold-h #pg-home .homebtns { top:304px; }
+.gameview.fold-h #pg-home .homebtns .btn { height:78px; }
+
+/* ===== Nov 10: painted instrument icons (assets/inst/*.png) in Looks and on the Jam groove label */
+.lopt .le img.instimg { width:30px; height:30px; object-fit:contain; display:block; margin:0 auto; }
+.groove .le { display:inline-block; vertical-align:-5px; margin-right:2px; }
+.groove .le img.instimg { width:22px; height:22px; object-fit:contain; display:block; }
+
+/* Nov 19: archived Blunana art next to Store $BLUNANA amounts */
+.blnbtn { display:flex !important; flex-direction:column; align-items:center; justify-content:center; white-space:normal !important; line-height:1.15; }
+.blnrow { white-space:nowrap; display:flex; align-items:center; gap:5px; }
+.blnunit { display:block; }
+.blnicon { height:26px; width:auto; flex:none; }
+
+/* Nov 19: Feed layout, wallet note right under BETA, only the list scrolls so nothing slides under the header */
+#ov-feed { overflow:hidden; }
+#ov-feed > #feedTop:empty { display:none; }
+#feedTop .feedtopnote { margin:6px 0 6px; padding:0; border-top:0; }
+#feedTop .feedtopnote .rfnote { margin:0 0 6px; }
+#ov-feed > .feedscroll { flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+/* Nov 19: network status next to the clock */
+.tright { display:flex; align-items:center; gap:7px; }
+.netstat { display:inline-flex; align-items:center; color:#fff; line-height:1; }
+.netstat[hidden] { display:none; }
+.netstat.ns-lte { font-weight:900; font-size:13px; letter-spacing:.5px; }
+.netstat.ns-wifi svg { display:block; }
+/* Nov 19: animated Wi-Fi bars, dot then arcs light up in turn */
+.netstat.ns-wifi svg path { animation:wifibar 1.8s ease-in-out infinite; }
+.netstat.ns-wifi svg .w1 { animation-delay:0s; } .netstat.ns-wifi svg .w2 { animation-delay:.25s; } .netstat.ns-wifi svg .w3 { animation-delay:.5s; }
+@keyframes wifibar { 0%, 100% { opacity:.35; } 35%, 70% { opacity:1; } }
+@media (prefers-reduced-motion: reduce) { .netstat.ns-wifi svg path { animation:none; } }
+
+/* Nov 19: instrument picker in the Jam menu. Header stays put, only the menu scrolls. */
+#ov-jamch { overflow:hidden; }
+#ov-jamch.show { overflow:hidden; }
+#ov-jamch > .ovhdr { flex:0 0 auto; }
+#ov-jamch > .jamchscroll { flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.gameview.fold-v #ov-jamch, .gameview.fold-h #ov-jamch { overflow:hidden; }
+.jaminst { margin:2px 0 4px; }
+.jaminsth { font-size:13px; font-weight:900; color:var(--cyan); margin:0 0 6px; letter-spacing:.3px; }
+.jaminstgrid { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:6px; }
+.jaminstbtn { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-width:0; min-height:58px; padding:4px 2px; box-sizing:border-box;
+  border-radius:12px; background:rgba(255,255,255,.06); color:#fff; font-family:inherit; font-size:10px; font-weight:800; line-height:1.15; text-align:center; border:0; cursor:pointer; }
+.jaminstbtn .le { width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.jaminstbtn .le img.instimg { width:26px; height:26px; object-fit:contain; display:block; }
+.jaminstbtn .jaminstnm { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.jaminstbtn .jaminstlv { font-size:9px; font-weight:800; color:var(--gold); }
+.jaminstbtn.on { box-shadow:inset 0 0 0 2px var(--cyan); background:rgba(72,216,252,.14); }
+.jaminstbtn.locked { opacity:.55; }
+.jaminstbtn:focus-visible { outline:3px solid var(--cyan); outline-offset:2px; }
+.gameview.full .jaminstgrid { gap:8px; }
+.gameview.full .jaminstbtn { min-height:64px; font-size:11px; }
+.gameview.full .jaminstbtn .le, .gameview.full .jaminstbtn .le img.instimg { width:30px; height:30px; }
+.gameview.fold-v .jaminstgrid { grid-template-columns:repeat(5, minmax(0, 1fr)); gap:5px; }
+.gameview.fold-v .jaminstbtn { min-height:52px; }
+
+/* Duo Portrait: the pet frame stays centred in the 396-wide screen ((396 - 312) / 2 = 42). Size unchanged. Do not use transform (bob animation). */
+.gameview.full.fold-v #petWrap, .gameview.full.fold-v .petwrap { left:42px; width:312px; height:312px; }

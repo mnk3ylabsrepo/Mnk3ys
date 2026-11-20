@@ -17,6 +17,15 @@
     for (var i = 0; i < w.length; i++) if (w[i] && has(F.words, w[i])) return true;
     return false;
   }
-  function slot(type) { var t = String(type).trim().toLowerCase(); return (t === 'weapon' || t === 'front weapon') ? 'hand' : t === 'mouth' ? 'mouth' : null; }
-  window.BLUP3TS_FILTER = { blocked: blocked, slot: slot, hash: h };
+  var WING_VAL = ['be24b1e6','5fe08db0','7cb2d819','2b7f4ed9','e8c38d8f','521aa41','a113bfb4']; // Gold/Dark/White/Grey Wing, Gold Wings, Feathers, Bones
+  function isWing(type, value) {
+    var t = String(type || '').trim().toLowerCase(), v = String(value || '').trim().toLowerCase();
+    if (t === 'wing') return !/^(blank|none)$/.test(v);
+    return (t === 'weapon') && WING_VAL.indexOf(h(v)) >= 0;
+  }
+  function slot(type, value) {
+    if (value != null && isWing(type, value)) return null; // MNK3YS weapon wings are wings, not a hand instrument
+    var t = String(type).trim().toLowerCase(); return (t === 'weapon' || t === 'front weapon') ? 'hand' : t === 'mouth' ? 'mouth' : null;
+  }
+  window.BLUP3TS_FILTER = { blocked: blocked, slot: slot, hash: h, isWing: isWing };
 })();
