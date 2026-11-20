@@ -32,15 +32,15 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BLUP3TS">
 <meta name="application-name" content="BLUP3TS">
-<link rel="stylesheet" href="style.css?v=h20261120a">
-<link rel="stylesheet" href="home_pick.css?v=h20261120a"><!-- Home: NFT strip above Play + pick-first gate -->
-<link rel="stylesheet" href="faces_mock.css?v=h20261120a"><!-- FACES (preview only) -->
-<link rel="stylesheet" href="face_unlocks.css?v=h20261120a"><!-- FACE UNLOCKS (preview only) -->
-<link rel="stylesheet" href="lb_rewards.css?v=h20261120a"><!-- LB REWARDS (preview only) -->
-<link rel="stylesheet" href="looks3.css?v=h20261120a"><!-- Home bottom bar: Faces, Charms, Store -->
-<link rel="stylesheet" href="duo_open.css?v=h20261120a"><!-- Duo opening (Watch to Duo) -->
-<link rel="stylesheet" href="extras.css?v=h20261120a"><!-- beats, Fun hub, Songbook, combo, Duo band jam -->
-<link rel="stylesheet" href="traits.css?v=h20261120a"><!-- Trait reactions + charm speech / tap FX -->
+<link rel="stylesheet" href="style.css?v=h20261120b">
+<link rel="stylesheet" href="home_pick.css?v=h20261120b"><!-- Home: NFT strip above Play + pick-first gate -->
+<link rel="stylesheet" href="faces_mock.css?v=h20261120b"><!-- FACES (preview only) -->
+<link rel="stylesheet" href="face_unlocks.css?v=h20261120b"><!-- FACE UNLOCKS (preview only) -->
+<link rel="stylesheet" href="lb_rewards.css?v=h20261120b"><!-- LB REWARDS (preview only) -->
+<link rel="stylesheet" href="looks3.css?v=h20261120b"><!-- Home bottom bar: Faces, Charms, Store -->
+<link rel="stylesheet" href="duo_open.css?v=h20261120b"><!-- Duo opening (Watch to Duo) -->
+<link rel="stylesheet" href="extras.css?v=h20261120b"><!-- beats, Fun hub, Songbook, combo, Duo band jam -->
+<link rel="stylesheet" href="traits.css?v=h20261120b"><!-- Trait reactions + charm speech / tap FX -->
 <script>
 (function () {
   document.documentElement.classList.add('booting');
@@ -91,7 +91,6 @@
           <div class="modeseg" id="modeSeg" role="group" aria-label="Mode" hidden>
             <button id="modePretend" aria-pressed="true">Pretend</button><button id="modeWallet" aria-pressed="false">Wallet</button>
           </div>
-          <button type="button" class="toksw" id="tokenSeg" role="switch" aria-checked="false" aria-label="Play token, BLUTEST" hidden><span id="tokenTest">BLUTEST</span><span class="toksw-track" aria-hidden="true"><span class="toksw-thumb"></span></span><span id="tokenBlunana">BLUNANA</span></button>
         </div>
         <div class="toolrow">
           <button class="hb" id="howBtn">❓ How to play</button>
@@ -101,13 +100,12 @@
         <button class="hb" id="settingsBtn">⚙️ Settings</button>
       </div>
       <p class="modenote" id="modeNote"></p>
-      <button type="button" class="btn b-cyan blutest-claim" id="blutestClaim" hidden><span class="blutest-mark" aria-hidden="true"></span><span class="blutest-label">Get 100,000 BLUTEST</span></button>
-      <p class="blutest-bal" id="blutestBal" hidden></p>
+      <p class="wallet-bal" id="walletBal" hidden></p>
       <button class="hb boostbtn" id="boostBtn" hidden disabled aria-disabled="true">✨ Burn cNFT for a boost · Coming soon</button>
       <div class="looks3" id="looks3" role="group" aria-label="Looks">
-        <button class="l3btn" id="facesBtn" type="button"><img src="assets/icons/faces.svg?v=h20261120a" alt=""><b>Faces</b><small>Pick a watch face</small></button>
-        <button class="l3btn" id="charmsBtn" type="button"><img src="assets/icons/charms.svg?v=h20261120a" alt=""><b>Charms</b><small>Hang a charm</small></button>
-        <button class="l3btn" id="storeBtn3" type="button"><img src="assets/icons/store.svg?v=h20261120a" alt=""><b>Store</b><small>Get new items</small></button>
+        <button class="l3btn" id="facesBtn" type="button"><img src="assets/icons/faces.svg?v=h20261120b" alt=""><b>Faces</b><small>Pick a watch face</small></button>
+        <button class="l3btn" id="charmsBtn" type="button"><img src="assets/icons/charms.svg?v=h20261120b" alt=""><b>Charms</b><small>Hang a charm</small></button>
+        <button class="l3btn" id="storeBtn3" type="button"><img src="assets/icons/store.svg?v=h20261120b" alt=""><b>Store</b><small>Get new items</small></button>
       </div>
     </div>
   </div>
@@ -430,7 +428,7 @@
 </main>
 </div>
 
-<p class="betaline">Beta. Pretend mode uses play money. In Wallet mode, choose BLUTEST or real $BLUNANA.</p>
+<p class="betaline">Beta. Pretend mode uses play money. Wallet mode uses real $BLUNANA.</p>
 <footer class="foot">
   <nav class="socials" aria-label="BLUP3TS socials">
     <a class="soc" href="https://x.com/BluP3ts" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M18.9 2H22l-6.8 7.8L23 22h-6.2l-4.9-6.4L6.3 22H3.2l7.3-8.3L1 2h6.3l4.4 5.8L18.9 2Zm-1.1 18h1.7L6.3 3.9H4.5L17.8 20Z"/></svg>@BluP3ts</a>
@@ -439,34 +437,34 @@
   <div class="muted">BLUP3TS by MNK3YLabs · Just a game: Pretend mode uses no real tokens.</div>
 </footer>
 
-<script src="config.js?v=h20261120a"></script>
-<script src="faces_mock.js?v=h20261120a"></script><!-- FACES (preview only) -->
-<script src="lb_face.js?v=h20261120a"></script><!-- LB REWARDS (preview only) -->
-<script src="data.js?v=h20261120a"></script>
-<script src="starters.js?v=h20261120a"></script>
-<script src="art.js?v=h20261120a"></script>
-<script src="filter.js?v=h20261120a"></script>
-<script src="rarity.js?v=h20261120a"></script>
-<script src="tiers.js?v=h20261120a"></script>
-<script src="jam_synth.js?v=h20261120a"></script>
-<script src="eat.js?v=h20261120a"></script>
-<script src="app.js?v=h20261120a"></script>
-<script src="netstat.js?v=h20261120a"></script><!-- LTE / Wi-Fi next to the clock -->
-<script src="faq.js?v=h20261120a"></script>
-<script src="home.js?v=h20261120a"></script>
-<script src="fullscreen.js?v=h20261120a"></script>
-<script src="vendor/blup3ts-sol.js?v=h20261120a"></script>
-<script src="boost.js?v=h20261120a"></script>
-<script src="wallet.js?v=h20261120a"></script>
-<script src="face_unlocks.js?v=h20261120a"></script><!-- FACE UNLOCKS (preview only) -->
-<script src="empire_store.js?v=h20261120a"></script><!-- $EMPIRE feeds + Store + free unlock SOL fee (flags) -->
-<script src="lb_auth.js?v=h20261120a"></script><!-- RANKS SECURITY: wallet proof + feed receipts -->
-<script src="lb_rewards.js?v=h20261120a"></script><!-- LB REWARDS (preview only) -->
-<script src="leaderboard.js?v=h20261120a"></script>
-<script src="discord.js?v=h20261120a"></script>
-<script src="live.js?v=h20261120a"></script>
-<script src="duo_open.js?v=h20261120a"></script><!-- Duo opening (Watch to Duo) -->
-<script src="extras.js?v=h20261120a"></script><!-- beats, care streak, diary, combo, Songbook, band, Community Jam, Duo band jam -->
-<script src="traits.js?v=h20261120a"></script><!-- Trait reactions + trait charms -->
+<script src="config.js?v=h20261120b"></script>
+<script src="faces_mock.js?v=h20261120b"></script><!-- FACES (preview only) -->
+<script src="lb_face.js?v=h20261120b"></script><!-- LB REWARDS (preview only) -->
+<script src="data.js?v=h20261120b"></script>
+<script src="starters.js?v=h20261120b"></script>
+<script src="art.js?v=h20261120b"></script>
+<script src="filter.js?v=h20261120b"></script>
+<script src="rarity.js?v=h20261120b"></script>
+<script src="tiers.js?v=h20261120b"></script>
+<script src="jam_synth.js?v=h20261120b"></script>
+<script src="eat.js?v=h20261120b"></script>
+<script src="app.js?v=h20261120b"></script>
+<script src="netstat.js?v=h20261120b"></script><!-- LTE / Wi-Fi next to the clock -->
+<script src="faq.js?v=h20261120b"></script>
+<script src="home.js?v=h20261120b"></script>
+<script src="fullscreen.js?v=h20261120b"></script>
+<script src="vendor/blup3ts-sol.js?v=h20261120b"></script>
+<script src="boost.js?v=h20261120b"></script>
+<script src="wallet.js?v=h20261120b"></script>
+<script src="face_unlocks.js?v=h20261120b"></script><!-- FACE UNLOCKS (preview only) -->
+<script src="empire_store.js?v=h20261120b"></script><!-- $EMPIRE feeds + Store + free unlock SOL fee (flags) -->
+<script src="lb_auth.js?v=h20261120b"></script><!-- RANKS SECURITY: wallet proof + feed receipts -->
+<script src="lb_rewards.js?v=h20261120b"></script><!-- LB REWARDS (preview only) -->
+<script src="leaderboard.js?v=h20261120b"></script>
+<script src="discord.js?v=h20261120b"></script>
+<script src="live.js?v=h20261120b"></script>
+<script src="duo_open.js?v=h20261120b"></script><!-- Duo opening (Watch to Duo) -->
+<script src="extras.js?v=h20261120b"></script><!-- beats, care streak, diary, combo, Songbook, band, Community Jam, Duo band jam -->
+<script src="traits.js?v=h20261120b"></script><!-- Trait reactions + trait charms -->
 </body>
 </html>

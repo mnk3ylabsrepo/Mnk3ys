@@ -637,7 +637,7 @@
   }
 
   // ===== Feed (pretend $BLUNANA only) =====
-  function tokenFeed() { return S.mode === 'wallet' && API.payFeed && (API.livePlay ? API.livePlay() : (window.BLUP3TS_CONFIG || {}).TEST_PLAY === true); }
+  function tokenFeed() { return S.mode === 'wallet' && API.payFeed && API.livePlay && API.livePlay(); }
   function openFeed() {
     if (eating || jamTimer) return; // no feeding while a jam is running
     var live = tokenFeed();

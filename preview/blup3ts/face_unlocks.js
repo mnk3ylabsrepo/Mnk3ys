@@ -88,7 +88,7 @@
     if (winnerOnly(id) || basePrice(id) == null) return; // winner-only faces are never sold
     if (!owner()) return needWallet(id);
     if (tokenKind() === 'blunana' && C.PAID_FACE_REAL_UNLOCKS_ENABLED !== true) return A.toast('Unlocking with $BLUNANA is coming soon 🔒'); // paused until the dev's SOL quote endpoint exists; paid face unlocks keep the 5-cent SOL fee
-    var w = WL(); if (!w || !w.faceFeeOn || !w.faceFeeOn()) return sheet(id, after, null); // BLUTEST: no SOL fee
+    var w = WL(); if (!w || !w.faceFeeOn || !w.faceFeeOn()) return sheet(id, after, null);
     w.faceFeeQuote(id).then(function (q) { if (!owner()) return; if (!q) return A.toast('Price unavailable, try again shortly'); sheet(id, after, q); });
   }
   function sheet(id, after, fee) {

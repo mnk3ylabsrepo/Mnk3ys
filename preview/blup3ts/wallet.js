@@ -59,12 +59,12 @@
   function rejected(e) { var c = e && (e.code || (e.error && e.error.code)); return c === 4001 || /reject|denied|cancel|declin/i.test(String(e && (e.message || e))); }
   var TOKEN_PROG = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA', ATA_PROG = 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL', HOLD = 10000;
   var tokenBal = null, balGen = 0;
-  function playKind() { try { return localStorage.getItem('blup3ts.playToken') === 'blunana' ? 'blunana' : 'test'; } catch (e) { return 'test'; } }
-  function usingTest() { return playKind() !== 'blunana'; }
+  function playKind() { return 'blunana'; }
+  function usingTest() { return false; }
   function payCfg() {
     return {
-      RESERVE_WALLET: usingTest() ? C.RESERVE_WALLET : C.BLUNANA_RESERVE_WALLET,
-      BLUNANA_MINT: usingTest() ? C.BLUNANA_MINT : C.REAL_BLUNANA_MINT,
+      RESERVE_WALLET: C.BLUNANA_RESERVE_WALLET,
+      BLUNANA_MINT: C.REAL_BLUNANA_MINT || C.BLUNANA_MINT,
       BLUNANA_DECIMALS: C.BLUNANA_DECIMALS,
       FEED_COSTS: C.FEED_COSTS,
       COST_SCALE: C.COST_SCALE,
@@ -72,12 +72,13 @@
     };
   }
   function realOn() { var cfg = payCfg(); return payOn() && C.NETWORK === 'mainnet-live' && isKey(cfg.RESERVE_WALLET) && isKey(cfg.BLUNANA_MINT) && !!SOL; }
-  function livePlay() { return A.state().mode === 'wallet' && payOn() && (usingTest() ? C.TEST_PLAY === true : isKey(C.BLUNANA_RESERVE_WALLET)); }
-  function setPlayKind(k) {
-    try { localStorage.setItem('blup3ts.playToken', k === 'blunana' ? 'blunana' : 'test'); } catch (e) {}
+  function livePlay() { return A.state().mode === 'wallet' && payOn() && isKey(C.BLUNANA_RESERVE_WALLET); }
+  function setPlayKind() {
+    try { localStorage.setItem('blup3ts.playToken', 'blunana'); } catch (e) {}
     tokenBal = null; readBal(); syncClaim(); paintPlay();
     if (H && H.renderMode) H.renderMode();
   }
+  try { localStorage.setItem('blup3ts.playToken', 'blunana'); } catch (e) {}
   function holdsEnough() { return tokenBal != null && tokenBal >= HOLD; }
   function readBal() {
     var gen = ++balGen, owner = W.pubkey, mint = payCfg().BLUNANA_MINT;
@@ -108,15 +109,15 @@
     var live = livePlay(), word = payWord();
     var cap = $('balCap'), fine = $('balFine'), refill = $('refillBtn');
     if (cap) cap.textContent = live ? word : 'Pretend $BLUNANA';
-    if (fine) fine.textContent = !live ? 'Play money for Pretend mode. Nothing here touches real tokens.' : usingTest() ? (W.pubkey ? 'Test token in this wallet. Feeding sends it to the test reserve. It is not $BLUNANA.' : 'Connect a wallet to see your ' + word + '. Wallet mode does not use pretend play money.') : (W.pubkey ? 'Real $BLUNANA. Every feed goes back into the project.' : 'Connect a wallet to see your $BLUNANA. Every feed goes back into the project.');
+    if (fine) fine.textContent = !live ? 'Play money for Pretend mode. Nothing here touches real tokens.' : (W.pubkey ? 'Real $BLUNANA. Every feed goes back into the project.' : 'Connect a wallet to see your $BLUNANA. Every feed goes back into the project.');
     if (refill) refill.hidden = !!live;
     if (live && $('bal')) $('bal').textContent = !W.pubkey ? '0' : (tokenBal == null ? '…' : A.fmt(tokenBal));
     var fw = $('feedWord'), ff = $('feedFine'), fb = $('feedBal'), ov = $('ov-feed');
     if (fw) fw.textContent = live ? word : 'pretend';
-    if (ff) ff.textContent = !live ? 'Pretend $BLUNANA · play money · no real tokens' : usingTest() ? word + ' · your wallet approves each feed · not $BLUNANA' : '$BLUNANA · your wallet approves each feed · community wallet';
+    if (ff) ff.textContent = !live ? 'Pretend $BLUNANA · play money · no real tokens' : '$BLUNANA · your wallet approves each feed · community wallet';
     if (live && fb && ov && ov.classList.contains('show')) fb.textContent = !W.pubkey ? '0' : (tokenBal == null ? '…' : A.fmt(tokenBal));
-    var home = $('blutestBal');
-    if (home) { home.hidden = !live; home.textContent = !W.pubkey ? 'Connect a wallet to see your ' + word + ' balance.' : (tokenBal == null ? 'Checking ' + word + ' balance…' : word + ' balance: ' + A.fmt(tokenBal)); }
+    var home = $('walletBal');
+    if (home) { home.hidden = !live; home.textContent = !W.pubkey ? 'Connect a wallet to see your $BLUNANA balance.' : (tokenBal == null ? 'Checking $BLUNANA balance…' : '$BLUNANA balance: ' + A.fmt(tokenBal)); }
     unlockFoods();
   }
 
@@ -437,8 +438,6 @@
     fillWalletBtn(btn, label);
     btn.setAttribute('aria-label', W.pubkey ? 'Disconnect wallet ' + short(W.pubkey) : 'Connect wallet'); renderBoostBtn(); }
   function syncClaim() {
-    var b = $('blutestClaim'); if (!b || !C.TEST_PLAY) return;
-    b.hidden = !(A.state && A.state().mode === 'wallet' && usingTest());
     paintClaim(); paintPlay();
   }
   function onMode(m) { if (m === 'wallet') { showOwned(); readBal(); } else { W.gen++; W.loading = false; tokenBal = null; dropOwned(); } syncClaim(); }
@@ -465,55 +464,10 @@
   }
 
   // ---------- real $BLUNANA feeding (ON when config REAL_PAYMENTS_ENABLED is true) ----------
-  function payWord() { return usingTest() ? (C.TEST_TOKEN_SYMBOL || 'BLUTEST') : '$BLUNANA'; }
+  function payWord() { return '$BLUNANA'; }
   var claimState = 'idle', claimTimer = null, claimMsg = '';
-  function claimButtons() {
-    var list = [];
-    var home = $('blutestClaim'); if (home) list.push(home);
-    document.querySelectorAll('[data-blutest-claim]').forEach(function (b) { list.push(b); });
-    return list;
-  }
-  function claimLabel(b, text) {
-    var label = b.querySelector('.blutest-label');
-    if (label) label.textContent = text; else b.textContent = text;
-  }
-  function paintClaim() {
-    claimButtons().forEach(function (b) {
-      if (!b.querySelector('.blutest-label')) {
-        var text = b.textContent; b.textContent = '';
-        var m = el('span', 'blutest-mark'); m.setAttribute('aria-hidden', 'true');
-        var lab = el('span', 'blutest-label'); lab.textContent = text;
-        b.appendChild(m); b.appendChild(lab);
-      }
-      b.classList.toggle('is-busy', claimState === 'busy');
-      b.classList.toggle('is-ok', claimState === 'ok');
-      b.classList.toggle('is-bad', claimState === 'bad');
-      var rich = !!W.pubkey && holdsEnough() && claimState === 'idle';
-      var waiting = !!W.pubkey && tokenBal == null && claimState === 'idle' && livePlay();
-      b.disabled = claimState === 'busy' || rich || waiting;
-      b.setAttribute('aria-busy', claimState === 'busy' ? 'true' : 'false');
-      if (claimState === 'busy') claimLabel(b, 'Sending ' + payWord() + '…');
-      else if (claimState === 'ok') claimLabel(b, '100,000 ' + payWord() + ' sent');
-      else if (claimState === 'bad') claimLabel(b, claimMsg || 'Claim failed');
-      else if (waiting) claimLabel(b, 'Checking ' + payWord() + '…');
-      else if (rich) claimLabel(b, 'You already have 10,000+ ' + payWord());
-      else claimLabel(b, (W.pubkey ? 'Get 100,000 ' : 'Connect wallet to get 100,000 ') + payWord());
-    });
-  }
-  function claimTest() {
-    if (!W.pubkey) return H.toast('Connect your wallet first');
-    if (claimState === 'busy' || holdsEnough()) return;
-    claimState = 'busy'; clearTimeout(claimTimer); paintClaim();
-    fetch('/api/blup3ts-claim', { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify({ wallet: W.pubkey }), cache: 'no-store' })
-      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, j: j }; }); })
-      .then(function (x) {
-        claimState = x.ok ? 'ok' : 'bad';
-        claimMsg = x.ok ? '' : ((x.j && x.j.message) || 'Claim failed');
-        paintClaim(); if (x.ok) readBal();
-      })
-      .catch(function () { claimState = 'bad'; claimMsg = 'Claim failed'; paintClaim(); })
-      .then(function () { claimTimer = setTimeout(function () { claimState = 'idle'; paintClaim(); }, 5000); });
-  }
+  function paintClaim() {}
+  function claimTest() {}
   function feedCost(f) { return SOL && f ? SOL.realTierCost(C, f.id) : (f ? f.cost : 0); }
   function feedLocked(f) {
     if (!W.pubkey) return false;
@@ -522,44 +476,42 @@
   }
   function payFeed(pd, f) {
     if (!W.pubkey) return onConnectClick();
-    if (!realOn()) return H.toast('Test token feeding is not ready.');
-    if (!isKey(pd && pd.mint)) return H.toast('Pick one of your own pets to feed with ' + payWord() + '.');
-    if (tokenBal == null) return H.toast('Checking your ' + payWord() + ' balance…');
-    if (tokenBal < feedCost(f)) return H.toast('Not enough ' + payWord() + '.');
+    if (!realOn()) return H.toast('Wallet feeding is not ready.');
+    if (!isKey(pd && pd.mint)) return H.toast('Pick one of your own pets to feed with $BLUNANA.');
+    if (tokenBal == null) return H.toast('Checking your $BLUNANA balance…');
+    if (tokenBal < feedCost(f)) return H.toast('Not enough $BLUNANA.');
     confirmFeed(pd, f);
   }
   function feedNote() {
     var box = el('div', 'realfeed'), word = payWord(), line = el('p', 'rfnote');
     if (!W.pubkey) line.textContent = 'Connect your wallet. Each feed sends ' + word + ' and your wallet asks you to approve.';
     else if (!isKey(A.petDef().mint)) line.textContent = 'Pick one of your own pets. Feeding sends ' + word + ' from your wallet.';
-    else line.textContent = word + ' balance: ' + (tokenBal == null ? '…' : A.fmt(tokenBal)) + '. A feed opens your wallet.' + (usingTest() ? ' It is not $BLUNANA.' : ' It goes to the community wallet.');
+    else line.textContent = word + ' balance: ' + (tokenBal == null ? '…' : A.fmt(tokenBal)) + '. A feed opens your wallet. It goes to the community wallet.';
     box.appendChild(line);
-    if (usingTest()) {
-      var claim = el('button', 'food'); claim.setAttribute('data-blutest-claim', '1');
-      claim.onclick = function () { A.play('tap'); if (claim.disabled) return; if (!W.pubkey) onConnectClick(); else claimTest(); };
-      box.appendChild(claim);
-    }
     return box;
   }
   function realFeedSection(pd, foods) {
     if (!payOn()) return document.createDocumentFragment(); // M13: real payments are fully hidden from players while REAL_PAYMENTS_ENABLED is false
     var box = el('div', 'realfeed'), word = payWord();
-    box.appendChild(el('div', 'rfhead', usingTest() ? 'Test token · ' + word : 'Real $BLUNANA'));
-    if (usingTest()) { var claim = el('button', 'food'); claim.setAttribute('data-blutest-claim', '1'); claim.onclick = function () { A.play('tap'); if (claimState === 'busy') return; if (!W.pubkey) onConnectClick(); else claimTest(); }; box.appendChild(claim); paintClaim(); }
+    box.appendChild(el('div', 'rfhead', 'Real $BLUNANA'));
     if (!realOn()) { var b = el('button', 'food rfoff', '🍌 Real feeding coming soon'); b.disabled = true; box.appendChild(b); box.appendChild(el('p', 'rfnote', 'Pretend feeding works now.')); return box; }
     if (!W.pubkey || !pd.owned) { box.appendChild(el('p', 'rfnote', W.pubkey ? 'Pick one of your own pets to feed it ' + word + '.' : 'Connect your wallet to feed with ' + word + '.')); return box; }
-    box.appendChild(el('p', 'rfnote', usingTest() ? word + ' is a test token. It is not $BLUNANA and has no value. A feed sends it to the test reserve.' : 'Feeding sends real $BLUNANA to the community wallet. It goes back into pets, styles, features and events.'));
+    box.appendChild(el('p', 'rfnote', 'Feeding sends real $BLUNANA to the community wallet. It goes back into pets, styles, features and events.'));
     foods.forEach(function (f) { var b = el('button', 'food rf', f.tier + ' · ' + A.fmt(SOL.realTierCost(C, f.id)) + ' ' + word); if (f.trial) b.appendChild(el('i', 'tryit', 'Try it')); b.onclick = function () { confirmFeed(pd, f); }; box.appendChild(b); });
     return box;
   }
   function confirmFeed(pd, f) {
     A.hideOverlays();
-    var go = el('button', 'sbtn primary', 'Continue in wallet'), no = el('button', 'sbtn', 'Cancel'), word = payWord(), amt = A.fmt(SOL.realTierCost(C, f.id));
+    var go = el('button', 'sbtn primary', 'Continue in wallet'), no = el('button', 'sbtn', 'Cancel'), amt = A.fmt(SOL.realTierCost(C, f.id));
     no.onclick = H.closeSheet; go.onclick = function () { go.disabled = true; H.closeSheet(); sendFeed(pd, f); };
-    var lines = usingTest()
-      ? [H.p('This sends ' + amt + ' ' + word + ' to the test reserve. Your wallet will ask you to approve.'), H.p(word + ' is not $BLUNANA. It was made for this preview and has no value.'), H.p('Solana also charges a tiny network fee in SOL.'), go, no]
-      : [H.p('Feeding costs ' + amt + ' $BLUNANA. It goes to the MNK3YLabs community wallet.'), H.p('Every $BLUNANA spent in BLUP3TS goes back into the project: new pets, styles, features and community events.'), H.p('Your wallet will show the same amount before you approve. Solana also charges a tiny network fee in SOL.'), el('p', 'muted', 'This is just a game for fun.'), go, no];
-    H.openSheet(f.tier + ' for ' + pd.name, lines);
+    H.openSheet(f.tier + ' for ' + pd.name, [
+      H.p('Feeding costs ' + amt + ' $BLUNANA. It goes to the MNK3YLabs community wallet.'),
+      H.p('Every $BLUNANA spent in BLUP3TS goes back into the project: new pets, styles, features and community events.'),
+      H.p('Your wallet will show the same amount before you approve. Solana also charges a tiny network fee in SOL.'),
+      el('p', 'muted', 'This is just a game for fun.'),
+      go,
+      no
+    ]);
   }
   function stdAccount() {
     var list = (W.std && W.std.accounts) || [], hit = null;
@@ -586,13 +538,13 @@
     throw new Error('wallet can\'t send');
   }
   function noteFeed(pd, f, sig) {
-    var LA = window.BLUP3TS_LBAUTH, rec = { sig: sig, wallet: W.pubkey, petId: pd.id, tier: f.id, token: usingTest() ? 'test' : 'blunana', name: pd.name, collection: pd.collection, number: pd.number };
+    var LA = window.BLUP3TS_LBAUTH, rec = { sig: sig, wallet: W.pubkey, petId: pd.id, tier: f.id, token: 'blunana', name: pd.name, collection: pd.collection, number: pd.number };
     if (LA && LA.enabled) { LA.noteFeed(rec); return; } // ranks security ON: the tx signature is checked on chain by the server before it counts
     fetch('/api/blup3ts-feeds', {
       method: 'POST',
       headers: { 'content-type': 'application/json', accept: 'application/json' },
       body: JSON.stringify({
-        wallet: W.pubkey, petId: pd.id, tier: f.id, token: usingTest() ? 'test' : 'blunana',
+        wallet: W.pubkey, petId: pd.id, tier: f.id, token: 'blunana',
         name: pd.name, collection: pd.collection, number: pd.number, signature: sig
       }),
       keepalive: true, cache: 'no-store'
@@ -635,7 +587,7 @@
   // ---------- cNFT burn for a game boost (OFF) ----------
   function renderBoostBtn() {
     var b = $('boostBtn'); if (!b) return;
-    var on = A.state().mode === 'wallet' && payOn() && C.TEST_PLAY !== true; b.hidden = !on; if (!on) return; // test-token play does not offer the cNFT burn
+    var on = A.state().mode === 'wallet' && payOn(); b.hidden = !on; if (!on) return;
     var why = BOOST && payOn() ? BOOST.blockReason(A.petDef().id, null) : 'Coming soon';
     b.disabled = !!why || !W.pubkey; b.setAttribute('aria-disabled', b.disabled ? 'true' : 'false');
     b.textContent = '✨ Burn cNFT for a boost' + (why ? ' · ' + why : !W.pubkey ? ' · connect first' : '');
@@ -688,7 +640,6 @@
       }).catch(function (e) { H.toast(rejected(e) ? 'Cancelled. Nothing was burned.' : 'Boost didn\'t go through: ' + txt(e && e.message, 60)); return false; });
   }
   if ($('boostBtn')) $('boostBtn').onclick = function () { if (!this.disabled) openBoost(); };
-  if ($('blutestClaim')) $('blutestClaim').onclick = function () { A.play('tap'); if (claimState === 'busy') return; if (!W.pubkey) onConnectClick(); else claimTest(); };
   syncClaim();
 
   // ---------- FACE UNLOCKS (preview): the feed payment path (payCfg -> same reserve + mint, same 2-3 instructions,
@@ -702,11 +653,11 @@
   function faceUnits(amt) { return BigInt(amt) * BigInt(10) ** BigInt(6); }
   // ---------- FACE SOL FEE (preview, Azgog Nov 2 2026 1:37/1:38 AM AT): same small SOL fee as feeds (0.05 USD worth of SOL, set on the server).
   // The SERVER turns USD into lamports from the live SOL price (FACE_SOL_FEE_QUOTE_ENDPOINT). The client never works out a price:
-  // it only uses the lamports the server gives, inside a sanity range. REAL $BLUNANA unlocks only (BLUTEST: no SOL fee).
+  // it only uses the lamports the server gives, inside a sanity range. Real $BLUNANA unlocks only.
   // FAIL CLOSED: no quote (no endpoint, price unavailable, bad or expired answer) = the paid unlock is blocked and no tx is sent.
   // Switch: FACE_SOL_FEE_ENABLED. Recipient: SOL_FEE_RECIPIENT, the community wallet (Azgog, Nov 2 2:31 AM AT), also planned for the feed SOL fee.
   function feeRecipient() { var r = C.SOL_FEE_RECIPIENT; return isKey(r) ? r : null; }
-  function faceFeeOn() { return C.FACE_SOL_FEE_ENABLED === true && !usingTest(); } // Nov 3: paid $BLUNANA face unlocks KEEP the 5-cent SOL fee (the no-SOL-fee rule is for the new Store items only) // real $BLUNANA only. On + no recipient/quote = blocked, never free
+  function faceFeeOn() { return C.FACE_SOL_FEE_ENABLED === true; } // Nov 3: paid $BLUNANA face unlocks KEEP the 5-cent SOL fee (the no-SOL-fee rule is for the new Store items only)
   function goodQuote(q) {
     var lo = C.SOL_FEE_MIN_LAMPORTS || 1000, hi = C.SOL_FEE_MAX_LAMPORTS || 5000000;
     return !!q && Number.isInteger(q.lamports) && q.lamports >= lo && q.lamports <= hi && q.recipient === feeRecipient() && (!q.expiresAt || Date.parse(q.expiresAt) > Date.now());
@@ -750,7 +701,7 @@
     if (!usingTest() && (cfg.RESERVE_WALLET !== C.BLUNANA_RESERVE_WALLET || cfg.BLUNANA_MINT !== C.REAL_BLUNANA_MINT)) bad('real reserve');
     if (!tx.feePayer || !tx.feePayer.equals(owner)) bad('fee payer'); var hasFee = !!o.fee, nIx = 2 + (hasFee ? 1 : 0); if (R.length !== nIx && R.length !== nIx + 1) bad('instruction count');
     if (hasFee && !goodQuote(o.fee)) bad('fee quote');
-    if (hasFee && usingTest()) bad('no SOL fee on test token'); if (!hasFee && faceFeeOn()) bad('fee missing'); // real $BLUNANA + switch on = fee required
+    if (!hasFee && faceFeeOn()) bad('fee missing'); // real $BLUNANA + switch on = fee required
     if (R.length === nIx + 1) { var a = R[0]; if (!a.programId.equals(new P(ATA_PROG)) || a.data.length !== 1 || a.data[0] !== 1) bad('ata ix'); if (!a.keys[1].pubkey.equals(to) || !a.keys[2].pubkey.equals(res) || !a.keys[3].pubkey.equals(mint)) bad('ata accounts'); k0 = 1; }
     var t = R[k0], dd = t.data, n = BigInt(0); if (!t.programId.equals(new P(TOKEN_PROG))) bad('token program'); if (dd.length !== 10 || dd[0] !== 12) bad('not TransferChecked');
     for (var i = 8; i >= 1; i--) n = (n << BigInt(8)) | BigInt(dd[i]); if (n !== units) bad('amount'); if (dd[9] !== 6) bad('decimals');
@@ -781,7 +732,7 @@
       H.toast('Waiting for Solana…'); return confirm(sig);
     }).then(function () {
       if (W.pubkey !== payer) return false; readBal();
-      return { sig: sig, wallet: payer, token: usingTest() ? 'test' : 'blunana', amount: amt, memo: faceMemo(id), feeLamports: o.fee ? o.fee.lamports : 0, quoteId: o.fee ? o.fee.quoteId : null };
+      return { sig: sig, wallet: payer, token: 'blunana', amount: amt, memo: faceMemo(id), feeLamports: o.fee ? o.fee.lamports : 0, quoteId: o.fee ? o.fee.quoteId : null };
     }).catch(function (e) { H.toast(rejected(e) ? 'Cancelled. Nothing was sent.' : 'The unlock didn\'t go through: ' + txt(e && e.message, 60)); return false; });
   }
   window.BLUP3TS_WALLET = { addOwnInfo: addOwnInfo, addOwnTap: addOwnTap, afterWalletMode: afterWalletMode, modeNote: modeNote, renderConnect: renderConnect, onMode: onMode, onConnectClick: onConnectClick, carouselExtra: carouselExtra,

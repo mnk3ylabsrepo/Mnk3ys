@@ -44,7 +44,7 @@ async function main() {
     mint = created.toBase58();
     if (mint === REAL) throw new Error('refusing to use the real BLUNANA mint');
     fs.writeFileSync(recordPath, JSON.stringify({
-      symbol: 'BLUTEST',
+      symbol: 'TEST',
       name: 'BLUP3TS Test',
       decimals: 6,
       mint,
@@ -64,7 +64,7 @@ async function main() {
   if (src.includes(REAL) && src.indexOf("BLUNANA_MINT: '" + mint + "'") < 0) throw new Error('mint was not switched');
   if ((src.match(new RegExp(REAL, 'g')) || []).length !== 1) throw new Error('real mint should remain only as REAL_BLUNANA_MINT');
   fs.writeFileSync(configPath, src);
-  console.log(JSON.stringify({ symbol: 'BLUTEST', mint, reserve, payments: true }));
+  console.log(JSON.stringify({ symbol: 'TEST', mint, reserve, payments: true }));
 }
 
 main().catch((e) => { console.error(e.message || e); process.exit(1); });

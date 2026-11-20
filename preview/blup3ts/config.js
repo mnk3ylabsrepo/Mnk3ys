@@ -19,23 +19,23 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   FLOOR_ENDPOINT: '/api/blup3ts-floor',
   // Same-origin proxy. The Helius key stays on the server. Absolute, because the Solana client rejects a relative URL.
   RPC_URL: (typeof location === 'undefined' ? 'https://www.mnk3ylabs.com' : location.origin) + '/api/blup3ts-rpc',
-  // Preview live play uses this test token, never the real $BLUNANA mint below, once TEST_PLAY is on.
-  TEST_PLAY: true,
-  TEST_TOKEN_SYMBOL: 'BLUTEST',
-  TEST_TOKEN_NAME: 'BLUP3TS Test',
+  // Test-token play is retired. Wallet mode is real $BLUNANA only; Pretend stays free play money.
+  TEST_PLAY: false,
+  TEST_TOKEN_SYMBOL: '',
+  TEST_TOKEN_NAME: '',
 
   // 'mainnet-readonly' = look up pets only. Real feeding needs BOTH a reserve wallet below AND this
   // set to exactly 'mainnet-live'.
   NETWORK: 'mainnet-live',
 
-  // Legacy BLUTEST reserve (unused while TEST_PLAY is false).
+  // Legacy test reserve (unused while TEST_PLAY is false).
   RESERVE_WALLET: '5eZ3Qt1jKCGdXkCES791W68T87bGG62j9ZHcmBaMUtTP',
   // Real $BLUNANA community wallet. The top ticker reads its balance. Wallet-mode feeds are sent here.
   BLUNANA_RESERVE_WALLET: 'B3HziYmuE9Wx42FULYZLTBRNg5WNBj6UH32Vb5kfacBN',
 
   // $BLUNANA (pinned). Classic SPL token, 6 decimals. Pretend mode never touches this mint.
   REAL_BLUNANA_MINT: 'C9vfeaCLhJy7sykgKnfzi6RikawQNoGtRKwsaupKavmV',
-  BLUNANA_MINT: '2arvp34u8Fzcq6UBRqq5dmWuMncwJ9pggMKUwZbRoGPv',
+  BLUNANA_MINT: 'C9vfeaCLhJy7sykgKnfzi6RikawQNoGtRKwsaupKavmV',
   BLUNANA_DECIMALS: 6,
 
   // Playable NFT collections. standard: 'core' (Metaplex Core: membership = update authority Collection(addr))
@@ -137,8 +137,7 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   // Optional 'sign a message' proof. OFF for launch: P1 never asks the wallet to sign anything.
   SIGN_IN_ENABLED: false,
 
-  // ON: Wallet mode feeds for real. The BLUTEST/BLUNANA switch picks the token: BLUTEST goes to RESERVE_WALLET,
-  // real $BLUNANA goes to BLUNANA_RESERVE_WALLET.
+  // ON: Wallet mode feeds real $BLUNANA to BLUNANA_RESERVE_WALLET.
   REAL_PAYMENTS_ENABLED: true,
   // Go-live: SOL_FEE_ENABLED turns on the UI "+ SOL fee" tag and the feed fine print only.
   // NO SOL transfer is added to feed txs, and there is no feed quote endpoint yet.
@@ -249,9 +248,9 @@ window.BLUP3TS_CONFIG = (function deepFreeze(o) { Object.keys(o).forEach(functio
   FACE_FREE_FROM: { f_christmas: '2026-12-01T04:00:00Z' },
   FACE_UNLOCK_ENDPOINT: '',
   // Face SOL fee (PREVIEW, Azgog Nov 2 2026 1:37/1:38 AM AT): the same small SOL fee as feeds, 0.05 USD worth of SOL per face unlock.
-  // Real $BLUNANA unlocks only (no SOL fee on BLUTEST). Its own switch.
+  // Real $BLUNANA unlocks. Its own switch.
   // ON HOLD (build Nov 2 2026): OFF until the dev's quote endpoint exists. While it is OFF, real $BLUNANA face unlocks are
-  // paused too (never charged without the fee Azgog approved). BLUTEST unlocks work. Turn ON together with FACE_SOL_FEE_QUOTE_ENDPOINT.
+  // paused too (never charged without the fee Azgog approved). Turn ON together with FACE_SOL_FEE_QUOTE_ENDPOINT.
   // The dev's server turns USD into lamports from the live SOL price and answers FACE_SOL_FEE_QUOTE_ENDPOINT (see API_FACES.md).
   // FAIL CLOSED: empty endpoint or no price = the paid unlock is blocked ('Price unavailable, try again shortly'), no tx is sent.
   // SOL_FEE_RECIPIENT: the community wallet (Azgog, Nov 2 2026 2:31 AM AT), also planned for the feed SOL fee. MIN/MAX: client sanity range in lamports.

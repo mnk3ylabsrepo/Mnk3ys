@@ -44,7 +44,7 @@
   // ---- who is connected ----
   function owner() { var a = A(), w = WL(); if (!a || a.state().mode !== 'wallet' || !w) return null; return (w.state() || {}).pubkey || null; }
   function realToken() { var w = WL(); return !!(w && w.playToken && w.playToken() === 'blunana'); }
-  function good(r, pl) { return r && pl && r.faceId === pl.face && Number(r.rank) === pl.rank && r.token === 'blunana'; } // BLUTEST never wins
+  function good(r, pl) { return r && pl && r.faceId === pl.face && Number(r.rank) === pl.rank && r.token === 'blunana'; }
   function isWinner(id) {
     var o = owner(), pl = place(id); if (!ON || !o || !pl || rewards.wallet !== o) return false;
     return rewards.list.some(function (r) { return good(r, pl); });
@@ -91,12 +91,12 @@
     var w = wins();
     box.appendChild(el('p', 'lbrstate ' + (w.length ? 'won' : 'lock'), w.length ? '🎉 ' + w.map(function (r) { return 'You were ' + place(r.faceId).label + ' in ' + monthName(r.month); }).join('. ') + '! Your winner face and item are unlocked.' : 'Only the top 3 players of the month get these. They can\'t be bought.'));
     box.appendChild(el('p', 'lbrfine', 'At the end of each month (Atlantic time) the board is saved, the top 3 players get their rewards, and a fresh month starts. The first winners are picked on ' + endLabel(midnight(+f[0], +f[1])) + '.'));
-    box.appendChild(el('p', 'lbrfine', 'Only real $BLUNANA feeds from a proved wallet count. Pretend play and BLUTEST test feeds are not counted.'));
+    box.appendChild(el('p', 'lbrfine', 'Only real $BLUNANA feeds from a proved wallet count. Pretend play does not count.'));
     if (ep('LB_AUTH_ENDPOINT')) {
       if (!o) { var c = el('button', 'sbtn', 'Connect a wallet to join'); c.dataset.lbr = 'connect'; c.onclick = function () { A().play('tap'); var w = WL(); if (w && w.onConnectClick) w.onConnectClick(); }; box.appendChild(c); }
       else if (proved()) box.appendChild(el('p', 'lbrstate won', '✔ Wallet proved'));
       else { var b = el('button', 'sbtn primary', '✍️ Prove my wallet'); b.dataset.lbr = 'prove'; b.disabled = (LA() && LA().busy()) || !canSign(); b.onclick = function () { A().play('tap'); askProve(); }; box.appendChild(b); }
-      if (o && !realToken()) box.appendChild(el('p', 'lbrfine', 'You are on BLUTEST right now. Switch to $BLUNANA for your feeds to count.'));
+      if (o && !realToken()) box.appendChild(el('p', 'lbrfine', 'Switch to Wallet mode and feed with $BLUNANA for your feeds to count.'));
     }
   }
   function card() {

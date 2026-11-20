@@ -173,18 +173,10 @@ main { display:flex; flex-direction:column; align-items:center; width:100%; }
 /* overlays */
 .overlay { position:absolute; inset:0; background:#000; z-index:20; display:none; flex-direction:column; padding:76px 26px 30px; }
 #ov-feed { overflow-y:auto; }
-#blutestClaim[hidden], .blutest-bal[hidden] { display:none; }
-.blutest-bal { margin:8px 16px 0; text-align:center; font-size:15px; font-weight:800; color:#b8ffe4; }
+#walletBal[hidden] { display:none; }
+.wallet-bal { margin:8px 16px 0; text-align:center; font-size:15px; font-weight:800; color:#b8ffe4; }
 .reservebal { margin:8px 16px 0; text-align:center; font-size:15px; font-weight:800; color:var(--gold); }
 .reservebal[hidden] { display:none; }
-.blutest-claim { margin:10px auto 0; max-width:440px; height:52px; font-size:18px; }
-#blutestClaim:disabled, .food[data-blutest-claim]:disabled { opacity:.55; cursor:default; }
-.blutest-mark { display:none; width:28px; height:28px; border-radius:50%; align-items:center; justify-content:center; font-size:18px; font-weight:900; flex:none; }
-.is-ok .blutest-mark, .is-bad .blutest-mark { display:flex; background:#fff; }
-.is-ok .blutest-mark::before { content:'✓'; color:#148a45; }
-.is-bad .blutest-mark::before { content:'✗'; color:#a12330; }
-#blutestClaim.is-ok, .food[data-blutest-claim].is-ok { background:#148a45; color:#fff; }
-#blutestClaim.is-bad, .food[data-blutest-claim].is-bad { background:#a12330; color:#fff; }
 .overlay.show { display:flex; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .ovhdr { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
 .close { background:var(--card2); border-radius:16px; padding:4px 14px; font-size:16px; font-weight:900; }
@@ -974,11 +966,10 @@ body.desk .moderow, body.desk .toolrow, body.desk .homestack > .hb, body.desk .h
 body.desk .playbtn { margin:0; height:44px; width:100%; align-self:stretch; }
 body.desk .hb { min-height:40px; padding:8px 14px; }
 body.desk .discordrow, body.desk .toksw { height:36px; min-height:36px; }
-body.desk #discordBtn, body.desk #connectBtn, body.desk .blutest-claim, body.desk .looksrow { align-self:stretch; width:100%; max-width:none; margin:0; }
+body.desk #discordBtn, body.desk #connectBtn, body.desk .looksrow { align-self:stretch; width:100%; max-width:none; margin:0; }
 body.desk .modeseg { padding:3px; }
 body.desk .modeseg button { min-height:32px; padding:4px 12px; }
-body.desk .blutest-claim { height:44px; }
-body.desk .blutest-bal, body.desk .modenote, body.desk .carstatus { margin:0; align-self:stretch; }
+body.desk .wallet-bal, body.desk .modenote, body.desk .carstatus { margin:0; align-self:stretch; }
 body.desk a.wm2.wmlink { min-height:24px; margin:0; }
 body.desk .looksrow { padding:6px 12px; }
 body.desk .looksrow .lk { font-size:22px; }
@@ -1029,7 +1020,6 @@ body.desk .nftsview.on { flex:1 1 auto; min-height:0; width:100%; max-width:1280
   body.desk .discordrow, body.desk .toksw { height:36px; min-height:36px; }
   body.desk .hb { min-height:36px; }
   body.desk .looksrow { padding:6px 10px; }
-  body.desk .blutest-claim { height:40px; }
 }
 .srtxt { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; } /* spoken only: what a stat tile does */
 .dots { pointer-events:none; } .dots button { pointer-events:auto; } /* only the dot buttons take taps, never the empty column box (320px: LEVEL tile under it) */
