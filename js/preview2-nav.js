@@ -31,7 +31,7 @@
     { id: 'utility', label: 'UT1L1TY' },
     { id: 'poker', label: 'POK3R' },
     { id: 'b3bs', label: 'B3BS' },
-    { id: 'services', label: 'S3RV1CES' },
+    { id: 'services', label: 'S3RV1C3S' },
     { id: 'partners', label: 'PARTN3RS' }
   ].filter(function (p) {
     var el = document.getElementById(p.id);
