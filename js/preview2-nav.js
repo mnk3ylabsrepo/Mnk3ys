@@ -27,12 +27,12 @@
     { id: 'zmb3ys', label: 'ZMB3YS' },
     { id: 'blunana', label: '$BLUNANA' },
     { id: 'games', label: 'GAM3S' },
-    { id: 'lp', label: 'LP' },
-    { id: 'utility', label: 'Utility' },
-    { id: 'poker', label: 'Poker' },
+    { id: 'lp', label: 'L1QU1D1TY' },
+    { id: 'utility', label: 'UT1L1TY' },
+    { id: 'poker', label: 'POK3R' },
     { id: 'b3bs', label: 'B3BS' },
     { id: 'services', label: 'S3RV1CES' },
-    { id: 'partners', label: 'Partners' }
+    { id: 'partners', label: 'PARTN3RS' }
   ].filter(function (p) {
     var el = document.getElementById(p.id);
     return el && !el.hasAttribute('hidden');
