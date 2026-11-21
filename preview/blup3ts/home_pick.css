@@ -1,5 +1,5 @@
-/* Home: NFT strip sits above Play, pick-first gate.
-   Live Home look and live card size (150px thumbs) are kept. */
+/* Home: NFT strip sits above Play on mobile; pick-first gate.
+   Desktop keeps the pairs-style two-column layout (controls left, pets right). */
 
 .playbtn.needpick,
 .playbtn:disabled {
@@ -39,46 +39,69 @@
   margin: 4px auto 0;
 }
 
-/* Desktop: header, then full-width NFT grid above Play (not a right-only column). */
+/* Desktop: same kind of layout as BLUPA1RS — left controls, right pet grid */
 body.desk .homeview.home-pick.on {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  column-gap: 36px;
+  align-items: stretch;
   overflow: hidden;
   max-width: 1280px;
-  padding: 0 16px 8px 0;
+  padding: 0;
 }
 body.desk .home-pick .leftcol {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  width: 100%;
-  max-width: none;
-  height: auto;
-  flex: 1 1 auto;
-  min-height: 0;
-  padding-left: 52px;
-  padding-right: 8px;
-  overflow: hidden;
-  gap: 10px;
-  grid-column: auto;
-  grid-row: auto;
+  display: contents;
 }
-body.desk .home-pick .hhead { flex: none; }
-body.desk .home-pick .carwrap {
-  grid-column: auto;
-  grid-row: auto;
-  position: relative;
-  width: 100%;
-  margin: 0;
-  flex: 0 1 auto;
-  max-height: min(380px, 38vh);
+body.desk .home-pick .hhead {
+  grid-column: 1;
+  grid-row: 1;
+  flex: none;
   align-self: stretch;
+  padding-left: 52px;
 }
 body.desk .home-pick .homestack {
+  grid-column: 1;
+  grid-row: 2;
   flex: 1 1 auto;
   min-height: 0;
+  width: auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 10px;
+  overflow-x: hidden;
   overflow-y: auto;
-  justify-content: flex-start;
-  gap: 8px;
+  padding: 0 0 0 52px;
 }
-body.desk .home-pick .playbtn { margin-top: 4px; }
+body.desk .home-pick .carwrap {
+  grid-column: 2;
+  grid-row: 1 / -1;
+  margin: 0;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 0;
+  max-height: none;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 16, 26, .82);
+  border: 1px solid #2c3a52;
+  border-radius: 28px;
+  padding: 16px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .28);
+}
+body.desk .home-pick .playbtn { margin-top: 0; }
+
+@media (max-width: 1099px) {
+  body.desk .homeview.home-pick.on {
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    column-gap: 16px;
+  }
+  body.desk .home-pick .hhead,
+  body.desk .home-pick .homestack {
+    padding-left: 48px;
+  }
+}

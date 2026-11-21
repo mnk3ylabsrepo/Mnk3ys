@@ -210,16 +210,18 @@ body.desk .face b { font-size:clamp(10px, 1.1vw, 14px); }
   color: #fff;
 }
 @keyframes g-rotate-spin { to { transform: rotate(360deg); } }
-@media (orientation: landscape) and (max-height: 500px) {
-  .g-rotate { display: flex; }
-  .g-rotate[hidden] { display: flex; }
-  html, body {
+/* Phones only — never cover desk/tablet layouts */
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 900px) {
+  html:not(.desk) .g-rotate { display: flex; }
+  html:not(.desk) .g-rotate[hidden] { display: flex; }
+  html:not(.desk),
+  html:not(.desk) body {
     overflow: hidden !important;
     height: 100%;
     overscroll-behavior: none;
     touch-action: none;
   }
-  body > :not(.g-rotate) {
+  html:not(.desk) body > :not(.g-rotate) {
     visibility: hidden !important;
     pointer-events: none !important;
   }

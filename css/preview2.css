@@ -2708,8 +2708,8 @@ a.p2-partner:focus-visible {
   to { transform: rotate(360deg); }
 }
 
-/* Phones in landscape are short; tablets/iPads keep enough height to browse */
-@media (orientation: landscape) and (max-height: 500px) {
+/* Phones in landscape are short; tablets/iPads/desktop stay free */
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 900px) {
   .p2-rotate {
     display: flex;
   }
