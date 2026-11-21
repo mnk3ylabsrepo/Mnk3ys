@@ -2669,33 +2669,46 @@ a.p2-partner:focus-visible {
   position: fixed;
   inset: 0;
   z-index: 10000;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.25rem;
   padding: max(1rem, env(safe-area-inset-top, 0px)) max(1.25rem, env(safe-area-inset-right, 0px)) max(1rem, env(safe-area-inset-bottom, 0px)) max(1.25rem, env(safe-area-inset-left, 0px));
   background: #000;
   text-align: center;
   box-sizing: border-box;
 }
 
-.p2-rotate__logo {
-  width: min(42vh, 46vw, 220px);
+.p2-rotate__stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(88vh, 78vw, 520px);
   aspect-ratio: 1;
+}
+
+.p2-rotate__logo {
+  position: absolute;
+  inset: 0;
   background: url('/assets/preview2/home-landscape.jpg') center / contain no-repeat;
   animation: p2-hero-pulse 4.5s ease-in-out infinite alternate;
-  flex: 0 0 auto;
 }
 
 .p2-rotate__msg {
+  position: relative;
+  z-index: 1;
   margin: 0;
-  max-width: 28ch;
+  max-width: 16ch;
+  padding: 0 0.5rem;
   font-family: var(--p2-display);
-  font-weight: 700;
-  font-size: clamp(0.95rem, 3.6vw, 1.25rem);
+  font-weight: 800;
+  font-size: clamp(1.05rem, 4.2vw, 1.55rem);
+  line-height: 1.2;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--p2-white);
+  color: #fff;
+  text-shadow:
+    0 0 10px #000,
+    0 0 22px #000,
+    0 2px 4px #000;
 }
 
 /* Phones in landscape are short; tablets/iPads keep enough height to browse */

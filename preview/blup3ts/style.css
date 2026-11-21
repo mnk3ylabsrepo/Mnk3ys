@@ -1331,3 +1331,67 @@ body.desk .leftcol .looks3 { align-self:stretch; }
 
 /* Duo Portrait: the pet frame stays centred in the 396-wide screen ((396 - 312) / 2 = 42). Size unchanged. Do not use transform (bob animation). */
 .gameview.full.fold-v #petWrap, .gameview.full.fold-v .petwrap { left:42px; width:312px; height:312px; }
+
+/* Phone landscape: portrait-only gate (tablets/iPads stay free) */
+.g-rotate {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  padding: max(1rem, env(safe-area-inset-top, 0px)) max(1.25rem, env(safe-area-inset-right, 0px)) max(1rem, env(safe-area-inset-bottom, 0px)) max(1.25rem, env(safe-area-inset-left, 0px));
+  background: radial-gradient(circle at 30% 10%, #12305a 0, #070b18 55%, #03040a 100%);
+  text-align: center;
+  box-sizing: border-box;
+}
+.g-rotate__stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(88vh, 78vw, 520px);
+  aspect-ratio: 1;
+}
+.g-rotate__logo {
+  position: absolute;
+  inset: 8%;
+  background: url('assets/blup3ts_wordmark.png') center / contain no-repeat;
+  filter: drop-shadow(0 0 22px rgba(72, 216, 252, 0.45));
+  animation: g-rotate-pulse 4.5s ease-in-out infinite alternate;
+}
+.g-rotate__msg {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  max-width: 16ch;
+  padding: 0 0.5rem;
+  font-family: Nun, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-weight: 1000;
+  font-size: clamp(1.05rem, 4.2vw, 1.55rem);
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 0 10px #000, 0 0 22px #03040a, 0 0 18px rgba(72, 216, 252, 0.35);
+}
+@keyframes g-rotate-pulse {
+  from { opacity: 0.2; }
+  to { opacity: 1; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .g-rotate { display: flex; }
+  .g-rotate[hidden] { display: flex; }
+  html, body {
+    overflow: hidden !important;
+    height: 100%;
+    overscroll-behavior: none;
+    touch-action: none;
+  }
+  body > :not(.g-rotate) {
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-rotate__logo { animation: none; opacity: 1; }
+}
