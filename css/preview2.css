@@ -2663,8 +2663,72 @@ a.p2-partner:focus-visible {
   }
 }
 
+/* ——— Phone landscape: portrait-only gate (tablets/iPads stay free) ——— */
+.p2-rotate {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: max(1rem, env(safe-area-inset-top, 0px)) max(1.25rem, env(safe-area-inset-right, 0px)) max(1rem, env(safe-area-inset-bottom, 0px)) max(1.25rem, env(safe-area-inset-left, 0px));
+  background: #000;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.p2-rotate__logo {
+  width: min(42vh, 46vw, 220px);
+  aspect-ratio: 1;
+  background: url('/assets/preview2/home-landscape.jpg') center / contain no-repeat;
+  animation: p2-hero-pulse 4.5s ease-in-out infinite alternate;
+  flex: 0 0 auto;
+}
+
+.p2-rotate__msg {
+  margin: 0;
+  max-width: 28ch;
+  font-family: var(--p2-display);
+  font-weight: 700;
+  font-size: clamp(0.95rem, 3.6vw, 1.25rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--p2-white);
+}
+
+/* Phones in landscape are short; tablets/iPads keep enough height to browse */
+@media (orientation: landscape) and (max-height: 500px) {
+  .p2-rotate {
+    display: flex;
+  }
+
+  .p2-rotate[hidden] {
+    display: flex;
+  }
+
+  html,
+  body.p2 {
+    overflow: hidden !important;
+    height: 100%;
+    overscroll-behavior: none;
+    touch-action: none;
+  }
+
+  .orbit-nav,
+  .p2-footnav,
+  .p2-swipe-hint,
+  .p2-main,
+  .p2-toast {
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .p2-page__content { opacity: 1; transform: none; transition: none; }
   .p2-page--home::before { animation: none; }
+  .p2-rotate__logo { animation: none; opacity: 1; }
 }
